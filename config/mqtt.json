@@ -1,0 +1,6 @@
+{
+  "mqtt": false,
+  "mqtt_login": "",
+  "mqtt_password": "",
+  "mqtt_address": ""
+}

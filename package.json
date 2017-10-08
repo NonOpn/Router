@@ -1,0 +1,25 @@
+{
+  "name": "snmp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "basic-auth-connect": "^1.0.0",
+    "body-parser": "^1.17.2",
+    "dotenv": "^4.0.0",
+    "express": "^4.15.3",
+    "mongoose": "^4.11.5",
+    "mqtt": "^2.11.0",
+    "mysql": "^2.14.1",
+    "node-enocean": "github:codlab/node-enocean",
+    "setup": "0.0.3",
+    "snmpjs": "git+https://github.com/codlab/node-snmpjs.git",
+    "socket.io": "^2.0.3",
+    "uuid": "^3.1.0"
+  }
+}
