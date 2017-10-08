@@ -109,8 +109,8 @@ Wifi.prototype.startWLAN0 = function(config) {
               console.log(err);
               wpa_cli.enable_network("wlan0", id, (err) => {
                 wpa_cli.select_network("wlan0", id, (err) => {
-                  wpa_cli.save_config('wlan0', (err, data) => {
-                    wpa_supplicant.enable(options, (err) => {
+                  wpa_cli.save_config("wlan0", (err, data) => {
+                    wpa_supplicant.reassociate("wlan0", (err) => {
                       console.log("finished ? ", err);
                       if(!err) {
                         this._mode = WLAN;
