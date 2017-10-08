@@ -3,12 +3,16 @@ var EnoceanLoader = require("./enocean.js");
 var Server = require("./server.js");
 var SNMP = require("./snmp.js");
 var PushWEB = require("./push_web.js");
+var request = require('request');
+var Wifi = require("./wifi.js");
 
 var enocean = new EnoceanLoader();
 var server = new Server(enocean);
 var snmp = new SNMP();
 var push_web = new PushWEB();
+var wifi = new Wifi();
 
+wifi.start();
 server.start();
 snmp.connect();
 push_web.connect();
