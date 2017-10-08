@@ -102,9 +102,9 @@ Wifi.prototype.startWLAN0 = function(config) {
       wpa_cli.add_network("wlan0", (err, id) => {
         console.log(err);
         if(id) {
-          wpa_cli.set_network("wlan0", id, "ssid", options.ssid, (err) => {
+          wpa_cli.set_network("wlan0", id, "ssid", `'"${options.ssid}"'`, (err) => {
             console.log(err);
-            wpa_cli.set_network("wlan0", id, "psk", options.passphrase, (err) => {
+            wpa_cli.set_network("wlan0", id, "psk", `'"${options.passphrase}"'`, (err) => {
               console.log(err);
               wpa_cli.enable_network("wlan0", id, (err) => {
                 wpa_cli.select_network("wlan0", id, (err) => {
