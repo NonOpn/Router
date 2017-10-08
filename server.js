@@ -5,7 +5,7 @@ basicAuth = require("basic-auth-connect"),
 socketio = require("socket.io"),
 app = express(),
 bodyParser = require('body-parser'),
-config = require("./config/visualisation.json"),
+config = require("./config/visualisation.js"),
 setup = require("setup")();
 
 
