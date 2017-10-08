@@ -100,7 +100,7 @@ Wifi.prototype.startWLAN0 = function(config) {
 
 
       wpa_cli.add_network("wlan0", (err, id) => {
-        console.log(err);
+        console.log(id, err);
         if(id) {
           wpa_cli.set_network("wlan0", id, "ssid", `'"${options.ssid}"'`, (err) => {
             console.log(err);
