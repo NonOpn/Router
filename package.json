@@ -18,6 +18,7 @@
     "mqtt": "^2.11.0",
     "mysql": "^2.14.1",
     "node-enocean": "github:codlab/node-enocean",
+    "request": "^2.83.0",
     "setup": "0.0.3",
     "snmpjs": "git+https://github.com/codlab/node-snmpjs.git",
     "socket.io": "^2.0.3",
