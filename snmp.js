@@ -37,11 +37,12 @@ SNMP.prototype.onFrame = function(data) {
 }
 
 SNMP.prototype.applyData = function(data) {
-	if(data) {
+	if(data && data.rawFrameStr) { //for now, using only lpsfr devices
+		//rawFrameStr and rawDataStr are set
 		if(data.rawFrameStr.length === 60) { //30*2
 			const rawdata = data.rawDataStr;
 			const internal = rawdata.substring(0, 6);
-			const callback = () => {
+			const callback = () => { //manage contactair ready v2 if not ffffff
 				this.agents.forEach(agent => {
 					const lpsfr = agent.getLPSFR();
 					if(rawdata.length > 6 && lpsfr.type === "paratonair") {
