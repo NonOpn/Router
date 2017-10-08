@@ -17,15 +17,15 @@ PushWEB.prototype.onFrame = function(data) {
 PushWEB.prototype.applyData = function(data) {
 	var rawData = undefined;
 
-	if(data) {
+	if(data && data.rawFrameStr) {
 		if(data.rawFrameStr.length === 60) { //30*2
 			rawData = data.rawDataStr;
 		} else if(data.rawFrameStr.length === 48) { //24*2
 			rawData = data.rawDataStr;
 		}
+		console.log(data.rawFrameStr.length, rawData);
 	}
 
-	console.log(data.rawFrameStr.length, rawData);
 	if(rawData) {
 		const to_save = FrameModel.from(rawData);
 		FrameModel.save(to_save)
