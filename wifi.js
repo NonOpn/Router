@@ -32,14 +32,18 @@ Wifi.prototype.checkConfig = function() {
   try {
     if (fs.existsSync(STANDARD_WIFI_CONF)) {
       const config = JSON.parse(fs.readFileSync(STANDARD_WIFI_CONF, 'utf8'));
+      var found = false;
       if(config.hostap) {
         if(this._mode != HOSTAP) {
-        console.log("config hostap found", config.hostap);
-        this.startHostAP(config.hostap);
-      } else {
-        console.log("already hostap mode set");
+          console.log("config hostap found", config.hostap);
+          this.startHostAP(config.hostap);
+          found = true;
+        } else {
+          console.log("already hostap mode set");
+        }
       }
-      } else if(config.wlan) {
+
+      if(!found && config.wlan) {
         if(this._mode != WLAN) {
           console.log("config wlan found", config.wlan);
           this.startWLAN0(config.wlan);
@@ -85,7 +89,7 @@ Wifi.prototype.startWLAN0 = function(config) {
     var options = {
       interface: 'wlan0',
       ssid: config.ssid,
-      passphrase: config.raspberry
+      passphrase: config.passphrase
     };
 
     wpa_supplicant.enable(options, (err) => {
