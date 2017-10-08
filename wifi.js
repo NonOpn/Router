@@ -43,6 +43,7 @@ Wifi.prototype.checkConfig = function() {
         }
       }
 
+console
       if(!found && config.wlan) {
         if(this._mode != WLAN) {
           console.log("config wlan found", config.wlan);
@@ -93,7 +94,7 @@ Wifi.prototype.startWLAN0 = function(config) {
       driver: "wext"
     };
 
-    hostapd.disable('wlan0', function(err) {
+    hostapd.disable('wlan0', (err) => {
       wpa_supplicant.enable(options, (err) => {
         console.log("finished ? ", err);
         if(!err) {
