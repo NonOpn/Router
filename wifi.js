@@ -3,6 +3,10 @@ var wpa_supplicant = require('wireless-tools/wpa_supplicant');
 var fs = require('fs');
 config = require("./config/wifi.js");
 
+const NONE = "none";
+const HOSTAP = "hostap";
+const WLAN = "wlan";
+
 const STANDARD_WIFI_CONF = "/media/usb/wifi.conf";
 
 //TODO extract this hostapd into something cleaner
@@ -13,6 +17,7 @@ function Wifi() {
 
 Wifi.prototype.start = function() {
   if(config.enabled && !this._started) {
+    this._mode = NONE;
     this._started = true;
 
     this._interval = setInterval(() => {
@@ -28,12 +33,22 @@ Wifi.prototype.checkConfig = function() {
     if (fs.existsSync(STANDARD_WIFI_CONF)) {
       const config = JSON.parse(fs.readFileSync(STANDARD_WIFI_CONF, 'utf8'));
       if(config.hostap) {
+        if(this._mode != HOSTAP) {
         console.log("config hostap found", config.hostap);
         this.startHostAP(config.hostap);
-      } else if(config.wlan) {
-        console.log("config wlan found", config.wlan);
-        this.startWLAN0(config.wlan);
+      } else {
+        console.log("already hostap mode set");
       }
+      } else if(config.wlan) {
+        if(this._mode != WLAN) {
+          console.log("config wlan found", config.wlan);
+          this.startWLAN0(config.wlan);
+        } else {
+          console.log("already wifi mode set");
+        }
+      }
+    } else {
+      this._mode = NONE;
     }
   } catch (err) {
     console.log(err);
@@ -55,6 +70,9 @@ Wifi.prototype.startHostAP = function(config) {
 
     hostapd.enable(options, (err) => {
       console.log("finished ? ", err);
+      if(!err) {
+        this._mode = HOSTAP;
+      }
     })
   } else {
     console.log("invalid config", config);
@@ -72,6 +90,9 @@ Wifi.prototype.startWLAN0 = function(config) {
 
     wpa_supplicant.enable(options, (err) => {
       console.log("finished ? ", err);
+      if(!err) {
+        this._mode = WLAN;
+      }
     });
   } else {
     console.log("invalid config", config);
