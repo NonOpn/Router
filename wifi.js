@@ -1,7 +1,7 @@
 var hostapd = require('wireless-tools/hostapd');
 var wpa_supplicant = require('wireless-tools/wpa_supplicant');
 var fs = require('fs');
-config = require("./config/snmp.json");
+config = require("./config/wifi.js");
 
 const STANDARD_WIFI_CONF = "/media/usb/wifi.conf";
 
