@@ -103,6 +103,7 @@ Wifi.prototype.startWLAN0 = function(config) {
         const id = res ? res.result : undefined;
         console.log(id, err);
         if(id) {
+          id = parseInt(id);
           wpa_cli.set_network("wlan0", id, "ssid", `'"${options.ssid}"'`, (err) => {
             console.log(err);
             wpa_cli.set_network("wlan0", id, "psk", `'"${options.passphrase}"'`, (err) => {
@@ -110,12 +111,12 @@ Wifi.prototype.startWLAN0 = function(config) {
               wpa_cli.enable_network("wlan0", id, (err) => {
                 wpa_cli.select_network("wlan0", id, (err) => {
                   wpa_cli.save_config("wlan0", (err, data) => {
-                    wpa_supplicant.reassociate("wlan0", (err) => {
-                      console.log("finished ? ", err);
-                      if(!err) {
-                        this._mode = WLAN;
-                      }
-                    });
+                    if(!err) {
+                      this._mode = WLAN;
+                      wpa_supplicant.reassociate("wlan0", (err) => {
+                        console.log("finished ? ", err);
+                      });
+                    }
                   });
                 });
               });
