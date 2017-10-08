@@ -24,9 +24,9 @@ Wifi.prototype.start = function() {
 }
 
 Wifi.prototype.checkConfig = function() {
-  if (fs.existsSync(STANDARD_WIFI_CONF)) {
-    try {
-      const config = require(STANDARD_WIFI_CONF);
+  try {
+    if (fs.existsSync(STANDARD_WIFI_CONF)) {
+      const config = JSON.parse(fs.readFileSync(STANDARD_WIFI_CONF, 'utf8'));
       if(config.hostap) {
         console.log("config hostap found", config.hostap);
         this.startHostAP(config.hostap);
@@ -34,9 +34,9 @@ Wifi.prototype.checkConfig = function() {
         console.log("config wlan found", config.wlan);
         this.startWLAN0(config.wlan);
       }
-    } catch (err) {
-      console.log(err);
     }
+  } catch (err) {
+    console.log(err);
   }
 }
 
