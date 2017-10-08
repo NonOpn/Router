@@ -89,7 +89,8 @@ Wifi.prototype.startWLAN0 = function(config) {
     var options = {
       interface: 'wlan0',
       ssid: config.ssid,
-      passphrase: config.passphrase
+      passphrase: config.passphrase,
+      driver: "wext"
     };
 
     wpa_supplicant.enable(options, (err) => {
