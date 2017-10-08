@@ -94,7 +94,7 @@ FrameModel.prototype.getUnsent = function() {
       if(results && results.length > 0) {
         resolve(results);
       } else {
-        resolve(undefined);
+        resolve([]);
       }
     });
   });
