@@ -2,6 +2,7 @@ var hostapd = require('wireless-tools/hostapd');
 var wpa_supplicant = require('wireless-tools/wpa_supplicant');
 var fs = require('fs');
 config = require("./config/wifi.js");
+var wpa_cli = require('wireless-tools/wpa_cli');
 
 const NONE = "none";
 const HOSTAP = "hostap";
@@ -43,7 +44,7 @@ Wifi.prototype.checkConfig = function() {
         }
       }
 
-console
+      console
       if(!found && config.wlan) {
         if(this._mode != WLAN) {
           console.log("config wlan found", config.wlan);
@@ -95,10 +96,30 @@ Wifi.prototype.startWLAN0 = function(config) {
     };
 
     hostapd.disable('wlan0', (err) => {
-      wpa_supplicant.enable(options, (err) => {
-        console.log("finished ? ", err);
-        if(!err) {
-          this._mode = WLAN;
+      console.log(err);
+
+
+      wpa_cli.add_network("wlan0", (err, id) => {
+        console.log(err);
+        if(id) {
+          wpa_cli.set_network("wlan0", id, "ssid", options.ssid, (err) => {
+            console.log(err);
+            wpa_cli.set_network("wlan0", id, "psk", options.passphrase, (err) => {
+              console.log(err);
+              wpa_cli.enable_network("wlan0", id, (err) => {
+                wpa_cli.select_network("wlan0", id, (err) => {
+                  wpa_cli.save_config('wlan0', (err, data){
+                    wpa_supplicant.enable(options, (err) => {
+                      console.log("finished ? ", err);
+                      if(!err) {
+                        this._mode = WLAN;
+                      }
+                    });
+                  });
+                });
+              });
+            });
+          });
         }
       });
     });
