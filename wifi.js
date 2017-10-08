@@ -93,11 +93,13 @@ Wifi.prototype.startWLAN0 = function(config) {
       driver: "wext"
     };
 
-    wpa_supplicant.enable(options, (err) => {
-      console.log("finished ? ", err);
-      if(!err) {
-        this._mode = WLAN;
-      }
+    hostapd.disable('wlan0', function(err) {
+      wpa_supplicant.enable(options, (err) => {
+        console.log("finished ? ", err);
+        if(!err) {
+          this._mode = WLAN;
+        }
+      });
     });
   } else {
     console.log("invalid config", config);
