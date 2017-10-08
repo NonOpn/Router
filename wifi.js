@@ -46,7 +46,7 @@ Wifi.prototype.startHostAP = function(config) {
     var options = {
       channel: config.channel,
       //driver: 'rtl871xdrv',
-      hw_mode: config.channel,
+      hw_mode: config.hw_mode,
       interface: 'wlan0',
       ssid: config.ssid,
       wpa: config.wpa,
