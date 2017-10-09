@@ -119,6 +119,7 @@ Wifi.prototype.checkConfig = function() {
           } else {
             console.log("already hostap mode set");
             resolve(true);
+            return;
           }
         }
 
@@ -203,8 +204,6 @@ Wifi.prototype.startWLAN0 = function(config) {
 
       hostapd.disable('wlan0', (err) => {
         console.log(err);
-
-
         wpa_cli.add_network("wlan0", (err, res) => {
           const id = res ? res.result : undefined;
           console.log(id, err);
