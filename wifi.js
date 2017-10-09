@@ -195,7 +195,7 @@ Wifi.prototype.startWLAN0 = function(config) {
                       try{
                         if(!err) {
                           this._mode = WLAN;
-                          wpa_supplicant.reassociate("wlan0", (err) => {
+                          wpa_cli.reassociate("wlan0", (err) => {
                             console.log("finished ? ", err);
                           });
                         }
