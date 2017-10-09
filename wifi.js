@@ -94,8 +94,10 @@ Wifi.prototype.checkConfig = function() {
                 config_rows.save(KEY_MODE, HOSTAP)
                 .then(saved => {
                   //TODO resolve ?
-                });
+                })
+                .catch(err => console.log(err));
               })
+              .catch(err => console.log(err));
             }
           });
           found = true;
