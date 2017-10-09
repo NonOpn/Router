@@ -191,6 +191,8 @@ Wifi.prototype.startWLAN0 = function(config) {
                         wpa_supplicant.reassociate("wlan0", (err) => {
                           console.log("finished ? ", err);
                         });
+                      } else {
+                        console.log(err);
                       }
                       resolve(true);
                     });
