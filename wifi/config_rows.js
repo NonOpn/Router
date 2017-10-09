@@ -64,7 +64,7 @@ ConfigRows.prototype.from = function(key, value) {
 
 ConfigRows.prototype.update = function(key, value) {
   return new Promise((resolve, reject) => {
-    connection.query("UPDATE ConfigRows SET `value` = ? WHERE key = ? ", [value, key],  (error, results, fields) => {
+    connection.query("UPDATE ConfigRows SET `value` = ? WHERE `key` = ? ", [value, key],  (error, results, fields) => {
       if(error) {
         reject(error);
         return;
