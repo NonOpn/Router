@@ -182,17 +182,18 @@ Wifi.prototype.startWLAN0 = function(config) {
             wpa_cli.set_network("wlan0", id, "ssid", `'"${options.ssid}"'`, (err) => {
               console.log(err);
               wpa_cli.set_network("wlan0", id, "psk", `'"${options.passphrase}"'`, (err) => {
-                console.log(err);
+                console.log("set network", err);
                 wpa_cli.enable_network("wlan0", id, (err) => {
+                  console.log("enable_network", err);
                   wpa_cli.select_network("wlan0", id, (err) => {
+                    console.log("select_network", err);
                     wpa_cli.save_config("wlan0", (err, data) => {
+                      console.log("save_config", err);
                       if(!err) {
                         this._mode = WLAN;
                         wpa_supplicant.reassociate("wlan0", (err) => {
                           console.log("finished ? ", err);
                         });
-                      } else {
-                        console.log(err);
                       }
                       resolve(true);
                     });
