@@ -101,6 +101,8 @@ Wifi.prototype.checkConfig = function() {
         var found = false;
 
         if(!found && config.wlan && config.mode == WLAN) {
+          console.log(this._saved_ssid, config.wlan.ssid);
+          console.log(this._saved_passphrase, config.wlan.passphrase);
           if(this._mode != WLAN || this._saved_ssid != config.wlan.ssid || this._saved_passphrase != config.wlan.passphrase) {
             console.log("config wlan found", config.wlan);
             this.startWLAN0(config.wlan)
