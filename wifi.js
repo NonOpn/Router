@@ -146,6 +146,8 @@ Wifi.prototype.checkConfig = function() {
             console.log("already wifi mode set");
             resolve(true);
           }
+        } else {
+          resolve(true);
         }
       } else {
         this._mode = NONE;
