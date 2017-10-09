@@ -1,5 +1,5 @@
 const mysql = require("mysql"),
-Abstract = require("./abstract.js"),
+Abstract = require("../database/abstract.js"),
 config = require("../config/mysql.js");
 
 var connection = mysql.createConnection({
