@@ -191,6 +191,7 @@ Wifi.prototype.startHostAP = function(config) {
       };
 
       wpa_supplicant.disable("wlan0", (err) => {
+        console.log(err);
         hostapd.enable(options, (err) => {
           console.log("finished ? ", err);
           if(!err) {
