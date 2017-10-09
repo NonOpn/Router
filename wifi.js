@@ -194,7 +194,7 @@ Wifi.prototype.startHostAP = function(config) {
         hostapd.enable(options, (err) => {
           console.log("finished ? ", err);
           if(!err) {
-            udhcpd.enable(options_dhcp, function(err) {
+            udhcpd.enable(options_dhcp, (err) => {
               console.log("finished dhcp ? ", err);
               this._mode = HOSTAP;
               resolve(true);
