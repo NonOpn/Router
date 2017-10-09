@@ -24,12 +24,23 @@ function Wifi() {
 
 Wifi.prototype.start = function() {
   if(config.enabled && !this._started) {
+    this.__inCheckConfig = false;
     this._mode = NONE;
     this._started = true;
 
     const _start = () => {
       this._interval = setInterval(() => {
-        this.checkConfig();
+        if(!this.__inCheckConfig) {
+          this.__inCheckConfig = true;
+          this.checkConfig()
+          .then(finished => {
+            console.log("checkConfig finished with", finished);
+            this.__inCheckConfig = false;
+          }).catch(err => {
+            console.log(err);
+            this.__inCheckConfig = false;
+          });
+        }
       }, 15000);
     };
 
@@ -78,59 +89,73 @@ Wifi.prototype.start = function() {
 }
 
 Wifi.prototype.checkConfig = function() {
-  try {
-    if (fs.existsSync(STANDARD_WIFI_CONF)) {
-      const config = JSON.parse(fs.readFileSync(STANDARD_WIFI_CONF, 'utf8'));
-      var found = false;
-      if(config.hostap) {
-        if(this._mode != HOSTAP) {
-          console.log("config hostap found", config.hostap);
-          this.startHostAP(config.hostap)
-          .then(finished => {
-            console.log("start ap", finished);
-            if(finished) {
-              config_rows.save(KEY_AP, JSON.stringify(config.hostap))
-              .then(saved => {
-                config_rows.save(KEY_MODE, HOSTAP)
+  return new Promise((resolve, reject) => {
+    try {
+      if (fs.existsSync(STANDARD_WIFI_CONF)) {
+        const config = JSON.parse(fs.readFileSync(STANDARD_WIFI_CONF, 'utf8'));
+        var found = false;
+        if(config.hostap) {
+          if(this._mode != HOSTAP) {
+            console.log("config hostap found", config.hostap);
+            this.startHostAP(config.hostap)
+            .then(finished => {
+              console.log("start ap", finished);
+              if(finished) {
+                config_rows.save(KEY_AP, JSON.stringify(config.hostap))
                 .then(saved => {
-                  //TODO resolve ?
+                  config_rows.save(KEY_MODE, HOSTAP)
+                  .then(saved => {
+                    resolve(true);
+                  })
+                  .catch(err => reject(err));
                 })
-                .catch(err => console.log(err));
-              })
-              .catch(err => console.log(err));
-            }
-          });
-          found = true;
-        } else {
-          console.log("already hostap mode set");
+                .catch(err => reject(err));
+              } else {
+                resolve(false);
+              }
+            })
+            .catch(err => reject(err));
+            found = true;
+          } else {
+            console.log("already hostap mode set");
+            resolve(true);
+          }
         }
-      }
 
-      if(!found && config.wlan) {
-        if(this._mode != WLAN) {
-          console.log("config wlan found", config.wlan);
-          this.startWLAN0(config.wlan)
-          .then(finished => {
-            if(finished) {
-              config_rows.save(KEY_AP, JSON.stringify(config.wlan))
-              .then(saved => {
-                config_rows.save(KEY_MODE, WLAN)
+        if(!found && config.wlan) {
+          if(this._mode != WLAN) {
+            console.log("config wlan found", config.wlan);
+            this.startWLAN0(config.wlan)
+            .then(finished => {
+              if(finished) {
+                config_rows.save(KEY_WLAN, JSON.stringify(config.wlan))
                 .then(saved => {
-                  //TODO resolve ?
-                });
-              })
-            }
-          });
-        } else {
-          console.log("already wifi mode set");
+                  config_rows.save(KEY_MODE, WLAN)
+                  .then(saved => {
+                    resolve(true);
+                  })
+                  .catch(err => reject(err));
+                })
+                .catch(err => reject(err));
+              } else {
+                resolve(false);
+              }
+            })
+            .catch(err => reject(err));
+          } else {
+            console.log("already wifi mode set");
+            resolve(true);
+          }
         }
+      } else {
+        this._mode = NONE;
+        resolve(true);
       }
-    } else {
-      this._mode = NONE;
+    } catch (err) {
+      console.log(err);
+      reject(err);
     }
-  } catch (err) {
-    console.log(err);
-  }
+  });
 }
 
 Wifi.prototype.startHostAP = function(config) {

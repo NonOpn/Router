@@ -108,7 +108,7 @@ ConfigRows.prototype.save = function(key, value) {
         console.log(fields);
         reject(error);
       } else {
-        resolve(transaction);
+        resolve(tx);
       }
     });
   });
