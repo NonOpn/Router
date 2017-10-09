@@ -100,17 +100,27 @@ ConfigRows.prototype.save = function(key, value) {
   return new Promise((resolve, reject) => {
     const tx = this.from(key, value);
 
-    connection.query("INSERT INTO ConfigRows SET ?", tx, (error, results, fields) => {
-      if(error && error.code !== "ER_DUP_ENTRY") {
-        console.log(tx);
-        console.log(error);
-        console.log(results);
-        console.log(fields);
-        reject(error);
+    this.getKey(key)
+    .then(item => {
+      if(item) {
+        this.update(key, value)
+        .then(result => resolve(result))
+        .catch(err => reject(err));
       } else {
-        resolve(tx);
+        connection.query("INSERT INTO ConfigRows SET ?", tx, (error, results, fields) => {
+          if(error && error.code !== "ER_DUP_ENTRY") {
+            console.log(tx);
+            console.log(error);
+            console.log(results);
+            console.log(fields);
+            reject(error);
+          } else {
+            resolve(tx);
+          }
+        });
       }
-    });
+    })
+    .catch(err => reject(err));
   });
 }
 
