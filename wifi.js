@@ -72,6 +72,9 @@ Wifi.prototype.start = function() {
             callback(json)
             .then(finished => {
               console.log("saved configuration loaded := ", finished);
+              if(!finished && this._mode == HOSTAP) { //FOR NOW ONLY
+                this._mode = NONE;
+              }
               _start();
             })
           }
