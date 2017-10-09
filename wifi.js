@@ -4,6 +4,7 @@ var fs = require('fs');
 config = require("./config/wifi.js");
 var wpa_cli = require('wireless-tools/wpa_cli');
 var udhcpd = require('wireless-tools/udhcpd');
+const { exec } = require('child_process');
 
 const config_rows = require("./wifi/config_rows");
 
@@ -98,7 +99,7 @@ Wifi.prototype.checkConfig = function() {
       if (fs.existsSync(STANDARD_WIFI_CONF)) {
         const config = JSON.parse(fs.readFileSync(STANDARD_WIFI_CONF, 'utf8'));
         var found = false;
-        if(config.hostap && config.mode == HOSTAP) {
+        /*if(config.hostap && config.mode == HOSTAP) {
           if(this._mode != HOSTAP) {
             console.log("config hostap found", config.hostap);
             this.startHostAP(config.hostap)
@@ -125,13 +126,14 @@ Wifi.prototype.checkConfig = function() {
             resolve(true);
             return;
           }
-        }
+        }*/
 
         if(!found && config.wlan && config.mode == WLAN) {
           if(this._mode != WLAN) {
             console.log("config wlan found", config.wlan);
             this.startWLAN0(config.wlan)
             .then(finished => {
+              console.log("finished ? ", finished);
               if(finished) {
                 config_rows.save(KEY_WLAN, JSON.stringify(config.wlan))
                 .then(saved => {
