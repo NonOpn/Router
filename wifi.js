@@ -87,6 +87,7 @@ Wifi.prototype.checkConfig = function() {
           console.log("config hostap found", config.hostap);
           this.startHostAP(config.hostap)
           .then(finished => {
+            console.log("start ap", finished);
             if(finished) {
               config_rows.save(KEY_AP, JSON.stringify(config.hostap))
               .then(saved => {
