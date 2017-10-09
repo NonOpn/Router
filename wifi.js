@@ -56,7 +56,7 @@ Wifi.prototype.start = function() {
         promise.then(result => {
           if(result && result.value) {
             const json = JSON.parse(result.value);
-              console.log("configuration found for " + result.key, json);
+            console.log("configuration found for " + result.key, json);
 
             callback(json)
             .then(finished => {
@@ -192,12 +192,14 @@ Wifi.prototype.startWLAN0 = function(config) {
                     console.log("select_network", err);
                     wpa_cli.save_config("wlan0", (err, data) => {
                       console.log("save_config", err);
-                      if(!err) {
-                        this._mode = WLAN;
-                        wpa_supplicant.reassociate("wlan0", (err) => {
-                          console.log("finished ? ", err);
-                        });
-                      }
+                      try{
+                        if(!err) {
+                          this._mode = WLAN;
+                          wpa_supplicant.reassociate("wlan0", (err) => {
+                            console.log("finished ? ", err);
+                          });
+                        }
+                      }catch(e) { console.log(e)};
                       resolve(true);
                     });
                   });
