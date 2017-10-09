@@ -3,6 +3,7 @@ var wpa_supplicant = require('wireless-tools/wpa_supplicant');
 var fs = require('fs');
 config = require("./config/wifi.js");
 var wpa_cli = require('wireless-tools/wpa_cli');
+var udhcpd = require('wireless-tools/udhcpd');
 
 const config_rows = require("./wifi/config_rows");
 
@@ -178,12 +179,26 @@ Wifi.prototype.startHostAP = function(config) {
         wpa_passphrase: config.wpa_passphrase
       };
 
+      var options_dhcp = {
+        interface: 'wlan0',
+        start: '192.168.10.10',
+        end: '192.168.10.20',
+        option: {
+          router: '192.168.10.1',
+          subnet: '255.255.255.0',
+          dns: [ '4.4.4.4', '8.8.8.8' ]
+        }
+      };
+
       wpa_supplicant.disable("wlan0", (err) => {
         hostapd.enable(options, (err) => {
           console.log("finished ? ", err);
           if(!err) {
-            this._mode = HOSTAP;
-            resolve(true);
+            udhcpd.enable(options_dhcp, function(err) {
+              console.log("finished dhcp ? ", err);
+              this._mode = HOSTAP;
+              resolve(true);
+            });
           } else {
             resolve(false);
           }
@@ -209,38 +224,41 @@ Wifi.prototype.startWLAN0 = function(config) {
 
       hostapd.disable('wlan0', (err) => {
         console.log(err);
-        wpa_cli.add_network("wlan0", (err, res) => {
-          const id = res ? res.result : undefined;
-          console.log(id, err);
-          if(id) {
-            wpa_cli.set_network("wlan0", id, "ssid", `'"${options.ssid}"'`, (err) => {
-              console.log(err);
-              wpa_cli.set_network("wlan0", id, "psk", `'"${options.passphrase}"'`, (err) => {
-                console.log("set network", err);
-                wpa_cli.enable_network("wlan0", id, (err) => {
-                  console.log("enable_network", err);
-                  wpa_cli.select_network("wlan0", id, (err) => {
-                    console.log("select_network", err);
-                    wpa_cli.save_config("wlan0", (err, data) => {
-                      console.log("save_config", err);
-                      try{
-                        if(!err) {
-                          this._mode = WLAN;
+        udhcpd.disable('wlan0', function(err) {
+          console.log(err);
+          wpa_cli.add_network("wlan0", (err, res) => {
+            const id = res ? res.result : undefined;
+            console.log(id, err);
+            if(id) {
+              wpa_cli.set_network("wlan0", id, "ssid", `'"${options.ssid}"'`, (err) => {
+                console.log(err);
+                wpa_cli.set_network("wlan0", id, "psk", `'"${options.passphrase}"'`, (err) => {
+                  console.log("set network", err);
+                  wpa_cli.enable_network("wlan0", id, (err) => {
+                    console.log("enable_network", err);
+                    wpa_cli.select_network("wlan0", id, (err) => {
+                      console.log("select_network", err);
+                      wpa_cli.save_config("wlan0", (err, data) => {
+                        console.log("save_config", err);
+                        try{
+                          if(!err) {
+                            this._mode = WLAN;
 
-                          wpa_supplicant.enable(options, (err) => {
-                            console.log("finished ? ", err);
-                          });
-                        }
-                      }catch(e) { console.log(e)};
-                      resolve(true);
+                            wpa_supplicant.enable(options, (err) => {
+                              console.log("finished ? ", err);
+                            });
+                          }
+                        }catch(e) { console.log(e)};
+                        resolve(true);
+                      });
                     });
                   });
                 });
               });
-            });
-          } else {
-            resolve(false);
-          }
+            } else {
+              resolve(false);
+            }
+          });
         });
       });
     } else {
