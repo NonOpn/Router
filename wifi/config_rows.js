@@ -100,7 +100,7 @@ ConfigRows.prototype.save = function(key, value) {
   return new Promise((resolve, reject) => {
     const tx = this.from(key, value);
 
-    connection.query("INSERT INTO ConfigRows SET ?", transaction, (error, results, fields) => {
+    connection.query("INSERT INTO ConfigRows SET ?", tx, (error, results, fields) => {
       if(error && error.code !== "ER_DUP_ENTRY") {
         console.log(tx);
         console.log(error);
