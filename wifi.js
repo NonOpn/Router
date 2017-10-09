@@ -175,14 +175,16 @@ Wifi.prototype.startHostAP = function(config) {
         wpa_passphrase: config.wpa_passphrase
       };
 
-      hostapd.enable(options, (err) => {
-        console.log("finished ? ", err);
-        if(!err) {
-          this._mode = HOSTAP;
-          resolve(true);
-        } else {
-          resolve(false);
-        }
+      wpa_supplicant.disable("wlan0", (err) => {
+        hostapd.enable(options, (err) => {
+          console.log("finished ? ", err);
+          if(!err) {
+            this._mode = HOSTAP;
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        });
       });
     } else {
       console.log("invalid config", config);
