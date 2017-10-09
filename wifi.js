@@ -94,7 +94,7 @@ Wifi.prototype.checkConfig = function() {
       if (fs.existsSync(STANDARD_WIFI_CONF)) {
         const config = JSON.parse(fs.readFileSync(STANDARD_WIFI_CONF, 'utf8'));
         var found = false;
-        if(config.hostap) {
+        if(config.hostap && config.mode == HOSTAP) {
           if(this._mode != HOSTAP) {
             console.log("config hostap found", config.hostap);
             this.startHostAP(config.hostap)
@@ -122,7 +122,7 @@ Wifi.prototype.checkConfig = function() {
           }
         }
 
-        if(!found && config.wlan) {
+        if(!found && config.wlan && config.mode == WLAN) {
           if(this._mode != WLAN) {
             console.log("config wlan found", config.wlan);
             this.startWLAN0(config.wlan)
