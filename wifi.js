@@ -99,37 +99,9 @@ Wifi.prototype.checkConfig = function() {
       if (fs.existsSync(STANDARD_WIFI_CONF)) {
         const config = JSON.parse(fs.readFileSync(STANDARD_WIFI_CONF, 'utf8'));
         var found = false;
-        /*if(config.hostap && config.mode == HOSTAP) {
-          if(this._mode != HOSTAP) {
-            console.log("config hostap found", config.hostap);
-            this.startHostAP(config.hostap)
-            .then(finished => {
-              console.log("start ap", finished);
-              if(finished) {
-                config_rows.save(KEY_AP, JSON.stringify(config.hostap))
-                .then(saved => {
-                  config_rows.save(KEY_MODE, HOSTAP)
-                  .then(saved => {
-                    resolve(true);
-                  })
-                  .catch(err => reject(err));
-                })
-                .catch(err => reject(err));
-              } else {
-                resolve(false);
-              }
-            })
-            .catch(err => reject(err));
-            found = true;
-          } else {
-            console.log("already hostap mode set");
-            resolve(true);
-            return;
-          }
-        }*/
 
         if(!found && config.wlan && config.mode == WLAN) {
-          if(this._mode != WLAN) {
+          if(this._mode != WLAN || this._saved_ssid != config.wlan.ssid || this._saved_passphrase != config.wlan.passphrase) {
             console.log("config wlan found", config.wlan);
             this.startWLAN0(config.wlan)
             .then(finished => {
@@ -139,6 +111,8 @@ Wifi.prototype.checkConfig = function() {
                 .then(saved => {
                   config_rows.save(KEY_MODE, WLAN)
                   .then(saved => {
+                    this._saved_ssid = config.wlan.ssid;
+                    this._saved_passphrase = config.wlan.passphrase;
                     resolve(true);
                   })
                   .catch(err => reject(err));
