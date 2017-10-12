@@ -1,9 +1,28 @@
 const EventEmitter = require("events").EventEmitter,
 util = require("util"),
-config = require("./config/snmp.json"),
-FrameModel = require("./push_web/frame_model");
+config = require("./config/config.js"),
+FrameModel = require("./push_web/frame_model"),
+request = require('request');
 
 const VERSION = "0.0";
+
+
+function createRequestRaw(raw) {
+	return {
+		host: config.identity,
+		version: 1,
+		data: raw
+	};
+}
+
+function createRequest(data /*buffer hex */) {
+	const base64 = data.toString("base64");
+	return {
+		host: config.identity,
+		version: 1,
+		data: base64
+	};
+}
 
 var PushWEB = function() {
 }
@@ -19,9 +38,9 @@ PushWEB.prototype.applyData = function(data) {
 
 	if(data && data.rawFrameStr) {
 		if(data.rawFrameStr.length === 60) { //30*2
-			rawData = data.rawDataStr;
+			rawData = data.rawFrameStr; //compress30(data.rawFrameStr);
 		} else if(data.rawFrameStr.length === 48) { //24*2
-			rawData = data.rawDataStr;
+			rawData = data.rawFrameStr; //compress24(data.rawFrameStr);
 		}
 		console.log(data.rawFrameStr.length, rawData);
 	}
@@ -38,6 +57,15 @@ PushWEB.prototype.applyData = function(data) {
 	}
 }
 
+PushWEB.prototype.compress24 = function(rawFrameStr) {
+	const hex = Buffer.from(rawFrameStr);
+	return
+}
+
+PushWEB.prototype.compress30 = function(rawFrameStr) {
+
+}
+
 PushWEB.prototype.connect = function() {
 	console.log("PushWEB is now init");
 
@@ -49,11 +77,28 @@ PushWEB.prototype.connect = function() {
 PushWEB.prototype.trySend = function() {
 	FrameModel.getUnsent()
 	.then((frames) => {
-		frames.forEach((frame) => {
-			console.log("having := ", frame.frame+" "+Buffer.from(frame.frame).toString('base64'));
-		});
+		const callback = (i) => {
+			if(i >= frames.length) {
+				this.postNextTrySend();
+			} else {
+				const frame = frames[i];
+				//const hex = Buffer.from(frame.frame, "hex");
+				const json = createRequestRaw(frame.frame); //createRequest(hex);
+				request.post({
+					url: "https://contact-platform.com/api/ping",
+					json: json
+				}, (e, response, body) => {
+					console.log("having := ", frame.frame, json);
+					/*if(response && response.statusCode) {
 
-		this.postNextTrySend();
+					}
+
+					callback(i+1);*/
+				});
+			}
+		}
+
+		callback(0);
 	})
 	.catch(err => {
 		console.log(err);

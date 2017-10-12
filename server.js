@@ -18,41 +18,47 @@ function isValidIP(value) {
   return value && value.match && value.match(ip);
 }
 
-function manageNewNetworkData(data) {
+function isValidIPs(array) {
+  return array.filter(value => {
+    return !isValidIP(value);
+  }).length == 0;
+}
+
+function manageNewNetworkData(intface, data) {
   var valid = false;
   var ip = data.ip;
   var gateway = data.gateway;
   var netmask = data.netmask;
   var dns = data.dns;
 
-  if(data) {
-    if(data.dhcp === "on") {
-      valid = true;
-    } else {
+  const network = {
+    auto: true
+  }
 
-      if(isValidIP(ip) && isValidIP(gateway)
-      && isValidIP(netmask) && isValidIP(dns)) {
-        valid = true;
-      }
-    }
+  if(data) {
+    valid = data.dhcp === "on" || isValidIPs([ip, gateway, netmask, dns]);
   }
 
   if(valid) {
-    var conf = {
-      eth0: {
-        auto: true
-      }
-    };
-
     if(data.dhcp === "on") {
-      conf.eth0.dhcp = true;
+      network.dhcp = true;
     } else {
-      conf.eth0.ipv4 = {
+      network.ipv4 = {
         address: ip,
         netmask: netmask,
         gateway: gateway,
         dns: dns
       }
+    }
+
+    var conf = {
+      /* eth0 or wlan0 */
+    };
+
+    if(intface == "eth0") {
+      conf.eth0 = network;
+    } else if(intface == "wlan0") {
+      conf.wlan0 = network;
     }
 
     var config = setup.network.config(conf);
@@ -81,16 +87,23 @@ var Server = function(enocean_manager) {
   io.on("connection", function (socket){
     enocean_manager.register(socket);
 
-    socket.on("new-network-state", (data) => {
+    const net = (type, data) => {
       try{
-        const result = manageNewNetworkData(data);
-
+        const result = manageNewNetworkData(type, data);
         socket.emit("network-config", result);
       } catch(e) {
         console.log(e);
         socket.emit("network-config-error", "Error while saving data");
       }
-    })
+    }
+
+    socket.on("new-network-state-wlan0", (data) => {
+      net("wlan0", data);
+    });
+
+    socket.on("new-network-state-eth0", (data) => {
+      net("eth0", data);
+    });
   });
 
   io.on("network_conf", function(socket) {
