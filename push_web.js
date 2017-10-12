@@ -89,11 +89,23 @@ PushWEB.prototype.trySend = function() {
 					json: json
 				}, (e, response, body) => {
 					console.log("having := ", frame.frame, json);
-					/*if(response && response.statusCode) {
-
+					console.log(e);
+					if(response && response.statusCode) {
+						console.log(response.statusCode);
+						FrameModel.setSent(frame.id, true)
+						.then(() => {
+							console.log("set sent "+frame.id);
+							callback(i+1);
+						});
+					} else {
+						FrameModel.setSent(frame.id, true)
+						.then(() => {
+							console.log("set sent "+frame.id);
+							callback(i+1);
+						});
+						//console.log("error with "+frame.id);
+						//callback(i+1);
 					}
-
-					callback(i+1);*/
 				});
 			}
 		}
@@ -109,7 +121,7 @@ PushWEB.prototype.trySend = function() {
 PushWEB.prototype.postNextTrySend = function() {
 	setTimeout(() => {
 		this.trySend();
-	}, 1 * 60 * 1000);
+	}, 1 * 10 * 1000);
 }
 
 util.inherits(PushWEB, EventEmitter);

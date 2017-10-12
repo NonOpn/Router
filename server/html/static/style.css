@@ -162,6 +162,10 @@ buttons {
   background-color: #E0E0E0;
 }
 
+#sidedrawer strong[class=no-hover]:hover {
+  background-color: white !important;
+}
+
 #sidedrawer strong + ul > li {
   padding: 6px 0px;
 }

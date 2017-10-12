@@ -6,7 +6,8 @@ socketio = require("socket.io"),
 app = express(),
 bodyParser = require('body-parser'),
 config = require("./config/visualisation.js"),
-setup = require("setup")();
+setup = require("setup")(),
+wifi = require("./wifi/instance.js");
 
 
 var port = config.port;
@@ -64,7 +65,7 @@ function manageNewNetworkData(intface, data) {
     var config = setup.network.config(conf);
 
     setup.network.save(config);
-    console.log("saved");
+    console.log("saved", config);
     return true;
   }
   return false;
@@ -96,6 +97,18 @@ var Server = function(enocean_manager) {
         socket.emit("network-config-error", "Error while saving data");
       }
     }
+
+    socket.on("new-network-wifi-conf", (network) => {
+      //{ssid: //, psk: //}
+      if(network && network.ssid && network.passphrase) {
+        wifi.storeConfiguration(network)
+        .then(success => {
+          socket.emit("network-config-error-wifi", success);
+        })
+      } else {
+        socket.emit("network-config-error-wifi", "Error with wifi information");
+      }
+    });
 
     socket.on("new-network-state-wlan0", (data) => {
       net("wlan0", data);

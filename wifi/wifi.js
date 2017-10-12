@@ -1,12 +1,12 @@
 var hostapd = require('wireless-tools/hostapd');
 var wpa_supplicant = require('wireless-tools/wpa_supplicant');
 var fs = require('fs');
-config = require("./config/wifi.js");
+config = require("../config/wifi.js");
 var wpa_cli = require('wireless-tools/wpa_cli');
 var udhcpd = require('wireless-tools/udhcpd');
 const { exec } = require('child_process');
 
-const config_rows = require("./wifi/config_rows");
+const config_rows = require("./config_rows");
 
 const KEY_MODE = "KEY_MODE";
 const KEY_WLAN = "KEY_WLAN";
@@ -61,7 +61,7 @@ Wifi.prototype.start = function() {
         callback = (c) => { return this.startHostAP(c)};
       } else if(this._mode == WLAN) {
         promise = config_rows.getKey(KEY_WLAN);
-        callback = (c) => { return this.startWLAN0(c)};
+        callback = (c) => { return this.startWLAN0(c, false)};
       }
 
       if(promise) {
@@ -93,6 +93,31 @@ Wifi.prototype.start = function() {
   }
 }
 
+Wifi.prototype.storeConfiguration = function(configuration) {
+  return new Promise((resolve, reject) => {
+    this.startWLAN0(configuration, true)
+    .then(finished => {
+      console.log("finished ? ", finished);
+      if(finished) {
+        config_rows.save(KEY_WLAN, JSON.stringify(configuration))
+        .then(saved => {
+          config_rows.save(KEY_MODE, WLAN)
+          .then(saved => {
+            this._saved_ssid = configuration.ssid;
+            this._saved_passphrase = configuration.passphrase;
+            resolve(true);
+          })
+          .catch(err => reject(err));
+        })
+        .catch(err => reject(err));
+      } else {
+        resolve(false);
+      }
+    })
+    .catch(err => reject(err));
+  });
+}
+
 Wifi.prototype.checkConfig = function() {
   return new Promise((resolve, reject) => {
     try {
@@ -105,26 +130,14 @@ Wifi.prototype.checkConfig = function() {
           console.log(this._saved_passphrase, config.wlan.passphrase);
           if(this._mode != WLAN || this._saved_ssid != config.wlan.ssid || this._saved_passphrase != config.wlan.passphrase) {
             console.log("config wlan found", config.wlan);
-            this.startWLAN0(config.wlan)
-            .then(finished => {
-              console.log("finished ? ", finished);
-              if(finished) {
-                config_rows.save(KEY_WLAN, JSON.stringify(config.wlan))
-                .then(saved => {
-                  config_rows.save(KEY_MODE, WLAN)
-                  .then(saved => {
-                    this._saved_ssid = config.wlan.ssid;
-                    this._saved_passphrase = config.wlan.passphrase;
-                    resolve(true);
-                  })
-                  .catch(err => reject(err));
-                })
-                .catch(err => reject(err));
-              } else {
-                resolve(false);
-              }
+
+            this.storeConfiguration(config.wlan)
+            .then(() => {
+              resolve(true);
             })
-            .catch(err => reject(err));
+            .catch(err => {
+              resolve(false);
+            })
           } else {
             console.log("already wifi mode set");
             resolve(true);
@@ -190,7 +203,7 @@ Wifi.prototype.startHostAP = function(config) {
   });
 }
 
-Wifi.prototype.startWLAN0 = function(config) {
+Wifi.prototype.startWLAN0 = function(config, save) {
   return new Promise((resolve, reject) => {
     if(config && config.ssid && config.passphrase) {
 
@@ -201,31 +214,37 @@ Wifi.prototype.startWLAN0 = function(config) {
         driver: "wext"
       };
 
-      hostapd.disable('wlan0', (err) => {
-        console.log(err);
-        udhcpd.disable('wlan0', function(err) {
+      if(!save) {
+        this._mode = WLAN;
+
+        /*wpa_supplicant.enable(options, (err) => {
+          console.log("finished ? ", err);
+        });*/
+        resolve(true);
+      } else {
+        hostapd.disable('wlan0', (err) => {
           console.log(err);
-          wpa_cli.add_network("wlan0", (err, res) => {
-            const id = res ? res.result : undefined;
-            console.log(id, err);
-            if(id) {
-              wpa_cli.set_network("wlan0", id, "ssid", `'"${options.ssid}"'`, (err) => {
-                console.log(err);
-                wpa_cli.set_network("wlan0", id, "psk", `'"${options.passphrase}"'`, (err) => {
-                  console.log("set network", err);
-                  wpa_cli.enable_network("wlan0", id, (err) => {
-                    console.log("enable_network", err);
-                    wpa_cli.select_network("wlan0", id, (err) => {
-                      console.log("select_network", err);
+          udhcpd.disable('wlan0', function(err) {
+            console.log(err);
+            wpa_cli.add_network("wlan0", (err, res) => {
+              const id = res ? res.result : undefined;
+              console.log(id, err);
+              if(id) {
+                wpa_cli.set_network("wlan0", id, "ssid", `'"${options.ssid}"'`, (err) => {
+                  console.log(err);
+                  wpa_cli.set_network("wlan0", id, "psk", `'"${options.passphrase}"'`, (err) => {
+                    console.log("set network", err);
+                    wpa_cli.enable_network("wlan0", id, (err) => {
+                      console.log("enable_network", err);
                       wpa_cli.save_config("wlan0", (err, data) => {
                         console.log("save_config", err);
                         try{
                           if(!err) {
                             this._mode = WLAN;
 
-                            wpa_supplicant.enable(options, (err) => {
+                            /*wpa_supplicant.enable(options, (err) => {
                               console.log("finished ? ", err);
-                            });
+                            });*/
                           }
                         }catch(e) { console.log(e)};
                         resolve(true);
@@ -233,13 +252,13 @@ Wifi.prototype.startWLAN0 = function(config) {
                     });
                   });
                 });
-              });
-            } else {
-              resolve(false);
-            }
+              } else {
+                resolve(false);
+              }
+            });
           });
         });
-      });
+      }
     } else {
       console.log("invalid config", config);
       resolve(false);
