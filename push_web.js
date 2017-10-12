@@ -98,13 +98,13 @@ PushWEB.prototype.trySend = function() {
 							callback(i+1);
 						});
 					} else {
-						FrameModel.setSent(frame.id, true)
-						.then(() => {
-							console.log("set sent "+frame.id);
-							callback(i+1);
-						});
-						//console.log("error with "+frame.id);
-						//callback(i+1);
+						//FrameModel.setSent(frame.id, true)
+						//.then(() => {
+						//	console.log("set sent "+frame.id);
+						//	callback(i+1);
+						//});
+						console.log("error with "+frame.id);
+						callback(i+1);
 					}
 				});
 			}
