@@ -275,6 +275,7 @@ Wifi.prototype.startWLAN0 = function(config, save) {
               });
             } catch(e) {
               console.log(e);
+              resolve(false);
             }
           });
         });
