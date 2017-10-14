@@ -24,6 +24,14 @@ function Wifi() {
 
 }
 
+
+function save(wpa_supplicant_conf, ssid, passphrase, callback) {
+
+  var command = "wpa_passphrase '" + ssid + "' '" + passphrase + "' >> " + wpa_supplicant_conf;
+
+  return exec(command, callback);
+}
+
 Wifi.prototype.start = function() {
   if(config.enabled && !this._started) {
     this.__inCheckConfig = false;
@@ -217,47 +225,56 @@ Wifi.prototype.startWLAN0 = function(config, save) {
       if(!save) {
         this._mode = WLAN;
 
-        /*wpa_supplicant.enable(options, (err) => {
-          console.log("finished ? ", err);
-        });*/
+        //wpa_supplicant.enable(options, (err) => {
+        //console.log("finished ? ", err);
+        //});
         resolve(true);
       } else {
         hostapd.disable('wlan0', (err) => {
           console.log(err);
           udhcpd.disable('wlan0', function(err) {
             console.log(err);
-            wpa_cli.add_network("wlan0", (err, res) => {
-              const id = res ? res.result : undefined;
-              console.log(id, err);
-              if(id) {
-                wpa_cli.set_network("wlan0", id, "ssid", `'"${options.ssid}"'`, (err) => {
-                  console.log(err);
-                  wpa_cli.set_network("wlan0", id, "psk", `'"${options.passphrase}"'`, (err) => {
-                    console.log("set network", err);
-                    wpa_cli.enable_network("wlan0", id, (err) => {
-                      console.log("enable_network", err);
-                      wpa_cli.save_config("wlan0", (err, data) => {
-                        console.log("save_config", err);
-                        try{
-                          if(!err) {
-                            this._mode = WLAN;
+            //wpa_cli.add_network("wlan0", (err, res) => {
+            //const id = res ? res.result : undefined;
+            //console.log(id, err);
+            //if(id) {
+            //wpa_cli.set_network("wlan0", id, "ssid", `'"${options.ssid}"'`, (err) => {
+            //console.log(err);
+            //wpa_cli.set_network("wlan0", id, "psk", `'"${options.passphrase}"'`, (err) => {
+            //console.log("set network", err);
+            //wpa_cli.enable_network("wlan0", id, (err) => {
+            //console.log("enable_network", err);
+            //wpa_cli.save_config("wlan0", (err, data) => {
+            //console.log("save_config", err);
+            //try{
+            //if(!err) {
+            //this._mode = WLAN;
 
-                            /*wpa_supplicant.enable(options, (err) => {
-                              console.log("finished ? ", err);
-                            });*/
-                          }
-                        }catch(e) { console.log(e)};
-                        resolve(true);
-                      });
-                    });
-                  });
-                });
-              } else {
-                resolve(false);
-              }
+            //wpa_supplicant.enable(options, (err) => {
+            //console.log("finished ? ", err);
+            //});
+            //}
+            //}catch(e) { console.log(e)};
+            //resolve(true);
+            //});
+            //});
+            //});
+            //});
+            //} else {
+            //console.log("error?", res);
+            //console.log("error?", err);
+            //resolve(JSON.stringify(res));
+            //}
+            const wpa_supplicant = "/etc/wpa_supplicant/wpa_supplicant.conf";
+            const ssid = config.ssid;
+            const passphrase = config.passphrase;
+            save(wpa_supplicant, ssid, passphrase, (err) => {
+              console.log("save ? ", err);
+              resolve(true);
             });
           });
         });
+        //});
       }
     } else {
       console.log("invalid config", config);
