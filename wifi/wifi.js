@@ -25,7 +25,7 @@ function Wifi() {
 }
 
 
-function save(wpa_supplicant_conf, ssid, passphrase, callback) {
+function saveSSID(wpa_supplicant_conf, ssid, passphrase, callback) {
 
   var command = "wpa_passphrase '" + ssid + "' '" + passphrase + "' >> " + wpa_supplicant_conf;
 
@@ -269,7 +269,7 @@ Wifi.prototype.startWLAN0 = function(config, save) {
               const wpa_supplicant = "/etc/wpa_supplicant/wpa_supplicant.conf";
               const ssid = config.ssid;
               const passphrase = config.passphrase;
-              save(wpa_supplicant, ssid, passphrase, (err) => {
+              saveSSID(wpa_supplicant, ssid, passphrase, (err) => {
                 console.log("save ? ", err);
                 resolve(true);
               });
