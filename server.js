@@ -103,7 +103,11 @@ var Server = function(enocean_manager) {
       if(network && network.ssid && network.passphrase) {
         wifi.storeConfiguration(network)
         .then(success => {
-          socket.emit("network-config-error-wifi", success);
+          if(sucess === true) {
+            socket.emit("network-config-error-wifi", "Configuration saved. Please wait 1min for it to activate");
+          } else {
+            socket.emit("network-config-error-wifi", "Error while configuring the network data");
+          }
         })
       } else {
         socket.emit("network-config-error-wifi", "Error with wifi information");
