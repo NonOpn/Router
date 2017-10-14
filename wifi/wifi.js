@@ -265,13 +265,17 @@ Wifi.prototype.startWLAN0 = function(config, save) {
             //console.log("error?", err);
             //resolve(JSON.stringify(res));
             //}
-            const wpa_supplicant = "/etc/wpa_supplicant/wpa_supplicant.conf";
-            const ssid = config.ssid;
-            const passphrase = config.passphrase;
-            save(wpa_supplicant, ssid, passphrase, (err) => {
-              console.log("save ? ", err);
-              resolve(true);
-            });
+            try {
+              const wpa_supplicant = "/etc/wpa_supplicant/wpa_supplicant.conf";
+              const ssid = config.ssid;
+              const passphrase = config.passphrase;
+              save(wpa_supplicant, ssid, passphrase, (err) => {
+                console.log("save ? ", err);
+                resolve(true);
+              });
+            } catch(e) {
+              console.log(e);
+            }
           });
         });
         //});
