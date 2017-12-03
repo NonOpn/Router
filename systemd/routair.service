@@ -1,0 +1,16 @@
+[Unit]
+Description=Routair Manager
+After=syslog.target network.target nss-lookup.target
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/local/routair
+ExecStart=/usr/local/node-v7.7.2/bin/node /usr/local/routair/index.js
+Restart=always
+RestartSec=5
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=routair
+
+[Install]
+WantedBy=default.target
