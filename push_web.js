@@ -1,6 +1,7 @@
 const EventEmitter = require("events").EventEmitter,
 util = require("util"),
 config = require("./config/config.js"),
+push_web_config = require("./config/push_web"),
 FrameModel = require("./push_web/frame_model"),
 request = require('request');
 
@@ -25,15 +26,17 @@ function createRequest(data /*buffer hex */) {
 }
 
 var PushWEB = function() {
+	this.is_activated = push_web_config.is_activated;
 }
 
 PushWEB.prototype.onFrame = function(data) {
-	if(data && data.sender) {
+	if(this.is_activated && data && data.sender) {
 		this.applyData(data);
 	}
 }
 
 PushWEB.prototype.applyData = function(data) {
+	if(!this.is_activated) return;
 	var rawData = undefined;
 
 	if(data && data.rawFrameStr) {
@@ -58,23 +61,32 @@ PushWEB.prototype.applyData = function(data) {
 }
 
 PushWEB.prototype.compress24 = function(rawFrameStr) {
+	if(!this.is_activated) return;
+
 	const hex = Buffer.from(rawFrameStr);
 	return
 }
 
 PushWEB.prototype.compress30 = function(rawFrameStr) {
+	if(!this.is_activated) return;
 
 }
 
 PushWEB.prototype.connect = function() {
-	console.log("PushWEB is now init");
+	if(!this.is_activated) {
+		console.log("PushWEB is disabled see .env.example");
+	} else {
+		console.log("PushWEB is now init");
 
-	setTimeout(() => {
-		this.trySend()
-	}, 1 * 10 * 1000);//every 60s
+		setTimeout(() => {
+			this.trySend()
+		}, 1 * 60 * 1000);//every 60s
+	}
 }
 
 PushWEB.prototype.trySend = function() {
+	if(!this.is_activated) return;
+
 	FrameModel.getUnsent()
 	.then((frames) => {
 		const callback = (i) => {
@@ -119,9 +131,11 @@ PushWEB.prototype.trySend = function() {
 }
 
 PushWEB.prototype.postNextTrySend = function() {
+	if(!this.is_activated) return;
+
 	setTimeout(() => {
 		this.trySend();
-	}, 1 * 10 * 1000);
+	}, 1 * 60 * 1000);
 }
 
 util.inherits(PushWEB, EventEmitter);
