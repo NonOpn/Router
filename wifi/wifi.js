@@ -44,7 +44,6 @@ Wifi.prototype.start = function() {
           this.__inCheckConfig = true;
           this.checkConfig()
           .then(finished => {
-            console.log("checkConfig finished with", finished);
             this.__inCheckConfig = false;
           }).catch(err => {
             console.log(err);
