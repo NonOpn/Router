@@ -10,7 +10,7 @@ const array = {
 	paratonair: Paratonair,
 	ellips: Ellips
 }
-const VERSION = "0.0";
+const VERSION = "0.1";
 
 function instantiate(params) {
 	if(params && params.lpsfr) {
