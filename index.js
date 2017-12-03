@@ -6,6 +6,8 @@ var PushWEB = require("./push_web.js");
 var request = require('request');
 var wifi = require("./wifi/instance.js");
 
+console.log("starting routair main program...");
+
 var enocean = new EnoceanLoader();
 var server = new Server(enocean);
 var snmp = new SNMP();
