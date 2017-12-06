@@ -12,6 +12,7 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
 
   git checkout .
   git pull origin master
+  npm install 
   systemctl restart routair.service
 else
   echo "offline, cancel routair update"
