@@ -3,6 +3,7 @@ var EnoceanLoader = require("./enocean.js");
 var Server = require("./server.js");
 var SNMP = require("./snmp.js");
 var PushWEB = require("./push_web.js");
+var DiscoveryService = require("./discovery");
 var request = require('request');
 var wifi = require("./wifi/instance.js");
 
@@ -12,12 +13,14 @@ var enocean = new EnoceanLoader();
 var server = new Server(enocean);
 var snmp = new SNMP();
 var push_web = new PushWEB();
+var discovery_service = new DiscoveryService();
 
 wifi.start();
 server.start();
 snmp.connect();
 push_web.connect();
 enocean.register(server);
+discovery_service.bind();
 
 enocean.on("usb-open", function(port) {
   console.log("device opened and ready");
