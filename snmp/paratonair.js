@@ -2,6 +2,7 @@ const Abstract = require("./abstract"),
 util = require("util"),
 os = require('os');
 
+//same as comptair
 function Paratonair(params) {
   this.setParams(params);
 }

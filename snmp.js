@@ -8,6 +8,7 @@ Ellips = require("./snmp/ellips");
 
 const array = {
 	paratonair: Paratonair,
+	comptair: Paratonair,//same
 	ellips: Ellips
 }
 const VERSION = "0.1";
@@ -45,7 +46,7 @@ SNMP.prototype.applyData = function(data) {
 			const callback = () => { //manage contactair ready v2 if not ffffff
 				this.agents.forEach(agent => {
 					const lpsfr = agent.getLPSFR();
-					if(rawdata.length > 6 && lpsfr.type === "paratonair") {
+					if(rawdata.length > 6 && (lpsfr.type === "paratonair" || lpsfr.type === "comptair")) {
 						const config_internal = lpsfr.internal.substring(0, 6);
 
 						if(internal === config_internal) {
