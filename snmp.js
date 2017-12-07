@@ -4,11 +4,13 @@ config = require("./config/snmp.json"),
 snmp = require('snmpjs'),
 DataPoint = require("./database/data_point"),
 Paratonair = require("./snmp/paratonair"),
+AlertairDC = require("./snmp/alertairdc"),
 Ellips = require("./snmp/ellips");
 
 const array = {
 	paratonair: Paratonair,
 	comptair: Paratonair,//same
+	alertairdc: AlertairDC,
 	ellips: Ellips
 }
 const VERSION = "0.1";
