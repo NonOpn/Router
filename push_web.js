@@ -78,10 +78,34 @@ PushWEB.prototype.connect = function() {
 	} else {
 		console.log("PushWEB is now init");
 
+		this.sendEcho();
+		setInterval(() => {
+			this.sendEcho();
+		}, 30 * 60 * 1000);
+
 		setTimeout(() => {
 			this.trySend()
 		}, 1 * 60 * 1000);//every 60s
 	}
+}
+
+PushWEB.prototype.sendEcho = function() {
+	if(!this.is_activated) {
+		console.log("inactivated....");
+		return;
+	}
+
+	console.log("posting");
+	request.post({
+		url: "https://contact-platform.com/api/echo",
+		json: {
+			host: config.identity,
+			version: 1
+		}
+	}, (e, response, body) => {
+		//nothing to do
+		console.log(body);
+	});
 }
 
 PushWEB.prototype.trySend = function() {
