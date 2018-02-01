@@ -66,10 +66,22 @@ FrameModel.prototype.from = function(frame, sent = 0) {
   }
 }
 
+FrameModel.prototype.manageErrorCrash = function(resolve, reject) {
+  connection.query("REPAIR TABLE Frames", (error, results, fields) => {
+    console.log(error);
+    console.log(results);
+    console.log(fields);
+    reject(error);
+  });
+}
+
 FrameModel.prototype.setSent = function(id, sent) {
   return new Promise((resolve, reject) => {
     connection.query("UPDATE Frames SET sent = ? WHERE id = ? ", [sent, id],  (error, results, fields) => {
-      if(error) {
+      if(error && error.code === "ER_CRASHED_ON_USAGE") {
+        this.manageErrorCrash(resolve, reject);
+        return;
+      } else if(error) {
         reject(error);
         return;
       }
@@ -86,7 +98,10 @@ FrameModel.prototype.setSent = function(id, sent) {
 FrameModel.prototype.getUnsent = function() {
   return new Promise((resolve, reject) => {
     connection.query("SELECT * FROM Frames WHERE sent = 0 ", (error, results, fields) => {
-      if(error) {
+      if(error && error.code === "ER_CRASHED_ON_USAGE") {
+        this.manageErrorCrash(resolve, reject);
+        return;
+      } else if(error) {
         reject(error);
         return;
       }
@@ -111,10 +126,14 @@ FrameModel.prototype.saveMultiple = function(txs) {
 
     connection.query(INSERT_ROWS, [array], (error, results, fields) => {
       if(error && error.code !== "ER_DUP_ENTRY") {
-        console.log(error);
-        console.log(results);
-        console.log(fields);
-        reject(error);
+        if(error && error.code === "ER_CRASHED_ON_USAGE") {
+          this.manageErrorCrash(resolve, reject);
+        } else {
+          console.log(error);
+          console.log(results);
+          console.log(fields);
+          reject(error);
+        }
       } else {
         resolve(txs);
       }
@@ -128,11 +147,15 @@ FrameModel.prototype.save = function(tx) {
     const transaction = txToJson(tx);
     connection.query("INSERT INTO Frames SET ?", transaction, (error, results, fields) => {
       if(error && error.code !== "ER_DUP_ENTRY") {
-        console.log(tx);
-        console.log(error);
-        console.log(results);
-        console.log(fields);
-        reject(error);
+        if(error && error.code === "ER_CRASHED_ON_USAGE") {
+          this.manageErrorCrash(resolve, reject);
+        } else {
+          console.log(tx);
+          console.log(error);
+          console.log(results);
+          console.log(fields);
+          reject(error);
+        }
       } else {
         resolve(transaction);
       }
