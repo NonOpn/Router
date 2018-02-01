@@ -11,7 +11,7 @@ const VERSION = "0.0";
 function createRequestRaw(raw) {
 	return {
 		host: config.identity,
-		version: 1,
+		version: 2,
 		data: raw
 	};
 }
@@ -20,7 +20,7 @@ function createRequest(data /*buffer hex */) {
 	const base64 = data.toString("base64");
 	return {
 		host: config.identity,
-		version: 1,
+		version: 2,
 		data: base64
 	};
 }
