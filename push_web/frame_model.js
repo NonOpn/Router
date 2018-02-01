@@ -10,14 +10,26 @@ var connection = mysql.createConnection({
 });
 
 connection.connect();
-connection.query("CREATE TABLE IF NOT EXISTS Frames ("
-  + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
-  + "`frame` VARCHAR(255) NOT NULL,"
-  + "`timestamp` INTEGER NOT NULL,"
-  + "`sent` INTEGER NOT NULL,"
-  + "KEY `timestamp` (`timestamp`)"
-  + ")ENGINE=MyISAM;", function(err, results, fields) {
-    console.log("table creation finished");
+
+var pool = mysql.createPool({
+  connectionLimit: 20,
+  host     : config.host,
+  user     : config.user,
+  password : config.password,
+  database : config.database,
+  debug: false
+});
+
+pool.getConnection((err, connection) => {
+  connection.query("CREATE TABLE IF NOT EXISTS Frames ("
+    + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
+    + "`frame` VARCHAR(255) NOT NULL,"
+    + "`timestamp` INTEGER NOT NULL,"
+    + "`sent` INTEGER NOT NULL,"
+    + "KEY `timestamp` (`timestamp`)"
+    + ")ENGINE=MyISAM;", function(err, results, fields) {
+      console.log("table creation finished");
+  });
 });
 
 const FRAME_MODEL = "Transaction";
@@ -67,50 +79,56 @@ FrameModel.prototype.from = function(frame, sent = 0) {
 }
 
 FrameModel.prototype.manageErrorCrash = function(resolve, reject) {
-  connection.query("REPAIR TABLE Frames", (error, results, fields) => {
-    console.log(error);
-    console.log(results);
-    console.log(fields);
-    reject(error);
+  pool.getConnection((err, connection) => {
+    connection.query("REPAIR TABLE Frames", (error, results, fields) => {
+      console.log(error);
+      console.log(results);
+      console.log(fields);
+      reject(error);
+    });
   });
 }
 
 FrameModel.prototype.setSent = function(id, sent) {
   return new Promise((resolve, reject) => {
-    connection.query("UPDATE Frames SET sent = ? WHERE id = ? ", [sent, id],  (error, results, fields) => {
-      if(error && error.code === "ER_CRASHED_ON_USAGE") {
-        this.manageErrorCrash(resolve, reject);
-        return;
-      } else if(error) {
-        reject(error);
-        return;
-      }
+    pool.getConnection((err, connection) => {
+      connection.query("UPDATE Frames SET sent = ? WHERE id = ? ", [sent, id],  (error, results, fields) => {
+        if(error && error.code === "ER_CRASHED_ON_USAGE") {
+          this.manageErrorCrash(resolve, reject);
+          return;
+        } else if(error) {
+          reject(error);
+          return;
+        }
 
-      if(results && results.length > 0) {
-        resolve(results[0]);
-      } else {
-        resolve(undefined);
-      }
+        if(results && results.length > 0) {
+          resolve(results[0]);
+        } else {
+          resolve(undefined);
+        }
+      });
     });
   });
 }
 
 FrameModel.prototype.getUnsent = function() {
   return new Promise((resolve, reject) => {
-    connection.query("SELECT * FROM Frames WHERE sent = 0 ", (error, results, fields) => {
-      if(error && error.code === "ER_CRASHED_ON_USAGE") {
-        this.manageErrorCrash(resolve, reject);
-        return;
-      } else if(error) {
-        reject(error);
-        return;
-      }
+    pool.getConnection((err, connection) => {
+      connection.query("SELECT * FROM Frames WHERE sent = 0 ", (error, results, fields) => {
+        if(error && error.code === "ER_CRASHED_ON_USAGE") {
+          this.manageErrorCrash(resolve, reject);
+          return;
+        } else if(error) {
+          reject(error);
+          return;
+        }
 
-      if(results && results.length > 0) {
-        resolve(results);
-      } else {
-        resolve([]);
-      }
+        if(results && results.length > 0) {
+          resolve(results);
+        } else {
+          resolve([]);
+        }
+      });
     });
   });
 }
@@ -124,20 +142,22 @@ FrameModel.prototype.saveMultiple = function(txs) {
       array.push(txToArrayForInsert(transaction));
     });
 
-    connection.query(INSERT_ROWS, [array], (error, results, fields) => {
-      if(error && error.code !== "ER_DUP_ENTRY") {
-        if(error && error.code === "ER_CRASHED_ON_USAGE") {
-          this.manageErrorCrash(resolve, reject);
+    pool.getConnection((err, connection) => {
+      connection.query(INSERT_ROWS, [array], (error, results, fields) => {
+        if(error && error.code !== "ER_DUP_ENTRY") {
+          if(error && error.code === "ER_CRASHED_ON_USAGE") {
+            this.manageErrorCrash(resolve, reject);
+          } else {
+            console.log(error);
+            console.log(results);
+            console.log(fields);
+            reject(error);
+          }
         } else {
-          console.log(error);
-          console.log(results);
-          console.log(fields);
-          reject(error);
+          resolve(txs);
         }
-      } else {
-        resolve(txs);
-      }
-    });
+      });
+  });
   });
 }
 
@@ -145,20 +165,22 @@ FrameModel.prototype.save = function(tx) {
   return new Promise((resolve, reject) => {
     tx.timestamp = Math.floor(Date.now()/1000);
     const transaction = txToJson(tx);
-    connection.query("INSERT INTO Frames SET ?", transaction, (error, results, fields) => {
-      if(error && error.code !== "ER_DUP_ENTRY") {
-        if(error && error.code === "ER_CRASHED_ON_USAGE") {
-          this.manageErrorCrash(resolve, reject);
+    pool.getConnection((err, connection) => {
+      connection.query("INSERT INTO Frames SET ?", transaction, (error, results, fields) => {
+        if(error && error.code !== "ER_DUP_ENTRY") {
+          if(error && error.code === "ER_CRASHED_ON_USAGE") {
+            this.manageErrorCrash(resolve, reject);
+          } else {
+            console.log(tx);
+            console.log(error);
+            console.log(results);
+            console.log(fields);
+            reject(error);
+          }
         } else {
-          console.log(tx);
-          console.log(error);
-          console.log(results);
-          console.log(fields);
-          reject(error);
+          resolve(transaction);
         }
-      } else {
-        resolve(transaction);
-      }
+      });
     });
   });
 }
