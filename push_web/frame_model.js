@@ -28,6 +28,7 @@ pool.getConnection((err, connection) => {
     + "`sent` INTEGER NOT NULL,"
     + "KEY `timestamp` (`timestamp`)"
     + ")ENGINE=MyISAM;", function(err, results, fields) {
+      connection.release();
       console.log("table creation finished");
   });
 });
@@ -81,6 +82,7 @@ FrameModel.prototype.from = function(frame, sent = 0) {
 FrameModel.prototype.manageErrorCrash = function(resolve, reject) {
   pool.getConnection((err, connection) => {
     connection.query("REPAIR TABLE Frames", (error, results, fields) => {
+      connection.release();
       console.log(error);
       console.log(results);
       console.log(fields);
@@ -93,6 +95,7 @@ FrameModel.prototype.setSent = function(id, sent) {
   return new Promise((resolve, reject) => {
     pool.getConnection((err, connection) => {
       connection.query("UPDATE Frames SET sent = ? WHERE id = ? ", [sent, id],  (error, results, fields) => {
+        connection.release();
         if(error && error.code === "ER_CRASHED_ON_USAGE") {
           this.manageErrorCrash(resolve, reject);
           return;
@@ -115,6 +118,7 @@ FrameModel.prototype.getUnsent = function() {
   return new Promise((resolve, reject) => {
     pool.getConnection((err, connection) => {
       connection.query("SELECT * FROM Frames WHERE sent = 0 ", (error, results, fields) => {
+        connection.release();
         if(error && error.code === "ER_CRASHED_ON_USAGE") {
           this.manageErrorCrash(resolve, reject);
           return;
@@ -144,6 +148,7 @@ FrameModel.prototype.saveMultiple = function(txs) {
 
     pool.getConnection((err, connection) => {
       connection.query(INSERT_ROWS, [array], (error, results, fields) => {
+        connection.release();
         if(error && error.code !== "ER_DUP_ENTRY") {
           if(error && error.code === "ER_CRASHED_ON_USAGE") {
             this.manageErrorCrash(resolve, reject);
@@ -167,6 +172,7 @@ FrameModel.prototype.save = function(tx) {
     const transaction = txToJson(tx);
     pool.getConnection((err, connection) => {
       connection.query("INSERT INTO Frames SET ?", transaction, (error, results, fields) => {
+        connection.release();
         if(error && error.code !== "ER_DUP_ENTRY") {
           if(error && error.code === "ER_CRASHED_ON_USAGE") {
             this.manageErrorCrash(resolve, reject);
