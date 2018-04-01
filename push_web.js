@@ -127,19 +127,13 @@ PushWEB.prototype.trySend = function() {
 					console.log("having := ", frame.frame, json);
 					console.log(e);
 					if(response && response.statusCode) {
-						console.log(response.statusCode);
 						FrameModel.setSent(frame.id, true)
 						.then(() => {
 							console.log("set sent "+frame.id);
 							callback(i+1);
 						});
 					} else {
-						//FrameModel.setSent(frame.id, true)
-						//.then(() => {
-						//	console.log("set sent "+frame.id);
-						//	callback(i+1);
-						//});
-						console.log("error with "+frame.id);
+						console.log("error with ", frame);
 						callback(i+1);
 					}
 				});
