@@ -4,6 +4,8 @@ EventEmitter = require("events").EventEmitter,
 basicAuth = require("basic-auth-connect"),
 socketio = require("socket.io"),
 app = express(),
+api_v1 = require("./server/api/api_v1"),
+api_public = require("./server/api/api_public"),
 bodyParser = require('body-parser'),
 config = require("./config/visualisation.js"),
 setup = require("setup")(),
@@ -78,8 +80,10 @@ var Server = function(enocean_manager) {
 
   this.start = function() {
     app
-    .use(basicAuth(config.login, config.password))
     .use(bodyParser.json())
+    .use("/api/public", api_public)
+    .use(basicAuth(config.login, config.password))
+    .use("/api/v1", api_v1)
     .use(express.static("./server/html"));
 
     server.listen(port);

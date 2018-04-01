@@ -114,6 +114,30 @@ FrameModel.prototype.setSent = function(id, sent) {
   });
 }
 
+FrameModel.prototype.before = function(timestamp) {
+  return new Promise((resolve, reject) => {
+    pool.getConnection((err, connection) => {
+      console.log(timestamp);
+      connection.query("SELECT * FROM Frames WHERE timestamp < ? ORDER BY timestamp LIMIT 100", [timestamp], (error, results, fields) => {
+        connection.release();
+        if(error && error.code === "ER_CRASHED_ON_USAGE") {
+          this.manageErrorCrash(resolve, reject);
+          return;
+        } else if(error) {
+          reject(error);
+          return;
+        }
+
+        if(results && results.length > 0) {
+          resolve(results);
+        } else {
+          resolve([]);
+        }
+      });
+    });
+  });
+}
+
 FrameModel.prototype.getUnsent = function() {
   return new Promise((resolve, reject) => {
     pool.getConnection((err, connection) => {
