@@ -39,6 +39,11 @@ router.post("/wifi/config.json", (req, res) => {
   const passphrase = req.body.passphrase;
 
   if(ssid && passphrase) {
+    network = {
+      ssid: ssid,
+      passphrase: passphrase
+    };
+    
     wifi.storeConfiguration(network)
     .then(success => {
       if(success === true) {
