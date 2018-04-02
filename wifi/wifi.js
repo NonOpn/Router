@@ -24,8 +24,19 @@ function Wifi() {
 
 }
 
+function removeUnwanted(string) {
+  //replace \\ to \
+  while(string.indexOf("\\\\") >= 0) {
+    string = string.replace(/\\\\/g, "\\") //replace every \\ to \
+  }
+
+  return string.replace(/\\'/g, "'") //replace \' to '
+      .replace(/'/g, "\\'"); //switch back every legit ' and vilainous \'
+}
 
 function saveSSID(wpa_supplicant_conf, ssid, passphrase, callback) {
+  ssid = removeUnwanted(ssid);
+  passphrase = removeUnwanted(passphrase);
 
   var command = "wpa_passphrase '" + ssid + "' '" + passphrase + "' >> " + wpa_supplicant_conf;
 
