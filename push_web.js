@@ -9,12 +9,14 @@ errors = require("./errors");
 const VERSION = "0.0";
 
 function _post(json) {
+	console.log("posting json");
 	return new Promise((resolve, reject) => {
 		try {
 			request.post({
 				url: "https://contact-platform.com/api/ping",
 				json: json
 			}, (e, response, body) => {
+				console.log("answer obtained");
 				if(response && response.statusCode) {
 					resolve(body);
 				} else {
@@ -56,8 +58,10 @@ class PushWEB extends EventEmitter {
 		.then((frames) => {
 			console.log("frames ? " + frames);
 			const callback = (i) => {
+				console.log("callback called with " + i);
 				if(null == frames || i >= frames.length) {
 					this._posting = false;
+					console.log("finished");
 				} else {
 					const frame = frames[i];
 					//const hex = Buffer.from(frame.frame, "hex");
@@ -128,9 +132,11 @@ class PushWEB extends EventEmitter {
 				this.sendEcho();
 			}, 15 * 60 * 1000); //set echo every 15minutes
 
+			this.trySend();
+
 			setInterval(() => {
 				console.log("try send... " + this.is_activated+" "+this._posting);
-				this.trySend()
+				this.trySend();
 			}, 1 * 60 * 1000);//every 60s
 		}
 	}
