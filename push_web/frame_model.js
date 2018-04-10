@@ -81,6 +81,10 @@ FrameModel.prototype.from = function(frame, sent = 0) {
 
 FrameModel.prototype.manageErrorCrash = function(resolve, reject) {
   pool.getConnection((err, connection) => {
+    if(!connection) {
+      reject(err)
+      return;
+    }
     connection.query("REPAIR TABLE Frames", (error, results, fields) => {
       connection.release();
       console.log(error);
@@ -94,6 +98,10 @@ FrameModel.prototype.manageErrorCrash = function(resolve, reject) {
 FrameModel.prototype.setSent = function(id, sent) {
   return new Promise((resolve, reject) => {
     pool.getConnection((err, connection) => {
+      if(!connection) {
+        reject(err)
+        return;
+      }
       connection.query("UPDATE Frames SET sent = ? WHERE id = ? ", [sent, id],  (error, results, fields) => {
         connection.release();
         if(error && error.code === "ER_CRASHED_ON_USAGE") {
@@ -117,6 +125,10 @@ FrameModel.prototype.setSent = function(id, sent) {
 FrameModel.prototype.before = function(timestamp) {
   return new Promise((resolve, reject) => {
     pool.getConnection((err, connection) => {
+      if(!connection) {
+        reject(err)
+        return;
+      }
       console.log(timestamp);
       connection.query("SELECT * FROM Frames WHERE timestamp < ? ORDER BY timestamp LIMIT 100", [timestamp], (error, results, fields) => {
         connection.release();
@@ -141,6 +153,10 @@ FrameModel.prototype.before = function(timestamp) {
 FrameModel.prototype.getUnsent = function() {
   return new Promise((resolve, reject) => {
     pool.getConnection((err, connection) => {
+      if(!connection) {
+        reject(err)
+        return;
+      }
       connection.query("SELECT * FROM Frames WHERE sent = 0 ", (error, results, fields) => {
         connection.release();
         if(error && error.code === "ER_CRASHED_ON_USAGE") {
@@ -171,6 +187,10 @@ FrameModel.prototype.saveMultiple = function(txs) {
     });
 
     pool.getConnection((err, connection) => {
+      if(!connection) {
+        reject(err)
+        return;
+      }
       connection.query(INSERT_ROWS, [array], (error, results, fields) => {
         connection.release();
         if(error && error.code !== "ER_DUP_ENTRY") {
@@ -195,6 +215,10 @@ FrameModel.prototype.save = function(tx) {
     tx.timestamp = Math.floor(Date.now()/1000);
     const transaction = txToJson(tx);
     pool.getConnection((err, connection) => {
+      if(!connection) {
+        reject(err)
+        return;
+      }
       connection.query("INSERT INTO Frames SET ?", transaction, (error, results, fields) => {
         connection.release();
         if(error && error.code !== "ER_DUP_ENTRY") {

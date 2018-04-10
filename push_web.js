@@ -8,162 +8,152 @@ errors = require("./errors");
 
 const VERSION = "0.0";
 
+function _post(json) {
+	return new Promise((resolve, reject) => {
+		try {
+			request.post({
+				url: "https://contact-platform.com/api/ping",
+				json: json
+			}, (e, response, body) => {
+				if(response && response.statusCode) {
+					resolve(body);
+				} else {
+					reject(e);
+				}
+			});
+		} catch(err) {
+			reject(err);
+		}
+	});
+}
+
 function createRequestRaw(raw) {
 	return {
 		host: config.identity,
-		version: 2,
+		version: 3,
 		data: raw
 	};
 }
 
 function createRequest(data /*buffer hex */) {
 	const base64 = data.toString("base64");
-	return {
-		host: config.identity,
-		version: 2,
-		data: base64
-	};
+	return { host: config.identity, version: 3, data: base64 };
 }
 
-var PushWEB = function() {
-	this.is_activated = push_web_config.is_activated;
-}
-
-PushWEB.prototype.onFrame = function(data) {
-	if(this.is_activated && data && data.sender) {
-		this.applyData(data);
-	}
-}
-
-PushWEB.prototype.applyData = function(data) {
-	if(!this.is_activated) return;
-	var rawData = undefined;
-
-	if(data && data.rawFrameStr) {
-		if(data.rawFrameStr.length === 60) { //30*2
-			rawData = data.rawFrameStr; //compress30(data.rawFrameStr);
-		} else if(data.rawFrameStr.length === 48) { //24*2
-			rawData = data.rawFrameStr; //compress24(data.rawFrameStr);
-		}
-		console.log(data.rawFrameStr.length, rawData);
+class PushWEB extends EventEmitter {
+	constructor() {
+		super();
+		this.is_activated = push_web_config.is_activated;
+		this._posting = false;
 	}
 
-	if(rawData) {
-		const to_save = FrameModel.from(rawData);
-		FrameModel.save(to_save)
-		.then(saved => {
-			console.log(saved);
+	trySend() {
+		if(this._posting || !this.is_activated) return;
+		this._posting = true;
+
+		FrameModel.getUnsent()
+		.then((frames) => {
+			const callback = (i) => {
+				if(null == frames || i >= frames.length) {
+					this._posting = false;
+				} else {
+					const frame = frames[i];
+					//const hex = Buffer.from(frame.frame, "hex");
+					const json = createRequestRaw(frame.frame); //createRequest(hex);
+					_post(json)
+					.then(body => {
+						return FrameModel.setSent(frame.id, true);
+					})
+					.then(saved => {
+						callback(i+1);
+					})
+					.catch(err => {
+						console.log(err);
+						errors.postJsonError(err);
+						callback(i+1);
+					});
+				}
+			}
+
+			callback(0);
 		})
 		.catch(err => {
-			console.log(err);
+			errors.postJsonError(err);
+			this._posting = false;
+		});
+	}
+
+	sendEcho() {
+		if(!this.is_activated) {
+			console.log("inactivated....");
+			return;
+		}
+
+		new Promise((resolve, reject) => {
+			request.post({
+				url: "https://contact-platform.com/api/echo",
+				json: { host: config.identity, version: 3 }
+			}, (e, response, body) => {
+				//nothing to do
+				console.log(body);
+				resolve(true);
+			});
+		})
+		.then(result => {
+			console.log("echo posted");
+		})
+		.catch(err => {
+			console.log("echo error", err);
+			errors.postJsonError(err);
 		})
 	}
-}
 
-PushWEB.prototype.compress24 = function(rawFrameStr) {
-	if(!this.is_activated) return;
+	onFrame(data) {
+		if(this.is_activated && data && data.sender) {
+			this.applyData(data);
+		}
+	}
 
-	const hex = Buffer.from(rawFrameStr);
-	return
-}
+	connect() {
+		if(!this.is_activated) {
+			console.log("PushWEB is disabled see .env.example");
+		} else {
+			console.log("PushWEB is now init");
 
-PushWEB.prototype.compress30 = function(rawFrameStr) {
-	if(!this.is_activated) return;
-
-}
-
-PushWEB.prototype.connect = function() {
-	if(!this.is_activated) {
-		console.log("PushWEB is disabled see .env.example");
-	} else {
-		console.log("PushWEB is now init");
-
-		this.sendEcho();
-		setInterval(() => {
 			this.sendEcho();
-		}, 30 * 60 * 1000);
+			setInterval(() => {
+				this.sendEcho();
+			}, 15 * 60 * 1000); //set echo every 15minutes
 
-		setTimeout(() => {
-			this.trySend()
-		}, 1 * 60 * 1000);//every 60s
-	}
-}
-
-PushWEB.prototype.sendEcho = function() {
-	if(!this.is_activated) {
-		console.log("inactivated....");
-		return;
-	}
-
-	console.log("posting");
-	request.post({
-		url: "https://contact-platform.com/api/echo",
-		json: {
-			host: config.identity,
-			version: 1
+			setInterval(() => {
+				this.trySend()
+			}, 1 * 60 * 1000);//every 60s
 		}
-	}, (e, response, body) => {
-		//nothing to do
-		console.log(body);
-	});
-}
+	}
 
-PushWEB.prototype.trySend = function() {
-	if(!this.is_activated) return;
+	applyData(data) {
+		if(!this.is_activated) return;
+		var rawData = undefined;
 
-	FrameModel.getUnsent()
-	.then((frames) => {
-		const callback = (i) => {
-			if(null == frames || i >= frames.length) {
-				this.postNextTrySend();
-			} else {
-				const frame = frames[i];
-				//const hex = Buffer.from(frame.frame, "hex");
-				const json = createRequestRaw(frame.frame); //createRequest(hex);
-				request.post({
-					url: "https://contact-platform.com/api/ping",
-					json: json
-				}, (e, response, body) => {
-					console.log("having := ", frame.frame, json);
-					console.log(e);
-					if(response && response.statusCode) {
-						FrameModel.setSent(frame.id, true)
-						.then(() => {
-							console.log("set sent "+frame.id);
-							callback(i+1);
-						})
-						.catch(err => {
-							errors.postJsonError(err);
-							callback(i+1);
-						});
-					} else {
-						try {
-							console.log("error with "+frame.id);
-						} catch(err) {
-								errors.postJsonError(err);
-						}
-						callback(i+1);
-					}
-				});
+		if(data && data.rawFrameStr) {
+			if(data.rawFrameStr.length === 60) { //30*2
+				rawData = data.rawFrameStr; //compress30(data.rawFrameStr);
+			} else if(data.rawFrameStr.length === 48) { //24*2
+				rawData = data.rawFrameStr; //compress24(data.rawFrameStr);
 			}
+			console.log(data.rawFrameStr.length, rawData);
 		}
 
-		callback(0);
-	})
-	.catch(err => {
-		errors.postJsonError(err);
-		this.postNextTrySend();
-	});
+		if(rawData) {
+			const to_save = FrameModel.from(rawData);
+			FrameModel.save(to_save)
+			.then(saved => console.log(saved))
+			.catch(err => {
+				errors.postJsonError(err);
+				console.log(err);
+			})
+		}
+	}
 }
-
-PushWEB.prototype.postNextTrySend = function() {
-	if(!this.is_activated) return;
-
-	setTimeout(() => {
-		this.trySend();
-	}, 1 * 60 * 1000);
-}
-
-util.inherits(PushWEB, EventEmitter);
 
 module.exports = PushWEB;
