@@ -50,9 +50,11 @@ class PushWEB extends EventEmitter {
 	trySend() {
 		if(this._posting || !this.is_activated) return;
 		this._posting = true;
+		console.log("try send to send frames");
 
 		FrameModel.getUnsent()
 		.then((frames) => {
+			console.log("frames ? " + frames);
 			const callback = (i) => {
 				if(null == frames || i >= frames.length) {
 					this._posting = false;
@@ -78,6 +80,7 @@ class PushWEB extends EventEmitter {
 			callback(0);
 		})
 		.catch(err => {
+			console.log("frames error... ");
 			errors.postJsonError(err);
 			this._posting = false;
 		});
@@ -126,7 +129,7 @@ class PushWEB extends EventEmitter {
 			}, 15 * 60 * 1000); //set echo every 15minutes
 
 			setInterval(() => {
-				console.log("try send... " + this.is_activated);
+				console.log("try send... " + this.is_activated+" "+this._posting);
 				this.trySend()
 			}, 1 * 60 * 1000);//every 60s
 		}
