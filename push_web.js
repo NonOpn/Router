@@ -66,6 +66,8 @@ class PushWEB extends EventEmitter {
 					const frame = frames[i];
 					//const hex = Buffer.from(frame.frame, "hex");
 					const json = createRequestRaw(frame.frame); //createRequest(hex);
+					json && (json.remaining = frames.length - i);
+
 					_post(json)
 					.then(body => {
 						return FrameModel.setSent(frame.id, true);
