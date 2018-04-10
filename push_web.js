@@ -6,7 +6,7 @@ FrameModel = require("./push_web/frame_model"),
 request = require('request'),
 errors = require("./errors");
 
-const VERSION = "0.0";
+const VERSION = 4;
 
 function _post(json) {
 	console.log("posting json");
@@ -32,14 +32,14 @@ function _post(json) {
 function createRequestRaw(raw) {
 	return {
 		host: config.identity,
-		version: 3,
+		version: VERSION,
 		data: raw
 	};
 }
 
 function createRequest(data /*buffer hex */) {
 	const base64 = data.toString("base64");
-	return { host: config.identity, version: 3, data: base64 };
+	return { host: config.identity, version: VERSION, data: base64 };
 }
 
 class PushWEB extends EventEmitter {
@@ -101,7 +101,7 @@ class PushWEB extends EventEmitter {
 		new Promise((resolve, reject) => {
 			request.post({
 				url: "https://contact-platform.com/api/echo",
-				json: { host: config.identity, version: 3 }
+				json: { host: config.identity, version: VERSION }
 			}, (e, response, body) => {
 				//nothing to do
 				console.log(body);
