@@ -3,10 +3,10 @@ util = require("util"),
 config = require("./config/config.js"),
 push_web_config = require("./config/push_web"),
 FrameModel = require("./push_web/frame_model"),
-request = require('request');
+request = require('request'),
+errors = require("./errors");
 
 const VERSION = "0.0";
-
 
 function createRequestRaw(raw) {
 	return {
@@ -114,7 +114,7 @@ PushWEB.prototype.trySend = function() {
 	FrameModel.getUnsent()
 	.then((frames) => {
 		const callback = (i) => {
-			if(i >= frames.length) {
+			if(null == frames || i >= frames.length) {
 				this.postNextTrySend();
 			} else {
 				const frame = frames[i];
@@ -131,9 +131,17 @@ PushWEB.prototype.trySend = function() {
 						.then(() => {
 							console.log("set sent "+frame.id);
 							callback(i+1);
+						})
+						.catch(err => {
+							errors.postJsonError(err);
+							callback(i+1);
 						});
 					} else {
-						console.log("error with ", frame);
+						try {
+							console.log("error with "+frame.id);
+						} catch(err) {
+								errors.postJsonError(err);
+						}
 						callback(i+1);
 					}
 				});
@@ -143,7 +151,7 @@ PushWEB.prototype.trySend = function() {
 		callback(0);
 	})
 	.catch(err => {
-		console.log(err);
+		errors.postJsonError(err);
 		this.postNextTrySend();
 	});
 }
