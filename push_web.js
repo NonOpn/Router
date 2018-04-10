@@ -126,6 +126,7 @@ class PushWEB extends EventEmitter {
 			}, 15 * 60 * 1000); //set echo every 15minutes
 
 			setInterval(() => {
+				console.log("try send... " + this.is_activated);
 				this.trySend()
 			}, 1 * 60 * 1000);//every 60s
 		}
