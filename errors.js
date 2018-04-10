@@ -36,7 +36,7 @@ function toJSON( err ) {
 	if (err.syscall) out.syscall = err.syscall;
 
 	keys = Object.keys(err);
-  keys.forEach(key => (out[key] = copy(err[key])));
+  keys.forEach(key => (out[key] = err[key]));
 	return out;
 }
 

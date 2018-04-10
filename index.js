@@ -6,6 +6,7 @@ var PushWEB = require("./push_web.js");
 var DiscoveryService = require("./discovery");
 var request = require('request');
 var wifi = require("./wifi/instance.js");
+var errors = require("./errors");
 
 console.log("starting routair main program...");
 
@@ -47,6 +48,7 @@ snmp.on("log", function(log) {
 
 process.on("uncaughtException", function(err) {
   try{
+    errors.postJsonError(err);
     if(err && err.toString().indexOf("Device not configured") >= 0) {
       enocean.emit("close");
     }
