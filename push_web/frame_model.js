@@ -156,7 +156,7 @@ class FrameModel extends Abstract {
           reject(err)
           return;
         }
-        connection.query("SELECT * FROM Frames WHERE sent = 0 ", (error, results, fields) => {
+        connection.query("SELECT * FROM Frames WHERE sent = 0 LIMIT 100", (error, results, fields) => {
           connection.release();
           if(error && error.code === "ER_CRASHED_ON_USAGE") {
             this.manageErrorCrash(resolve, reject);

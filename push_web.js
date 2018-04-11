@@ -6,7 +6,7 @@ FrameModel = require("./push_web/frame_model"),
 request = require('request'),
 errors = require("./errors");
 
-const VERSION = 4;
+const VERSION = 5;
 
 function _post(json) {
 	console.log("posting json");
@@ -62,8 +62,20 @@ class PushWEB extends EventEmitter {
 			const callback = (i) => {
 				console.log("callback called with " + i);
 				if(null == frames || i >= frames.length) {
-					this._posting = false;
-					console.log("finished");
+					_post({
+						host: config.identity,
+						version: VERSION,
+						fnished: true
+					})
+					.then(body => {
+						console.log("finished");
+						this._posting = false;
+					})
+					.catch(err => {
+						console.log("finished with network err");
+						this._posting = false;
+						errors.postJsonError(err);
+					});
 				} else {
 					const frame = frames[i];
 					//const hex = Buffer.from(frame.frame, "hex");
