@@ -17,8 +17,9 @@ function _post(json) {
 				json: json
 			}, (e, response, body) => {
 				console.log("answer obtained ", e);
-				console.log("answer obtained ", response);
-				if(response && response.statusCode) {
+				if(e) {
+					reject(e);
+				}else if(response && response.statusCode) {
 					resolve(body);
 				} else {
 					reject(e);
