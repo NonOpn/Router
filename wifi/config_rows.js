@@ -2,15 +2,17 @@ const mysql = require("mysql"),
 Abstract = require("../database/abstract.js"),
 config = require("../config/mysql.js");
 
-var connection = mysql.createConnection({
+
+var pool = mysql.createPool({
+  connectionLimit: 20,
   host     : config.host,
   user     : config.user,
   password : config.password,
-  database : config.database
+  database : config.database,
+  debug: false
 });
 
-connection.connect();
-connection.query("CREATE TABLE IF NOT EXISTS ConfigRows ("
+pool.query("CREATE TABLE IF NOT EXISTS ConfigRows ("
   + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
   + "`key` VARCHAR(255) NOT NULL,"
   + "`value` TEXT NOT NULL,"
@@ -59,7 +61,7 @@ class ConfigRows extends Abstract {
 
   update(key, value) {
     return new Promise((resolve, reject) => {
-      connection.query("UPDATE ConfigRows SET `value` = ? WHERE `key` = ? ", [value, key],  (error, results, fields) => {
+      pool.query("UPDATE ConfigRows SET `value` = ? WHERE `key` = ? ", [value, key],  (error, results, fields) => {
         if(error) {
           reject(error);
           return;
@@ -76,7 +78,7 @@ class ConfigRows extends Abstract {
 
   getKey(key) {
     return new Promise((resolve, reject) => {
-      connection.query("SELECT * FROM ConfigRows WHERE `key` = ? ", [key], (error, results, fields) => {
+      pool.query("SELECT * FROM ConfigRows WHERE `key` = ? ", [key], (error, results, fields) => {
         if(error) {
           reject(error);
           return;
@@ -102,7 +104,7 @@ class ConfigRows extends Abstract {
           .then(result => resolve(result))
           .catch(err => reject(err));
         } else {
-          connection.query("INSERT INTO ConfigRows SET ?", tx, (error, results, fields) => {
+          pool.query("INSERT INTO ConfigRows SET ?", tx, (error, results, fields) => {
             if(error && error.code !== "ER_DUP_ENTRY") {
               console.log(tx);
               console.log(error);
