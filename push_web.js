@@ -6,7 +6,7 @@ FrameModel = require("./push_web/frame_model"),
 request = require('request'),
 errors = require("./errors");
 
-const VERSION = 5;
+const VERSION = 6;
 
 function _post(json) {
 	console.log("posting json");
