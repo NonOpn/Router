@@ -16,7 +16,8 @@ function _post(json) {
 				url: "https://contact-platform.com/api/ping",
 				json: json
 			}, (e, response, body) => {
-				console.log("answer obtained");
+				console.log("answer obtained ", e);
+				console.log("answer obtained ", response);
 				if(response && response.statusCode) {
 					resolve(body);
 				} else {
