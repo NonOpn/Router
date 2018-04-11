@@ -6,15 +6,17 @@ FrameModel = require("./push_web/frame_model"),
 request = require('request'),
 errors = require("./errors");
 
-const VERSION = "0.0";
+const VERSION = 4;
 
 function _post(json) {
+	console.log("posting json");
 	return new Promise((resolve, reject) => {
 		try {
 			request.post({
 				url: "https://contact-platform.com/api/ping",
 				json: json
 			}, (e, response, body) => {
+				console.log("answer obtained");
 				if(response && response.statusCode) {
 					resolve(body);
 				} else {
@@ -30,14 +32,14 @@ function _post(json) {
 function createRequestRaw(raw) {
 	return {
 		host: config.identity,
-		version: 3,
+		version: VERSION,
 		data: raw
 	};
 }
 
 function createRequest(data /*buffer hex */) {
 	const base64 = data.toString("base64");
-	return { host: config.identity, version: 3, data: base64 };
+	return { host: config.identity, version: VERSION, data: base64 };
 }
 
 class PushWEB extends EventEmitter {
@@ -50,16 +52,22 @@ class PushWEB extends EventEmitter {
 	trySend() {
 		if(this._posting || !this.is_activated) return;
 		this._posting = true;
+		console.log("try send to send frames");
 
 		FrameModel.getUnsent()
 		.then((frames) => {
+			console.log("frames ? " + frames);
 			const callback = (i) => {
+				console.log("callback called with " + i);
 				if(null == frames || i >= frames.length) {
 					this._posting = false;
+					console.log("finished");
 				} else {
 					const frame = frames[i];
 					//const hex = Buffer.from(frame.frame, "hex");
 					const json = createRequestRaw(frame.frame); //createRequest(hex);
+					json && (json.remaining = frames.length - i);
+
 					_post(json)
 					.then(body => {
 						return FrameModel.setSent(frame.id, true);
@@ -78,6 +86,7 @@ class PushWEB extends EventEmitter {
 			callback(0);
 		})
 		.catch(err => {
+			console.log("frames error... ");
 			errors.postJsonError(err);
 			this._posting = false;
 		});
@@ -92,7 +101,7 @@ class PushWEB extends EventEmitter {
 		new Promise((resolve, reject) => {
 			request.post({
 				url: "https://contact-platform.com/api/echo",
-				json: { host: config.identity, version: 3 }
+				json: { host: config.identity, version: VERSION }
 			}, (e, response, body) => {
 				//nothing to do
 				console.log(body);
@@ -125,8 +134,11 @@ class PushWEB extends EventEmitter {
 				this.sendEcho();
 			}, 15 * 60 * 1000); //set echo every 15minutes
 
+			this.trySend();
+
 			setInterval(() => {
-				this.trySend()
+				console.log("try send... " + this.is_activated+" "+this._posting);
+				this.trySend();
 			}, 1 * 60 * 1000);//every 60s
 		}
 	}
