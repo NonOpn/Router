@@ -45,83 +45,79 @@ function txToArrayForInsert(tx) {
   ]
 }
 
-const ConfigRows = function() {
-
-}
-
-Abstract.make_inherit(ConfigRows);
-
-ConfigRows.prototype.getModelName = function() {
-  return MODEL;
-}
-
-ConfigRows.prototype.from = function(key, value) {
-  return {
-    key: key,
-    value: value
+class ConfigRows extends Abstract {
+  getModelName () {
+    return MODEL;
   }
-}
 
-ConfigRows.prototype.update = function(key, value) {
-  return new Promise((resolve, reject) => {
-    connection.query("UPDATE ConfigRows SET `value` = ? WHERE `key` = ? ", [value, key],  (error, results, fields) => {
-      if(error) {
-        reject(error);
-        return;
-      }
+  from(key, value) {
+    return {
+      key: key,
+      value: value
+    }
+  }
 
-      if(results && results.length > 0) {
-        resolve(results[0]);
-      } else {
-        resolve(undefined);
-      }
+  update(key, value) {
+    return new Promise((resolve, reject) => {
+      connection.query("UPDATE ConfigRows SET `value` = ? WHERE `key` = ? ", [value, key],  (error, results, fields) => {
+        if(error) {
+          reject(error);
+          return;
+        }
+
+        if(results && results.length > 0) {
+          resolve(results[0]);
+        } else {
+          resolve(undefined);
+        }
+      });
     });
-  });
-}
+  }
 
-ConfigRows.prototype.getKey = function(key) {
-  return new Promise((resolve, reject) => {
-    connection.query("SELECT * FROM ConfigRows WHERE `key` = ? ", [key], (error, results, fields) => {
-      if(error) {
-        reject(error);
-        return;
-      }
+  getKey(key) {
+    return new Promise((resolve, reject) => {
+      connection.query("SELECT * FROM ConfigRows WHERE `key` = ? ", [key], (error, results, fields) => {
+        if(error) {
+          reject(error);
+          return;
+        }
 
-      if(results && results.length > 0) {
-        resolve(results[0]);
-      } else {
-        resolve(undefined);
-      }
+        if(results && results.length > 0) {
+          resolve(results[0]);
+        } else {
+          resolve(undefined);
+        }
+      });
     });
-  });
+  }
+
+  save(key, value) {
+    return new Promise((resolve, reject) => {
+      const tx = this.from(key, value);
+
+      this.getKey(key)
+      .then(item => {
+        if(item) {
+          this.update(key, value)
+          .then(result => resolve(result))
+          .catch(err => reject(err));
+        } else {
+          connection.query("INSERT INTO ConfigRows SET ?", tx, (error, results, fields) => {
+            if(error && error.code !== "ER_DUP_ENTRY") {
+              console.log(tx);
+              console.log(error);
+              console.log(results);
+              console.log(fields);
+              reject(error);
+            } else {
+              resolve(tx);
+            }
+          });
+        }
+      })
+      .catch(err => reject(err));
+    });
+  }
+
 }
-
-ConfigRows.prototype.save = function(key, value) {
-  return new Promise((resolve, reject) => {
-    const tx = this.from(key, value);
-
-    this.getKey(key)
-    .then(item => {
-      if(item) {
-        this.update(key, value)
-        .then(result => resolve(result))
-        .catch(err => reject(err));
-      } else {
-        connection.query("INSERT INTO ConfigRows SET ?", tx, (error, results, fields) => {
-          if(error && error.code !== "ER_DUP_ENTRY") {
-            console.log(tx);
-            console.log(error);
-            console.log(results);
-            console.log(fields);
-            reject(error);
-          } else {
-            resolve(tx);
-          }
-        });
-      }
-    })
-    .catch(err => reject(err));
-  });
-}
-
 module.exports = new ConfigRows();

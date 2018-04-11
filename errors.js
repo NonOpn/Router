@@ -46,10 +46,16 @@ class Errors {
   		request.post({
   			url: "https://contact-platform.com/api/ping",
   			json: {
-  				error: toJSON(err)
+  				error: toJSON(err),
+					version: "999"
   			}
   		}, (e, response, body) => {
-        console.log("error managed");
+				var code = response ? response.statusCode : 200;
+				if(e || code < 200 || code > 299) {
+					console.log("store error");
+				} else {
+					console.log("error manager");
+				}
   		});
   	}
   }

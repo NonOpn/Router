@@ -141,7 +141,6 @@ class PushWEB extends EventEmitter {
 			} else if(data.rawFrameStr.length === 48) { //24*2
 				rawData = data.rawFrameStr; //compress24(data.rawFrameStr);
 			}
-			console.log(data.rawFrameStr.length, rawData);
 		}
 
 		if(rawData) {

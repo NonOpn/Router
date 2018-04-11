@@ -61,182 +61,182 @@ function txToArrayForInsert(tx) {
   ]
 }
 
-const FrameModel = function() {
-
-}
-
-Abstract.make_inherit(FrameModel);
-
-FrameModel.prototype.getModelName = function() {
-  return FRAME_MODEL;
-}
-
-FrameModel.prototype.from = function(frame, sent = 0) {
-  return {
-    timestamp: Math.floor(Date.now()/1000),
-    frame: frame,
-    sent: sent
+class FrameModel extends Abstract {
+  constructor() {
+    super();
   }
-}
 
-FrameModel.prototype.manageErrorCrash = function(resolve, reject) {
-  pool.getConnection((err, connection) => {
-    if(!connection) {
-      reject(err)
-      return;
+  getModelName() {
+    return FRAME_MODEL;
+  }
+
+  from(frame, sent = 0) {
+    return {
+      timestamp: Math.floor(Date.now()/1000),
+      frame: frame,
+      sent: sent
     }
-    connection.query("REPAIR TABLE Frames", (error, results, fields) => {
-      connection.release();
-      console.log(error);
-      console.log(results);
-      console.log(fields);
-      reject(error);
-    });
-  });
-}
+  }
 
-FrameModel.prototype.setSent = function(id, sent) {
-  return new Promise((resolve, reject) => {
+  manageErrorCrash(resolve, reject) {
     pool.getConnection((err, connection) => {
       if(!connection) {
         reject(err)
         return;
       }
-      connection.query("UPDATE Frames SET sent = ? WHERE id = ? ", [sent, id],  (error, results, fields) => {
+      connection.query("REPAIR TABLE Frames", (error, results, fields) => {
         connection.release();
-        if(error && error.code === "ER_CRASHED_ON_USAGE") {
-          this.manageErrorCrash(resolve, reject);
-          return;
-        } else if(error) {
-          reject(error);
-          return;
-        }
-
-        if(results && results.length > 0) {
-          resolve(results[0]);
-        } else {
-          resolve(undefined);
-        }
+        console.log(error);
+        console.log(results);
+        console.log(fields);
+        reject(error);
       });
     });
-  });
-}
+  }
 
-FrameModel.prototype.before = function(timestamp) {
-  return new Promise((resolve, reject) => {
-    pool.getConnection((err, connection) => {
-      if(!connection) {
-        reject(err)
-        return;
-      }
-      console.log(timestamp);
-      connection.query("SELECT * FROM Frames WHERE timestamp < ? ORDER BY timestamp LIMIT 100", [timestamp], (error, results, fields) => {
-        connection.release();
-        if(error && error.code === "ER_CRASHED_ON_USAGE") {
-          this.manageErrorCrash(resolve, reject);
-          return;
-        } else if(error) {
-          reject(error);
+  setSent(id, sent) {
+    return new Promise((resolve, reject) => {
+      pool.getConnection((err, connection) => {
+        if(!connection) {
+          reject(err)
           return;
         }
-
-        if(results && results.length > 0) {
-          resolve(results);
-        } else {
-          resolve([]);
-        }
-      });
-    });
-  });
-}
-
-FrameModel.prototype.getUnsent = function() {
-  return new Promise((resolve, reject) => {
-    pool.getConnection((err, connection) => {
-      if(!connection) {
-        reject(err)
-        return;
-      }
-      connection.query("SELECT * FROM Frames WHERE sent = 0 ", (error, results, fields) => {
-        connection.release();
-        if(error && error.code === "ER_CRASHED_ON_USAGE") {
-          this.manageErrorCrash(resolve, reject);
-          return;
-        } else if(error) {
-          reject(error);
-          return;
-        }
-
-        if(results && results.length > 0) {
-          resolve(results);
-        } else {
-          resolve([]);
-        }
-      });
-    });
-  });
-}
-
-FrameModel.prototype.saveMultiple = function(txs) {
-  return new Promise((resolve, reject) => {
-    const array = [];
-
-    txs.forEach(transaction => {
-      transaction.timestamp = Math.floor(Date.now()/1000);
-      array.push(txToArrayForInsert(transaction));
-    });
-
-    pool.getConnection((err, connection) => {
-      if(!connection) {
-        reject(err)
-        return;
-      }
-      connection.query(INSERT_ROWS, [array], (error, results, fields) => {
-        connection.release();
-        if(error && error.code !== "ER_DUP_ENTRY") {
+        connection.query("UPDATE Frames SET sent = ? WHERE id = ? ", [sent, id],  (error, results, fields) => {
+          connection.release();
           if(error && error.code === "ER_CRASHED_ON_USAGE") {
             this.manageErrorCrash(resolve, reject);
-          } else {
-            console.log(error);
-            console.log(results);
-            console.log(fields);
+            return;
+          } else if(error) {
             reject(error);
+            return;
           }
-        } else {
-          resolve(txs);
-        }
-      });
-  });
-  });
-}
 
-FrameModel.prototype.save = function(tx) {
-  return new Promise((resolve, reject) => {
-    tx.timestamp = Math.floor(Date.now()/1000);
-    const transaction = txToJson(tx);
-    pool.getConnection((err, connection) => {
-      if(!connection) {
-        reject(err)
-        return;
-      }
-      connection.query("INSERT INTO Frames SET ?", transaction, (error, results, fields) => {
-        connection.release();
-        if(error && error.code !== "ER_DUP_ENTRY") {
-          if(error && error.code === "ER_CRASHED_ON_USAGE") {
-            this.manageErrorCrash(resolve, reject);
+          if(results && results.length > 0) {
+            resolve(results[0]);
           } else {
-            console.log(tx);
-            console.log(error);
-            console.log(results);
-            console.log(fields);
-            reject(error);
+            resolve(undefined);
           }
-        } else {
-          resolve(transaction);
-        }
+        });
       });
     });
-  });
-}
+  }
 
+  before(timestamp) {
+    return new Promise((resolve, reject) => {
+      pool.getConnection((err, connection) => {
+        if(!connection) {
+          reject(err)
+          return;
+        }
+        console.log(timestamp);
+        connection.query("SELECT * FROM Frames WHERE timestamp < ? ORDER BY timestamp LIMIT 100", [timestamp], (error, results, fields) => {
+          connection.release();
+          if(error && error.code === "ER_CRASHED_ON_USAGE") {
+            this.manageErrorCrash(resolve, reject);
+            return;
+          } else if(error) {
+            reject(error);
+            return;
+          }
+
+          if(results && results.length > 0) {
+            resolve(results);
+          } else {
+            resolve([]);
+          }
+        });
+      });
+    });
+  }
+
+  getUnsent() {
+    return new Promise((resolve, reject) => {
+      pool.getConnection((err, connection) => {
+        if(!connection) {
+          reject(err)
+          return;
+        }
+        connection.query("SELECT * FROM Frames WHERE sent = 0 ", (error, results, fields) => {
+          connection.release();
+          if(error && error.code === "ER_CRASHED_ON_USAGE") {
+            this.manageErrorCrash(resolve, reject);
+            return;
+          } else if(error) {
+            reject(error);
+            return;
+          }
+
+          if(results && results.length > 0) {
+            resolve(results);
+          } else {
+            resolve([]);
+          }
+        });
+      });
+    });
+  }
+
+  saveMultiple(txs) {
+    return new Promise((resolve, reject) => {
+      const array = [];
+
+      txs.forEach(transaction => {
+        transaction.timestamp = Math.floor(Date.now()/1000);
+        array.push(txToArrayForInsert(transaction));
+      });
+
+      pool.getConnection((err, connection) => {
+        if(!connection) {
+          reject(err)
+          return;
+        }
+        connection.query(INSERT_ROWS, [array], (error, results, fields) => {
+          connection.release();
+          if(error && error.code !== "ER_DUP_ENTRY") {
+            if(error && error.code === "ER_CRASHED_ON_USAGE") {
+              this.manageErrorCrash(resolve, reject);
+            } else {
+              console.log(error);
+              console.log(results);
+              console.log(fields);
+              reject(error);
+            }
+          } else {
+            resolve(txs);
+          }
+        });
+    });
+    });
+  }
+
+  save(tx) {
+    return new Promise((resolve, reject) => {
+      tx.timestamp = Math.floor(Date.now()/1000);
+      const transaction = txToJson(tx);
+      pool.getConnection((err, connection) => {
+        if(!connection) {
+          reject(err)
+          return;
+        }
+        connection.query("INSERT INTO Frames SET ?", transaction, (error, results, fields) => {
+          connection.release();
+          if(error && error.code !== "ER_DUP_ENTRY") {
+            if(error && error.code === "ER_CRASHED_ON_USAGE") {
+              this.manageErrorCrash(resolve, reject);
+            } else {
+              console.log(tx);
+              console.log(error);
+              console.log(results);
+              console.log(fields);
+              reject(error);
+            }
+          } else {
+            resolve(transaction);
+          }
+        });
+      });
+    });
+  }
+
+}
 module.exports = new FrameModel();
