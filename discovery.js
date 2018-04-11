@@ -29,14 +29,16 @@ server.on("listening", function () {
 });
 
 
-function DiscoveryService() {
-  this._bound = false;
-}
+class DiscoveryService {
+  constructor() {
+    this._bound = false;
+  }
 
-DiscoveryService.prototype.bind = function () {
-  if(!this._bound) {
-    this._bound = true;
-    server.bind(1732);
+  bind () {
+    if(!this._bound) {
+      this._bound = true;
+      server.bind(1732);
+    }
   }
 }
 

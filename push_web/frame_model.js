@@ -180,10 +180,14 @@ class FrameModel extends Abstract {
     return new Promise((resolve, reject) => {
       const array = [];
 
-      txs.forEach(transaction => {
-        transaction.timestamp = Math.floor(Date.now()/1000);
-        array.push(txToArrayForInsert(transaction));
-      });
+      try {
+        txs.forEach(transaction => {
+          transaction.timestamp = Math.floor(Date.now()/1000);
+          array.push(txToArrayForInsert(transaction));
+        });
+      } catch(e) {
+
+      }
 
       pool.getConnection((err, connection) => {
         if(!connection) {

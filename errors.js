@@ -41,23 +41,35 @@ function toJSON( err ) {
 }
 
 class Errors {
-  postJsonError(err) {
-  	if(err) {
-  		request.post({
-  			url: "https://contact-platform.com/api/ping",
-  			json: {
-  				error: toJSON(err),
-					version: "999"
-  			}
-  		}, (e, response, body) => {
-				var code = response ? response.statusCode : 200;
-				if(e || code < 200 || code > 299) {
-					console.log("store error");
-				} else {
-					console.log("error manager");
-				}
-  		});
-  	}
+
+	postJsonError(err) {
+		this.postJsonErrorPromise(err)
+		.then(val => console.log("val posted"))
+		.catch(err => console.log("err obtained"));
+	}
+	
+	postJsonErrorPromise(err) {
+		return new Promise((resolve, reject) => {
+			if(err) {
+	  		request.post({
+	  			url: "https://contact-platform.com/api/ping",
+	  			json: {
+	  				error: toJSON(err),
+						version: "999"
+	  			}
+	  		}, (e, response, body) => {
+					var code = response ? response.statusCode : 200;
+					if(e || code < 200 || code > 299) {
+						console.log("store error");
+					} else {
+						console.log("error manager");
+					}
+					resolve(err);
+	  		});
+	  	} else {
+				resolve(err);
+			}
+		})
   }
 }
 

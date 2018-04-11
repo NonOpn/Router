@@ -10,49 +10,94 @@ var errors = require("./errors");
 
 console.log("starting routair main program...");
 
-var enocean = new EnoceanLoader();
-var server = new Server(enocean);
-var snmp = new SNMP();
-var push_web = new PushWEB();
-var discovery_service = new DiscoveryService();
+const cluster = require('cluster');
 
-wifi.start();
-server.start();
-snmp.connect();
-push_web.connect();
-enocean.register(server);
-discovery_service.bind();
+if (cluster.isMaster) {
+  console.log("MASTER STARTED");
+  cluster.fork();
 
-enocean.on("usb-open", function(port) {
-  console.log("device opened and ready");
-  server.emit("usb-open");
-});
+  cluster.on('disconnect', (worker) => {
+    console.error('disconnect!');
+    cluster.fork();
+  });
 
-enocean.on("usb-closed", function(port_instantiated) {
-  console.log("device removed");
-  server.emit("usb-closed");
-});
+} else {
 
-enocean.on("managed_frame", function(frame) {
-  server.onFrame(frame);
-  snmp.onFrame(frame);
-  push_web.onFrame(frame);
-});
+  const domain = require('domain');
+  const created_domain = domain.create();
 
-enocean.on("frame", function(frame) {
-});
+  process.on("uncaughtException", (err) => {
+    console.log("oups");
+  });
 
-snmp.on("log", function(log) {
-	server.emit("log", log);
-});
+  created_domain.on('error', (er) => {
 
-process.on("uncaughtException", function(err) {
-  try{
-    errors.postJsonError(err);
-    if(err && err.toString().indexOf("Device not configured") >= 0) {
-      enocean.emit("close");
+    const qSilent = () => {
+      setTimeout(() => {
+        try {
+          // make sure we close down within 30 seconds
+          const killtimer = setTimeout(() => {
+            process.exit(1);
+          }, 30000);
+          // But don't keep the process open just for that!
+          killtimer.unref();
+          cluster.worker.disconnect();
+        } catch (er2) {
+        }
+      }, 30000);
     }
-  }catch(e){
 
-  }
-});
+    try {
+      errors.postJsonErrorPromise(er)
+      .then(val => {
+        console.log("post done, quit");
+        qSilent();
+      })
+      .catch(err => {
+        console.log("post error, quit");
+        qSilent();
+      })
+    } catch(e) {
+      console.log("error error, quit", e);
+      qSilent();
+    }
+  });
+
+  created_domain.run(() => {
+    var enocean = new EnoceanLoader();
+    var server = new Server(enocean);
+    var snmp = new SNMP();
+    var push_web = new PushWEB();
+    var discovery_service = new DiscoveryService();
+
+    wifi.start();
+    server.start();
+    snmp.connect();
+    push_web.connect();
+    enocean.register(server);
+    discovery_service.bind();
+
+    enocean.on("usb-open", function(port) {
+      console.log("device opened and ready");
+      server.emit("usb-open");
+    });
+
+    enocean.on("usb-closed", function(port_instantiated) {
+      console.log("device removed");
+      server.emit("usb-closed");
+    });
+
+    enocean.on("managed_frame", function(frame) {
+      server.onFrame(frame);
+      snmp.onFrame(frame);
+      push_web.onFrame(frame);
+    });
+
+    enocean.on("frame", function(frame) {
+    });
+
+    snmp.on("log", function(log) {
+    	server.emit("log", log);
+    });
+  });
+}
