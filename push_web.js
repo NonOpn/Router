@@ -6,7 +6,7 @@ FrameModel = require("./push_web/frame_model"),
 request = require('request'),
 errors = require("./errors");
 
-const VERSION = 6;
+const VERSION = 7;
 
 function _post(json) {
 	console.log("posting json");
@@ -80,7 +80,8 @@ class PushWEB extends EventEmitter {
 					const frame = frames[i];
 					//const hex = Buffer.from(frame.frame, "hex");
 					const json = createRequestRaw(frame.frame); //createRequest(hex);
-					json && (json.remaining = frames.length - i);
+					json.remaining = frames.length - i;
+					json.id = frame.id;
 
 					_post(json)
 					.then(body => {
