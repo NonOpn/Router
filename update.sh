@@ -10,9 +10,15 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   echo "online, check for updates"
   cd /usr/local/routair
 
+  # backup the config
+  cp config/snmp.json tmp_config.json
+  # pull the update
   git checkout .
   git pull origin master
-  npm install 
+  # restore the config
+  cp tmp_config.json config/snmp.json
+
+  npm install
   systemctl restart routair.service
 else
   echo "offline, cancel routair update"
