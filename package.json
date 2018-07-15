@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "basic-auth-connect": "^1.0.0",
+    "bleno": "^0.5.0",
     "body-parser": "^1.17.2",
     "dgram": "^1.0.1",
     "dotenv": "^4.0.0",

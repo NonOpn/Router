@@ -1,6 +1,7 @@
 var fs = require("fs");
 var EnoceanLoader = require("./enocean.js");
 var Server = require("./server.js");
+var BLE = require("./ble");
 var SNMP = require("./snmp.js");
 var PushWEB = require("./push_web.js");
 var DiscoveryService = require("./discovery");
@@ -27,7 +28,7 @@ if (cluster.isMaster) {
   const created_domain = domain.create();
 
   process.on("uncaughtException", (err) => {
-    console.log("oups");
+    console.log("oups", err);
   });
 
   created_domain.on('error', (er) => {
@@ -48,6 +49,7 @@ if (cluster.isMaster) {
     }
 
     try {
+      console.log(er);
       errors.postJsonErrorPromise(er)
       .then(val => {
         console.log("post done, quit");
@@ -69,6 +71,7 @@ if (cluster.isMaster) {
     var snmp = new SNMP();
     var push_web = new PushWEB();
     var discovery_service = new DiscoveryService();
+    var ble = new BLE();
 
     wifi.start();
     server.start();
@@ -76,6 +79,7 @@ if (cluster.isMaster) {
     push_web.connect();
     enocean.register(server);
     discovery_service.bind();
+    ble.start();
 
     enocean.on("usb-open", function(port) {
       console.log("device opened and ready");
