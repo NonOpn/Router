@@ -38,6 +38,11 @@ function saveSSID(wpa_supplicant_conf, ssid, passphrase, callback) {
   ssid = removeUnwanted(ssid);
   passphrase = removeUnwanted(passphrase);
 
+  if(!ssid || !passphrase || passphrase.length < 8 || passphrase.length > 63) {
+    callback("invalid passphrase, ssid");
+    return;
+  }
+
   var command = "wpa_passphrase '" + ssid + "' '" + passphrase + "' >> " + wpa_supplicant_conf;
 
   return exec(command, callback);
@@ -280,8 +285,13 @@ Wifi.prototype.startWLAN0 = function(config, save) {
               const ssid = config.ssid;
               const passphrase = config.passphrase;
               saveSSID(wpa_supplicant, ssid, passphrase, (err) => {
-                console.log("save ? ", err);
-                resolve(true);
+                if(err) {
+                  console.log("save ? ", err);
+                  resolve(false);
+                } else {
+                  console.log("wifi save ok");
+                  resolve(true);
+                }
               });
             } catch(e) {
               console.log(e);
