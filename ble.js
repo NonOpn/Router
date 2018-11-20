@@ -138,6 +138,10 @@ class BLE {
         });
       }
     });
+
+    bleno.on("disconnect", (client) => {
+      console.log("disconnect : client ->", client);
+    });
   }
 
   onFrame(frame) {
@@ -162,19 +166,14 @@ class BLE {
     return wifi.storeConfiguration(json)
     .then(success => {
       if(success === true) {
-        res.json({
-          result: "configuration saved"
-        });
+        console.log("configuration saved");
       } else {
-        res.json({
-          error: "error while saving"
-        });
+        console.log("error while saving");
       }
+      return success;
     }).catch(err => {
-      console.log(err);
-      res.json({
-        error: "error while saving"
-      });
+      console.log("error while saving", err);
+      return false;
     });
   }
 }
