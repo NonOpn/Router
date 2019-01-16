@@ -1,5 +1,6 @@
 const bleno = require("bleno");
 
+const devices = require("./push_web/device_model");
 const config = require("./config/config");
 const visualisation = require("./config/visualisation");
 const PrimaryService = bleno.PrimaryService;
@@ -24,10 +25,7 @@ class BLEDescriptionCharacteristic extends Characteristic {
     this._value = Buffer.from(value, "utf-8");
   }
 
-
-  onReadRequest(offset, callback) {
-    callback(this.RESULT_SUCCESS, this._value);
-  }
+  onReadRequest(offset, cb) { cb(this.RESULT_SUCCESS, this._value) }
 }
 
 
@@ -42,13 +40,9 @@ class BLEFrameNotify extends Characteristic {
   }
 
 
-  onSubscribe(maxValueSize, updateFramesCallback) {
-    this._updateFramesCallback = updateFramesCallback;
-  }
+  onSubscribe(maxValueSize, callback) { this._updateFramesCallback = callback; }
 
-  onUnsubscribe() {
-    this._updateFramesCallback = null;
-  }
+  onUnsubscribe() { this._updateFramesCallback = null; }
 
   onFrame(frame) {
     console.log("sending frame, having notify ?", (null != this._updateFramesCallback));
@@ -58,7 +52,7 @@ class BLEFrameNotify extends Characteristic {
   }
 }
 
-class BLEWifiCharacteristic extends Characteristic {
+class BLEWriteCharacteristic extends Characteristic {
   constructor(uuid, value, onValueRead) {
     super({
       uuid: uuid,
@@ -76,7 +70,10 @@ class BLEWifiCharacteristic extends Characteristic {
     if(data) p = this._onValueRead(data.toString());
     else p = new Promise((r) => r());
 
-    p.then(() => callback(this.RESULT_SUCCESS));
+    p.then(result => {
+      console.log("write set ", result);
+      callback(this.RESULT_SUCCESS)
+    });
   };
 }
 
@@ -88,19 +85,30 @@ class BLEPrimaryService extends PrimaryService {
       characteristics: characteristics
     });
   }
+}
 
+class BLEPrimaryServiceDevice extends PrimaryService {
+  constructor(device, characteristics) {
+    super({
+      uuid: device.serial,
+      characteristics: [
+        new BLEDescriptionCharacteristic("0001", config.identity),
+        new BLEDescriptionCharacteristic("0002", config.version)
+      ]
+    });
+  }
 }
 
 class BLE {
 
   constructor() {
-
     this._notify_frame = new BLEFrameNotify("0102", "Notify");
 
     this._characteristics = [
       new BLEDescriptionCharacteristic("0001", config.identity),
       new BLEDescriptionCharacteristic("0002", config.version),
-      new BLEWifiCharacteristic("0101", "Wifi Config", (value) => this._onWifi(value)),
+      new BLEWriteCharacteristic("0101", "Wifi Config", (value) => this._onWifi(value)),
+      new BLEWriteCharacteristic("0102", "Network Config", (value) => this._onNetwork(value)),
       this._notify_frame
     ];
 
@@ -111,6 +119,10 @@ class BLE {
   }
 
   start() {
+    setTimeout(() => this.startDelayed(), 1000);
+  }
+
+  startDelayed() {
     if(this._started) return;
 
     this._started = true;
@@ -120,7 +132,16 @@ class BLE {
       if (state == 'poweredOn' && !this._started_advertising) {
         this._started_advertising = true;
         console.log("starting advertising for", this._ble_service.uuid);
-        bleno.startAdvertising(id, [this._ble_service.uuid]);
+
+        devices.list()
+        .then(devices => {
+          console.log("devices", devices);
+          bleno.startAdvertising(id, [this._ble_service.uuid ]);
+        })
+        .catch(err => {
+          console.error(err);
+          bleno.startAdvertising(id, [this._ble_service.uuid ]);
+        })
       } else if(this._started_advertising) {
         this._started_advertising = false;
         console.log("stopping ", state)
@@ -149,17 +170,51 @@ class BLE {
     this._notify_frame.onFrame(frame);
   }
 
+  json(value) {
+    var json = {};
+    try {
+      json = JSON.parse(value);
+    } catch (e) {
+      console.error(e);
+    }
+    return json;
+  }
+
+  _onNetwork(value) {
+    var j = undefined;
+    const tmp = this.json(value);
+    var net_interface = null;
+
+    if(tmp.password === visualisation.password && tmp.ssid && tmp.passphrase) {
+      console.log("configuration valid found, saving it");
+      if(tmp.interface) {
+        if("eth0" == tmp.interface) {
+          net_interface = "eth0";
+        } else if("wlan0" == tmp.interface) {
+          net_interface = "wlan0";
+        }
+      }
+
+      if(tmp.ip && tmp.netmask && tmp.broadcast && tmp.gateway) {
+        j = { ip: tmp.ip, netmask: tmp.netmask, broadcast: tmp.broadcast, gateway: tmp.gateway };
+      } else if(tmp.dhcp) {
+        j = { dhcp: true, restart: true};
+      }
+    }
+
+    network.configure(net_interface, j, (err) => {
+      console.log("set network info");
+      console.log(err);
+    });
+  }
+
   _onWifi(value) {
     var json = undefined;
-    try {
-      const tmp = JSON.parse(value);
+    const tmp = this.json(value);
 
-      if(tmp.password === visualisation.password && tmp.ssid && tmp.passphrase) {
-        console.log("configuration valid found, saving it");
-        json = { ssid: tmp.ssid, passphrase: tmp.passphrase };
-      }
-    } catch (e) {
-      json = undefined;
+    if(tmp.password === visualisation.password && tmp.ssid && tmp.passphrase) {
+      console.log("configuration valid found, saving it");
+      json = { ssid: tmp.ssid, passphrase: tmp.passphrase };
     }
 
     if(!json) return new Promise((r) => r());
