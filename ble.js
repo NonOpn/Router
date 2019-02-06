@@ -8,11 +8,13 @@ const Characteristic = bleno.Characteristic;
 const Descriptor = bleno.Descriptor;
 const wifi = require("./wifi/instance.js");
 
+const network = require("./network");
 
 var id = "Routair";
 if(config.identity && config.identity.length >= 5 * 2) { //0xAABBCCDD
   id += config.identity.substr(0, 5 * 2);
 }
+
 
 class BLEDescriptionCharacteristic extends Characteristic {
   constructor(uuid, value) {
@@ -26,6 +28,25 @@ class BLEDescriptionCharacteristic extends Characteristic {
   }
 
   onReadRequest(offset, cb) { cb(this.RESULT_SUCCESS, this._value) }
+}
+
+class BLEAsyncDescriptionCharacteristic extends Characteristic {
+  constructor(uuid, callback) {
+    super({
+      uuid: uuid,
+      properties: ['read']
+    });
+
+    this._callback = callback;
+  }
+
+  onReadRequest(offset, cb) {
+    this._callback()
+    .then(value => {
+      console.log("value read ", value);
+      cb(this.RESULT_SUCCESS, Buffer.from(value, "utf-8"))
+    })
+  }
 }
 
 
@@ -99,6 +120,22 @@ class BLEPrimaryServiceDevice extends PrimaryService {
   }
 }
 
+class BLEPrimaryNetworkService extends PrimaryService {
+  constructor(uuid, name, intfs) {
+    super({
+      uuid: uuid,
+      characteristics: [
+        new BLEDescriptionCharacteristic("0001", name),
+        new BLEAsyncDescriptionCharacteristic("0002", network.readInterface(intfs, "ip_address")),
+        new BLEAsyncDescriptionCharacteristic("0003", network.readInterface(intfs, "mac_address")),
+        new BLEAsyncDescriptionCharacteristic("0004", network.readInterface(intfs, "type")),
+        new BLEAsyncDescriptionCharacteristic("0005", network.readInterface(intfs, "netmask")),
+        new BLEAsyncDescriptionCharacteristic("0006", network.readInterface(intfs, "gateway_ip"))
+      ]
+    });
+  }
+}
+
 class BLE {
 
   constructor() {
@@ -113,6 +150,18 @@ class BLE {
     ];
 
     this._ble_service = new BLEPrimaryService(this._characteristics);
+    this._eth0_service = new BLEPrimaryNetworkService(
+      "bee6","eth0", ["eth0", "en1"]);
+    this._wlan0_service = new BLEPrimaryNetworkService(
+      "bee7","wlan0", ["wlan0", "en0"]);
+
+    this._services = [
+      this._ble_service,
+      this._eth0_service,
+      this._wlan0_service
+    ]
+
+    this._services_uuid = this._services.map(i => i.uuid);
 
     this._started_advertising = false;
     this._started = false;
@@ -131,16 +180,16 @@ class BLE {
 
       if (state == 'poweredOn' && !this._started_advertising) {
         this._started_advertising = true;
-        console.log("starting advertising for", this._ble_service.uuid);
+        console.log("starting advertising for", this._services_uuid);
 
         devices.list()
         .then(devices => {
           console.log("devices", devices);
-          bleno.startAdvertising(id, [this._ble_service.uuid ]);
+          bleno.startAdvertising(id, this._services_uuid);
         })
         .catch(err => {
           console.error(err);
-          bleno.startAdvertising(id, [this._ble_service.uuid ]);
+          bleno.startAdvertising(id, this._services_uuid);
         })
       } else if(this._started_advertising) {
         this._started_advertising = false;
@@ -154,7 +203,7 @@ class BLE {
       console.log('on -> advertisingStart: ' + (err ? 'error ' + err : 'success'));
 
       if (!err && this._started_advertising) {
-        bleno.setServices( [ this._ble_service ], (err) => {
+        bleno.setServices( this._services, (err) => {
           console.log('setServices: '  + (err ? 'error ' + err : 'success'));
         });
       }
@@ -196,7 +245,7 @@ class BLE {
       }
 
       if(tmp.ip && tmp.netmask && tmp.broadcast && tmp.gateway) {
-        j = { ip: tmp.ip, netmask: tmp.netmask, broadcast: tmp.broadcast, gateway: tmp.gateway };
+        j = { ip: tmp.ip, netmask: tmp.netmask, broadcast: tmp.broadcast, gateway: tmp.gateway, restart: true };
       } else if(tmp.dhcp) {
         j = { dhcp: true, restart: true};
       }
