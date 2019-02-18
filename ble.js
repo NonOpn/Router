@@ -199,14 +199,16 @@ class BLE {
       const to_add = [];
       if(devices) {
         devices.forEach(device => {
+          var found = false;
           this._services.forEach(service => {
             const uuid_left = device.getUUID().toLowerCase();
             const uuid_right = service.uuid.toLowerCase();
             if(uuid_left == uuid_right) {
               console.log("service exists");
-              to_add.push(new BLEPrimaryDeviceService(device));
+              found = true;
             }
-          })
+          });
+          if(!found) to_add.push(new BLEPrimaryDeviceService(device));
         });
 
         to_add.forEach(service => this._services.push(service));
