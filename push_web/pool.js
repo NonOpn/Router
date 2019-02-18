@@ -12,7 +12,7 @@ var pool = mysql.createPool({
 
 function exec(query, parameters, resolve, reject, resolve_if_fail) {
   pool.query(query, parameters, (error, results, fields) => {
-    if(error && error.code !== "ER_DUP_ENTRY" && !resolve_if_fail) reject(err);
+    if(error && error.code !== "ER_DUP_ENTRY" && !resolve_if_fail) reject(error);
     else resolve(results);
   });
 }
