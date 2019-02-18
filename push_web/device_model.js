@@ -64,12 +64,47 @@ class DeviceModel extends Abstract {
     });
   }
 
+  listDevice() {
+    return this.list()
+    .then(devices => devices.map(device => ToJson(device)));
+  }
+
+  getDeviceForInternalSerial(internal_serial) {
+    return new Promise((resolve, reject) => {
+      pool.queryParameters("SELECT * FROM Device WHERE internal_serial=? ORDER BY id LIMIT 1", [internal_serial])
+      .then(results => {
+        if(!results || results.length == 0) resolve(undefined);
+        else resolve(ToJson(results[0]));
+      })
+      .catch(error => manageErrorCrash(error, reject));
+    });
+  }
+
+  getDeviceForSerial(serial) {
+    return new Promise((resolve, reject) => {
+      pool.queryParameters("SELECT * FROM Device WHERE serial=? ORDER BY id LIMIT 1", [serial])
+      .then(results => {
+        if(!results || results.length == 0) resolve(undefined);
+        else resolve(ToJson(results[0]));
+      })
+      .catch(error => manageErrorCrash(error, reject));
+    });
+  }
+
+  saveDevice(device /* serial, internal_serial, type */) {
+    return this.saveMultiple([device]).then(devices => {
+      console.log("saveDevice", devices);
+      if(devices && devices.length > 0) return devices[0];
+      return undefined;
+    });
+  }
+
   saveMultiple(devices) {
     return new Promise((resolve, reject) => {
       var array = [];
 
       try {
-        array = devices.map(device => this.ToArrayForInsert(device));
+        array = devices.map(device => ToArrayForInsert(device));
       } catch(e) {
         console.log(e);
       }

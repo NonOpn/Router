@@ -9,23 +9,75 @@ class Abstract {
 
   setParams(params) {
     this.params = params;
-    this.agent = snmp.createAgent();
-    this.agent.request(this.asMib());
+    if(!this.params.no_snmp) {
+      this.agent = snmp.createAgent();
+      this.agent.request(this.asMib());
+    }
     this.snmp = snmp;
     this.data_point_provider = new DataPoint();
+  }
+
+  getId() {
+    const lpsfr = this.getLPSFR();
+    if(lpsfr && lpsfr.id) return lpsfr.id;
+    return 0;
+  }
+
+  getUUID() {
+    var uuid = this.getId().toString(16);
+    if(uuid.length) while(uuid.length < 4) uuid="0"+uuid;
+    return uuid;
+  }
+
+  getSerial() {
+    return this._getPromiseCharacteristic("serial");
+  }
+
+  getInternalSerial() {
+    return this._getPromiseCharacteristic("internal");
+  }
+
+  getType() {
+    return this._getPromiseCharacteristic("type");
+  }
+
+  _getPromiseCharacteristic(name) {
+    return new Promise((resolve, reject) => {
+      if(this.params && this.params.lpsfr) resolve(this.params.lpsfr[name]);
+      else resolve("");
+    })
+  }
+
+
+  getConnectedStateString(item) {
+    return "not_implemented";
+  }
+
+  getImpactedString(item) {
+    return "not_implemented";
   }
 
   getLPSFR() {
     return this.params.lpsfr;
   }
 
-  asMib() { throw "must be defined" }
-
   getLatest() {
     return this.data_point_provider.findLatestWithParams(this.getStandardFilter());
   }
 
+  getConnectedState() {
+    return this.getLatest()
+    .then(item => this.getConnectedStateString(item));
+  }
+
+  getImpactedState() {
+    return this.getLatest()
+    .then(item => this.getImpactedString(item));
+  }
+
   getStandardFilter() { throw "must be defined"; }
+
+  asMib() { throw "must be defined" }
 
   sendString(prq, string) {
     if(!string || string.length === 0) string = " ";
