@@ -7,6 +7,7 @@ const PrimaryService = bleno.PrimaryService;
 const Characteristic = bleno.Characteristic;
 const Descriptor = bleno.Descriptor;
 const wifi = require("./wifi/instance.js");
+const device_management = require("./ble/device");
 
 const network = require("./network");
 
@@ -70,6 +71,7 @@ class BLEFrameNotify extends Characteristic {
     if(this._updateFramesCallback) {
       this._updateFramesCallback(Buffer.from(frame.rawFrameStr, "utf-8"));
     }
+    device_management.onFrame(frame);
   }
 }
 
@@ -93,7 +95,11 @@ class BLEWriteCharacteristic extends Characteristic {
 
     p.then(result => {
       console.log("write set ", result);
-      callback(this.RESULT_SUCCESS)
+      if(result) callback(this.RESULT_SUCCESS);
+      else callback(this.RESULT_UNLIKELY_ERROR)
+    }).catch(err => {
+      console.log(err);
+      callback(this.RESULT_UNLIKELY_ERROR);
     });
   };
 }
@@ -136,6 +142,21 @@ class BLEPrimaryNetworkService extends PrimaryService {
   }
 }
 
+class BLEPrimaryDeviceService extends PrimaryService {
+  constructor(device) {
+    super({
+      uuid: device.getUUID(),
+      characteristics: [
+        new BLEDescriptionCharacteristic("0001", device.getInternalSerial()),
+        new BLEAsyncDescriptionCharacteristic("0002", device.getSerial()),
+        new BLEAsyncDescriptionCharacteristic("0003", device.getType()),
+        new BLEAsyncDescriptionCharacteristic("0004", device.getConnectedState()),
+        new BLEAsyncDescriptionCharacteristic("0005", device.getImpactedState())
+      ]
+    });
+  }
+}
+
 class BLE {
 
   constructor() {
@@ -149,6 +170,7 @@ class BLE {
       this._notify_frame
     ];
 
+    this._refreshing_called_once = false;
     this._ble_service = new BLEPrimaryService(this._characteristics);
     this._eth0_service = new BLEPrimaryNetworkService(
       "bee6","eth0", ["eth0", "en1"]);
@@ -167,6 +189,51 @@ class BLE {
     this._started = false;
   }
 
+  refreshDevices() {
+    console.log("refreshing devices");
+
+    device_management.list()
+    .then(devices => {
+      console.log("device_management", devices);
+
+      const to_add = [];
+      if(devices) {
+        devices.forEach(device => {
+          this._services.forEach(service => {
+            const uuid_left = device.getUUID().toLowerCase();
+            const uuid_right = service.uuid.toLowerCase();
+            if(uuid_left == uuid_right) {
+              console.log("service exists");
+              to_add.push(new BLEPrimaryDeviceService(device));
+            }
+          })
+        });
+
+        to_add.forEach(service => this._services.push(service));
+      }
+
+
+      if(!this._refreshing_called_once || to_add.length > 0) {
+        this._refreshing_called_once = true;
+        console.log("we called one time or have services to add");
+
+        this._services_uuid = this._services.map(i => i.uuid);
+
+        bleno.startAdvertising(id, this._services_uuid);
+  
+        if(this._started_advertising_ok) {
+          bleno.setServices( this._services, (err) => {
+            console.log('setServices: '  + (err ? 'error ' + err : 'success'));
+          });
+        }
+        }
+    })
+    .catch(err => {
+      console.error(err);
+      bleno.startAdvertising(id, this._services_uuid);
+    })
+  }
+
   start() {
     setTimeout(() => this.startDelayed(), 1000);
   }
@@ -182,18 +249,12 @@ class BLE {
         this._started_advertising = true;
         console.log("starting advertising for", this._services_uuid);
 
-        devices.list()
-        .then(devices => {
-          console.log("devices", devices);
-          bleno.startAdvertising(id, this._services_uuid);
-        })
-        .catch(err => {
-          console.error(err);
-          bleno.startAdvertising(id, this._services_uuid);
-        })
+        this._interval = setInterval(() => this.refreshDevices(), 5000);
+        this.refreshDevices();
       } else if(this._started_advertising) {
         this._started_advertising = false;
-        console.log("stopping ", state)
+        console.log("stopping ", state);
+        this._interval && clearInterval(this._interval);
         bleno.stopAdvertising();
       }
     });
@@ -203,11 +264,20 @@ class BLE {
       console.log('on -> advertisingStart: ' + (err ? 'error ' + err : 'success'));
 
       if (!err && this._started_advertising) {
+        this._started_advertising_ok = true;
         bleno.setServices( this._services, (err) => {
           console.log('setServices: '  + (err ? 'error ' + err : 'success'));
         });
       }
     });
+
+    bleno.on("advertisingStop", (err) => {
+      this._started_advertising_ok = false;
+    })
+
+    bleno.on("advertisingStartError", (err) => {
+      console.log(err);
+    })
 
     bleno.on("disconnect", (client) => {
       console.log("disconnect : client ->", client);
@@ -249,12 +319,19 @@ class BLE {
       } else if(tmp.dhcp) {
         j = { dhcp: true, restart: true};
       }
+
+      return new Promise((resolve, reject) => {
+        network.configure(net_interface, j, (err) => {
+          console.log("set network info");
+          console.log(err);
+          if(err) reject(err);
+          else resolve(true);
+        });
+      })
     }
 
-    network.configure(net_interface, j, (err) => {
-      console.log("set network info");
-      console.log(err);
-    });
+    return new Promise((r, reject) => reject("invalid"));
+
   }
 
   _onWifi(value) {
@@ -266,7 +343,7 @@ class BLE {
       json = { ssid: tmp.ssid, passphrase: tmp.passphrase };
     }
 
-    if(!json) return new Promise((r) => r());
+    if(!json) return new Promise((r, reject) => reject("invalid"));
     return wifi.storeConfiguration(json)
     .then(success => {
       if(success === true) {
