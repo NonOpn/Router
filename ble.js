@@ -43,10 +43,7 @@ class BLEAsyncDescriptionCharacteristic extends Characteristic {
 
   onReadRequest(offset, cb) {
     this._callback()
-    .then(value => {
-      console.log("value read ", value);
-      cb(this.RESULT_SUCCESS, Buffer.from(value, "utf-8"))
-    })
+    .then(value => cb(this.RESULT_SUCCESS, Buffer.from(value, "utf-8")));
   }
 }
 
@@ -71,7 +68,6 @@ class BLEFrameNotify extends Characteristic {
     if(this._updateFramesCallback) {
       this._updateFramesCallback(Buffer.from(frame.rawFrameStr, "utf-8"));
     }
-    device_management.onFrame(frame);
   }
 }
 
@@ -172,10 +168,8 @@ class BLE {
 
     this._refreshing_called_once = false;
     this._ble_service = new BLEPrimaryService(this._characteristics);
-    this._eth0_service = new BLEPrimaryNetworkService(
-      "bee6","eth0", ["eth0", "en1"]);
-    this._wlan0_service = new BLEPrimaryNetworkService(
-      "bee7","wlan0", ["wlan0", "en0"]);
+    this._eth0_service = new BLEPrimaryNetworkService("bee6","eth0", ["eth0", "en1"]);
+    this._wlan0_service = new BLEPrimaryNetworkService("bee7","wlan0", ["wlan0", "en0"]);
 
     this._services = [
       this._ble_service,
@@ -203,10 +197,7 @@ class BLE {
           this._services.forEach(service => {
             const uuid_left = device.getUUID().toLowerCase();
             const uuid_right = service.uuid.toLowerCase();
-            if(uuid_left == uuid_right) {
-              console.log("service exists");
-              found = true;
-            }
+            if(uuid_left == uuid_right) found = true;
           });
           if(!found) to_add.push(new BLEPrimaryDeviceService(device));
         });
@@ -224,11 +215,9 @@ class BLE {
         bleno.startAdvertising(id, this._services_uuid);
   
         if(this._started_advertising_ok) {
-          bleno.setServices( this._services, (err) => {
-            console.log('setServices: '  + (err ? 'error ' + err : 'success'));
-          });
+          bleno.setServices(this._services, (err) => console.log('setServices: '  + (err ? 'error ' + err : 'success')));
         }
-        }
+      }
     })
     .catch(err => {
       console.error(err);
@@ -273,22 +262,17 @@ class BLE {
       }
     });
 
-    bleno.on("advertisingStop", (err) => {
-      this._started_advertising_ok = false;
-    })
+    bleno.on("advertisingStop", (err) => this._started_advertising_ok = false);
 
-    bleno.on("advertisingStartError", (err) => {
-      console.log(err);
-    })
+    bleno.on("advertisingStartError", (err) => console.log(err))
 
-    bleno.on("disconnect", (client) => {
-      console.log("disconnect : client ->", client);
-    });
+    bleno.on("disconnect", (client) => console.log("disconnect : client ->", client));
   }
 
   onFrame(frame) {
     console.log("sending frame");
     this._notify_frame.onFrame(frame);
+    device_management.onFrame(frame);
   }
 
   json(value) {
@@ -309,11 +293,8 @@ class BLE {
     if(tmp.password === visualisation.password && tmp.ssid && tmp.passphrase) {
       console.log("configuration valid found, saving it");
       if(tmp.interface) {
-        if("eth0" == tmp.interface) {
-          net_interface = "eth0";
-        } else if("wlan0" == tmp.interface) {
-          net_interface = "wlan0";
-        }
+        if("eth0" == tmp.interface) net_interface = "eth0";
+        else if("wlan0" == tmp.interface) net_interface = "wlan0";
       }
 
       if(tmp.ip && tmp.netmask && tmp.broadcast && tmp.gateway) {
@@ -324,8 +305,7 @@ class BLE {
 
       return new Promise((resolve, reject) => {
         network.configure(net_interface, j, (err) => {
-          console.log("set network info");
-          console.log(err);
+          console.log("set network info", err);
           if(err) reject(err);
           else resolve(true);
         });
@@ -348,11 +328,8 @@ class BLE {
     if(!json) return new Promise((r, reject) => reject("invalid"));
     return wifi.storeConfiguration(json)
     .then(success => {
-      if(success === true) {
-        console.log("configuration saved");
-      } else {
-        console.log("error while saving");
-      }
+      if(success === true) console.log("configuration saved");
+      else console.log("error while saving");
       return success;
     }).catch(err => {
       console.log("error while saving", err);
