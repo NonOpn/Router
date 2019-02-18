@@ -92,6 +92,7 @@ if (cluster.isMaster) {
     });
 
     enocean.on("managed_frame", function(frame) {
+      ble.onFrame(frame);
       server.onFrame(frame);
       snmp.onFrame(frame);
       push_web.onFrame(frame);
