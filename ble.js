@@ -147,7 +147,7 @@ class BLEPrimaryDeviceService extends PrimaryService {
     super({
       uuid: device.getUUID(),
       characteristics: [
-        new BLEDescriptionCharacteristic("0001", device.getInternalSerial()),
+        new BLEAsyncDescriptionCharacteristic("0001", device.getInternalSerial()),
         new BLEAsyncDescriptionCharacteristic("0002", device.getSerial()),
         new BLEAsyncDescriptionCharacteristic("0003", device.getType()),
         new BLEAsyncDescriptionCharacteristic("0004", device.getConnectedState()),
