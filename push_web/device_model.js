@@ -110,7 +110,10 @@ class DeviceModel extends Abstract {
       }
 
       pool.queryParameters(INSERT_ROWS, [array])
-      .then(devices => resolve(devices))
+      .then(result => {
+        console.log("result", result);
+        resolve(devices);
+      })
       .catch(error => manageErrorCrash(error, reject));
     });
   }
