@@ -28,7 +28,7 @@ class DeviceManagement {
     }
 
     _databaseDeviceToRealDevice(device) {
-        if(device.type == TYPE_PARATONAIR) {
+        if(device && device.type == TYPE_PARATONAIR) {
             return new Paratonair({
                 no_snmp: true,
                 lpsfr: {
@@ -45,6 +45,7 @@ class DeviceManagement {
     }
 
     getDevice(internal) {
+        console.log("getDevice", internal);
         return model_devices.getDeviceForInternalSerial(internal)
         .then(device => {
             console.log("getDevice, first :=", device);
