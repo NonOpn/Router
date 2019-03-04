@@ -1,0 +1,56 @@
+import network from "network";
+import config from "network-config";
+
+export interface Interface {
+  name: string|undefined;
+}
+
+export interface InterfaceCallback {
+  (): Promise<string>;
+}
+
+export default class NetworkInfo {
+  static instance: NetworkInfo = new NetworkInfo();
+  _list: Interface[];
+
+  constructor() {
+    this._list = [];
+    setInterval(() => this._refreshNetwork(), 5000);
+  }
+
+  _refreshNetwork(): void {
+    network.get_interfaces_list((err: Error, list: Interface[]|undefined) => {
+      err && console.log(err);
+      this._list = list || [];
+    });
+  }
+
+  list(): Interface[] {
+    return this._list;
+  }
+
+  interf(interf: string): Interface|undefined {
+    if(this._list) {
+      const filter = this._list.filter(i => i && i.name === interf);
+      if(filter && filter.length > 0) return filter[0];
+    }
+    return undefined;
+  }
+
+  readInterface(names: string[], key: string): InterfaceCallback {
+    return () => new Promise(resolve => {
+      var infos = names.map(i => this.interf(i)).filter(i => undefined != i);
+      var info = infos.length > 0 ? infos[0] : undefined;
+      var value = undefined;
+
+      if(info) value = info[key];
+      if(!value) value = "";
+
+      resolve(value);
+    })
+  }
+
+  configure(name: string, description: any, callback: any) {
+    config.configure(name, description, callback);
+  }
+}
