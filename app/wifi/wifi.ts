@@ -3,10 +3,10 @@ import { exec, ExecException } from 'child_process';
 import hostapd from 'wireless-tools/hostapd';
 import udhcpd from 'wireless-tools/udhcpd';
 import wpa_supplicant from 'wireless-tools/wpa_supplicant';
-import { Config } from './config_rows';
+import ConfigRows, { Config } from './config_rows';
 import config from "../../config/wifi.js";
 
-const config_rows = require("./config_rows");
+const config_rows = new ConfigRows();
 
 const KEY_MODE = "KEY_MODE";
 const KEY_WLAN = "KEY_WLAN";
@@ -96,7 +96,7 @@ export default class Wifi {
       };
   
       config_rows.getKey(KEY_MODE)
-      .then((mode: Config) => {
+      .then((mode: Config|undefined) => {
         if(mode && mode.key) {
           this._mode = mode.value;
         } else {
@@ -115,7 +115,7 @@ export default class Wifi {
   
         if(promise) {
           console.log("loading configuration for ", this._mode);
-          promise.then((result: Config) => {
+          promise.then((result: Config|undefined) => {
             if(result && result.value) {
               const json = JSON.parse(result.value);
               console.log("configuration found for " + result.key, json);
