@@ -50,6 +50,9 @@ class AbstractDevice {
                 resolve("");
         });
     }
+    getSyncInternalSerial() {
+        return this.params && this.params.lpsfr ? this.params.lpsfr.internal : undefined;
+    }
     getConnectedStateString(item) {
         return "not_implemented";
     }

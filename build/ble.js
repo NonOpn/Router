@@ -171,6 +171,7 @@ class BLE {
             console.log("device_management", devices);
             const to_add = [];
             if (devices) {
+                devices = devices.filter(device => device.getInternalSerial() && "ffffff" != device.getSyncInternalSerial());
                 devices.forEach(device => {
                     var found = false;
                     this._services.forEach(service => {

@@ -245,6 +245,8 @@ export default class BLE {
 
       const to_add: any[] = [];
       if(devices) {
+        devices = devices.filter(device => device.getInternalSerial() && "ffffff" != device.getSyncInternalSerial());
+
         devices.forEach(device => {
           var found = false;
           this._services.forEach(service => {

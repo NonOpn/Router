@@ -23,6 +23,7 @@ export default class AbstractDevice {
     getInternalSerial(): Promise<string>;
     getType(): Promise<number>;
     _getPromiseCharacteristic(name: string): Promise<any>;
+    getSyncInternalSerial(): string | undefined;
     getConnectedStateString(item: DataPointModel): string;
     getImpactedString(item: DataPointModel): string;
     getLPSFR(): any;

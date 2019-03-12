@@ -68,6 +68,9 @@ export default class AbstractDevice {
     })
   }
 
+  getSyncInternalSerial(): string|undefined {
+    return this.params && this.params.lpsfr ? this.params.lpsfr.internal : undefined;
+  }
 
   getConnectedStateString(item: DataPointModel): string {
     return "not_implemented";
