@@ -6,6 +6,7 @@ import Wifi from "./wifi/wifi.js";
 import DeviceManagement from "./ble/device";
 import AbstractDevice from "./snmp/abstract";
 import NetworkInfo from "./network";
+import Diskspace from "./system";
 
 const PrimaryService = bleno.PrimaryService;
 const Characteristic = bleno.Characteristic;
@@ -14,6 +15,7 @@ const device_management = DeviceManagement.instance;
 
 const wifi = Wifi.instance;
 const network: NetworkInfo = NetworkInfo.instance;
+const diskspace: Diskspace = Diskspace.instance;
 const devices = DeviceModel.instance;
 
 const RESULT_SUCCESS = 0x00;
@@ -159,6 +161,20 @@ class BLEPrimaryService extends PrimaryService {
   }
 }
 
+class BLEPrimarySystemService extends PrimaryService {
+  constructor(uuid: string) {
+    super({
+      uuid: uuid,
+      characteristics: [
+        new BLEAsyncDescriptionCharacteristic("0001", () => diskspace.diskspace().then(space => space.free)),
+        new BLEAsyncDescriptionCharacteristic("0002", () => diskspace.diskspace().then(space => space.size)),
+        new BLEAsyncDescriptionCharacteristic("0003", () => diskspace.diskspace().then(space => space.used)),
+        new BLEAsyncDescriptionCharacteristic("0004", () => diskspace.diskspace().then(space => space.percent))
+      ]
+    });
+  }
+}
+
 class BLEPrimaryNetworkService extends PrimaryService {
   constructor(uuid: string, name: string, intfs: string[]) {
     super({
@@ -195,6 +211,7 @@ export default class BLE {
   _notify_frame: BLEFrameNotify;
   _characteristics: any[]; //Characteristic
   _ble_service: BLEPrimaryService;
+  _system_service: BLEPrimarySystemService;
   _eth0_service: BLEPrimaryNetworkService;
   _wlan0_service: BLEPrimaryNetworkService;
   _services: any[];
@@ -223,11 +240,13 @@ export default class BLE {
     this._ble_service = new BLEPrimaryService(this._characteristics);
     this._eth0_service = new BLEPrimaryNetworkService("bee6","eth0", ["eth0", "en1"]);
     this._wlan0_service = new BLEPrimaryNetworkService("bee7","wlan0", ["wlan0", "en0"]);
+    this._system_service = new BLEPrimarySystemService("bee8");
 
     this._services = [
       this._ble_service,
       this._eth0_service,
-      this._wlan0_service
+      this._wlan0_service,
+      this._system_service
     ]
 
     this._services_uuid = this._services.map(i => i.uuid);
