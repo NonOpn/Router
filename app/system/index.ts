@@ -17,7 +17,7 @@ export default class Diskspace {
 
     public diskspace(): Promise<Space> {
         return new Promise<Space>((resolve, reject) => {
-            fd.diskspace((err: Error, result: any) => {
+            fd.diskSpace((err: Error, result: any) => {
                 if(err) {
                     reject(err);
                 } else {
