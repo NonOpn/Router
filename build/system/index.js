@@ -9,7 +9,7 @@ class Diskspace {
     }
     diskspace() {
         return new Promise((resolve, reject) => {
-            fd_diskspace_1.default.diskspace((err, result) => {
+            fd_diskspace_1.default.diskSpace((err, result) => {
                 if (err) {
                     reject(err);
                 }
