@@ -10,12 +10,14 @@ const visualisation_1 = __importDefault(require("../config/visualisation"));
 const wifi_js_1 = __importDefault(require("./wifi/wifi.js"));
 const device_1 = __importDefault(require("./ble/device"));
 const network_1 = __importDefault(require("./network"));
+const system_1 = __importDefault(require("./system"));
 const PrimaryService = bleno_1.default.PrimaryService;
 const Characteristic = bleno_1.default.Characteristic;
 const Descriptor = bleno_1.default.Descriptor;
 const device_management = device_1.default.instance;
 const wifi = wifi_js_1.default.instance;
 const network = network_1.default.instance;
+const diskspace = system_1.default.instance;
 const devices = device_model_1.default.instance;
 const RESULT_SUCCESS = 0x00;
 const RESULT_INVALID_OFFSET = 0x07;
@@ -107,6 +109,19 @@ class BLEPrimaryService extends PrimaryService {
         });
     }
 }
+class BLEPrimarySystemService extends PrimaryService {
+    constructor(uuid) {
+        super({
+            uuid: uuid,
+            characteristics: [
+                new BLEAsyncDescriptionCharacteristic("0001", () => diskspace.diskspace().then(space => space.free)),
+                new BLEAsyncDescriptionCharacteristic("0002", () => diskspace.diskspace().then(space => space.size)),
+                new BLEAsyncDescriptionCharacteristic("0003", () => diskspace.diskspace().then(space => space.used)),
+                new BLEAsyncDescriptionCharacteristic("0004", () => diskspace.diskspace().then(space => space.percent))
+            ]
+        });
+    }
+}
 class BLEPrimaryNetworkService extends PrimaryService {
     constructor(uuid, name, intfs) {
         super({
@@ -155,10 +170,12 @@ class BLE {
         this._ble_service = new BLEPrimaryService(this._characteristics);
         this._eth0_service = new BLEPrimaryNetworkService("bee6", "eth0", ["eth0", "en1"]);
         this._wlan0_service = new BLEPrimaryNetworkService("bee7", "wlan0", ["wlan0", "en0"]);
+        this._system_service = new BLEPrimarySystemService("bee8");
         this._services = [
             this._ble_service,
             this._eth0_service,
-            this._wlan0_service
+            this._wlan0_service,
+            this._system_service
         ];
         this._services_uuid = this._services.map(i => i.uuid);
         this._started_advertising = false;
