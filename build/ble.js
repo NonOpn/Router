@@ -114,10 +114,10 @@ class BLEPrimarySystemService extends PrimaryService {
         super({
             uuid: uuid,
             characteristics: [
-                new BLEAsyncDescriptionCharacteristic("0001", () => diskspace.diskspace().then(space => space.free)),
-                new BLEAsyncDescriptionCharacteristic("0002", () => diskspace.diskspace().then(space => space.size)),
-                new BLEAsyncDescriptionCharacteristic("0003", () => diskspace.diskspace().then(space => space.used)),
-                new BLEAsyncDescriptionCharacteristic("0004", () => diskspace.diskspace().then(space => space.percent))
+                new BLEAsyncDescriptionCharacteristic("0001", () => diskspace.diskspace().then(space => "" + space.free)),
+                new BLEAsyncDescriptionCharacteristic("0002", () => diskspace.diskspace().then(space => "" + space.size)),
+                new BLEAsyncDescriptionCharacteristic("0003", () => diskspace.diskspace().then(space => "" + space.used)),
+                new BLEAsyncDescriptionCharacteristic("0004", () => diskspace.diskspace().then(space => "" + space.percent))
             ]
         });
     }
