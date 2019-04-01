@@ -10,6 +10,10 @@ import AbstractDevice from "../snmp/abstract";
 const model_devices = DeviceModel.instance;
 const TYPE_PARATONAIR = 0;
 
+export interface OnFrameCallback {
+    (device: AbstractDevice|undefined): void;
+}
+
 export default class DeviceManagement {
     static instance: DeviceManagement = new DeviceManagement();
 
@@ -19,10 +23,14 @@ export default class DeviceManagement {
 	    this.data_point_provider = new DataPoint();
     }
 
-    onFrame(data: any) {
-    	if(data && data.sender) {
-	    	this.applyData(data);
-    	}
+    onFrame(data: any): Promise<AbstractDevice|undefined> {
+        return new Promise((resolve, reject) => {
+            if(data && data.sender) {
+                this.applyData(data, (device: AbstractDevice|undefined) => resolve(device));
+            } else {
+                resolve(undefined);
+            }
+        });
     }
 
     list(): Promise<AbstractDevice[]> {
@@ -54,7 +62,7 @@ export default class DeviceManagement {
         } 
     }
 
-    getDevice(internal: string) {
+    getDevice(internal: string): Promise<AbstractDevice|undefined> {
         console.log("getDevice", internal);
         return model_devices.getDeviceForInternalSerial(internal)
         .then(device => {
@@ -65,7 +73,7 @@ export default class DeviceManagement {
         .then(device => this._databaseDeviceToRealDevice(device));
     }
 
-    applyData(data: any) {
+    applyData(data: any, device_callback: OnFrameCallback|undefined = undefined) {
         if(data && data.rawFrameStr) { //for now, using only lpsfr devices
             //rawFrameStr and rawDataStr are set
             if(data.rawFrameStr.length === 60) { //30*2
@@ -92,6 +100,10 @@ export default class DeviceManagement {
                                 console.log("having internal correct");
                                 this.data_point_provider.savePoint(serial, config_internal, data.sender, data.rawDataStr);
                             }
+                        }
+
+                        if(device_callback && device) {
+                            device_callback(device);
                         }
                     })
                     .catch(err => {

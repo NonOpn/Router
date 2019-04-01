@@ -30,6 +30,16 @@ if(config.identity && config.identity.length >= 5 * 2) { //0xAABBCCDD
   id += config.identity.substr(0, 5 * 2);
 }
 
+interface SeenDevices {
+  devices: boolean[],
+  count: number
+}
+
+var seenDevices: SeenDevices = {
+  devices : [],
+  count: 0
+}
+
 interface BLECallback {
   (result: number, buffer: Buffer): void;
 }
@@ -233,6 +243,7 @@ export default class BLE {
       new BLEDescriptionCharacteristic("0002", config.version),
       new BLEWriteCharacteristic("0101", "Wifi Config", (value: string) => this._onWifi(value)),
       new BLEWriteCharacteristic("0102", "Network Config", (value: string) => this._onNetwork(value)),
+      new BLEAsyncDescriptionCharacteristic("0103", () => this._onDeviceSeenCall()),
       this._notify_frame
     ];
 
@@ -346,7 +357,24 @@ export default class BLE {
   onFrame(frame: any) {
     console.log("sending frame");
     this._notify_frame.onFrame(frame);
-    device_management.onFrame(frame);
+    device_management.onFrame(frame)
+    .then((device: AbstractDevice|undefined) => {
+      if(device) {
+        device.getInternalSerial()
+        .then((internal_serial: string|undefined) => {
+          if(internal_serial && !seenDevices.devices[internal_serial]) {
+            seenDevices.devices[internal_serial] = true;
+            seenDevices.count ++;
+          }
+        });
+      }
+    });
+  }
+
+  _onDeviceSeenCall(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      resolve(""+seenDevices.count);
+    })
   }
 
   json(value: string): any {
