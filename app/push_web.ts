@@ -137,7 +137,7 @@ export default class PushWEB extends EventEmitter {
 	}
 
 	onFrame(data: any) {
-		if(this.is_activated && data && data.sender) {
+		if(/*this.is_activated && */data && data.sender) {
 			this.applyData(data);
 		}
 	}
@@ -163,7 +163,7 @@ export default class PushWEB extends EventEmitter {
 	}
 
 	applyData(data: any) {
-		if(!this.is_activated) return;
+		//if(!this.is_activated) return;
 		var rawData = undefined;
 
 		if(data && data.rawFrameStr) {

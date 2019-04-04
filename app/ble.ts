@@ -7,6 +7,7 @@ import DeviceManagement from "./ble/device";
 import AbstractDevice from "./snmp/abstract";
 import NetworkInfo from "./network";
 import Diskspace from "./system";
+import FrameModel from "./push_web/frame_model";
 
 const PrimaryService = bleno.PrimaryService;
 const Characteristic = bleno.Characteristic;
@@ -161,6 +162,63 @@ class BLEWriteCharacteristic extends Characteristic {
   };
 }
 
+class BLEReadWriteLogCharacteristic extends Characteristic {
+  _log_id:number = 0;
+
+  constructor(uuid: string) {
+    super({
+      uuid: uuid,
+      properties: [ 'write', 'read' ],
+      //secure: [ 'write' ]
+    });
+
+  }
+  onReadRequest(offset: number, cb: BLECallback) {
+    FrameModel.instance.getFrame(this._log_id)
+    .then(transaction => {
+      var result = {
+        max: 0,
+        tx: {}
+      };
+
+      return FrameModel.instance.getMaxFrame()
+      .then(m => {
+        result.max = m;
+
+        if(transaction) {
+          result.tx = {
+            i: transaction.id,
+            f: transaction.frame,
+            t: transaction.timestamp
+          };
+        }
+        cb(RESULT_SUCCESS, Buffer.from(JSON.stringify(result), "utf-8"));
+      })
+    })
+    .catch(err => {
+      console.error(err);
+      cb(RESULT_UNLIKELY_ERROR, Buffer.from("", "utf-8"));
+    })
+  }
+
+  onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback) {
+    var config: string = data.toString();
+    var configuration: any = {};
+    try {
+      configuration = JSON.parse(config);
+    } catch(e) {
+      configuration = {};
+    }
+
+    if(configuration && configuration.index) {
+      this._log_id = configuration.index;
+      callback(RESULT_SUCCESS);
+    } else {
+      callback(RESULT_UNLIKELY_ERROR);
+    }
+  };
+}
+
 class BLEPrimaryService extends PrimaryService {
 
   constructor(characteristics: any[]) {
@@ -244,6 +302,7 @@ export default class BLE {
       new BLEWriteCharacteristic("0101", "Wifi Config", (value: string) => this._onWifi(value)),
       new BLEWriteCharacteristic("0102", "Network Config", (value: string) => this._onNetwork(value)),
       new BLEAsyncDescriptionCharacteristic("0103", () => this._onDeviceSeenCall()),
+      new BLEReadWriteLogCharacteristic("0104"),
       this._notify_frame
     ];
 

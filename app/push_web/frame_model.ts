@@ -102,6 +102,25 @@ export default class FrameModel extends Abstract {
     });
   }
 
+  getMaxFrame(): Promise<number> {
+    return new Promise((resolve, reject) => {
+      pool.query("SELECT MAX(id) as m FROM Frames")
+      .then(result => {
+        console.log("getMaxFrame", result);
+        resolve(0);
+      })
+      .catch(err => manageErrorCrash(err, reject));
+    })
+  }
+
+  getFrame(index: number): Promise<Transaction|undefined> {
+    return new Promise((resolve, reject) => {
+      pool.queryParameters("SELECT * FROM Frames WHERE id = ? LIMIT 1", [index])
+      .then(results => results && results.length > 0 ? resolve(results[0]) : resolve(undefined))
+      .catch(err => manageErrorCrash(err, reject));
+    });
+  }
+
   beforeForDevice(device: Device, timestamp: number): Promise<Transaction[]> {
     return new Promise((resolve, reject) => {
       pool.queryParameters("SELECT * FROM Frames WHERE product_id = ? AND timestamp < ? ORDER BY timestamp LIMIT 100",
