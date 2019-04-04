@@ -174,6 +174,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
 
     this._last = Buffer.from("");
   }
+
   onReadRequest(offset: number, cb: BLECallback) {
     if(offset > 0 && offset < this._last.length) {
       const sub = this._last.subarray(offset);
@@ -216,6 +217,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
   }
 
   onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback) {
+    console.log(data.toString());
     var config: string = data.toString();
     var configuration: any = {};
     try {
