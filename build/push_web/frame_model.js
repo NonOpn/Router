@@ -100,7 +100,10 @@ class FrameModel extends abstract_js_1.default {
     getFrame(index) {
         return new Promise((resolve, reject) => {
             pool.queryParameters("SELECT * FROM Frames WHERE id = ? LIMIT 1", [index])
-                .then(results => results && results.length > 0 ? resolve(results[0]) : resolve(undefined))
+                .then(results => {
+                console.log("getFrame", results);
+                results && results.length > 0 ? resolve(results[0]) : resolve(undefined);
+            })
                 .catch(err => manageErrorCrash(err, reject));
         });
     }

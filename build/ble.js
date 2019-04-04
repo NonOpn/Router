@@ -110,7 +110,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
     constructor(uuid) {
         super({
             uuid: uuid,
-            properties: ['write', 'read'],
+            properties: ['write', 'read']
         });
         this._log_id = 0;
     }
@@ -121,7 +121,8 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
             .then(transaction => {
             var result = {
                 max: 0,
-                tx: {}
+                tx: {},
+                index: id
             };
             return frame_model_1.default.instance.getMaxFrame()
                 .then(m => {
