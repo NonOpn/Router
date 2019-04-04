@@ -12,6 +12,9 @@ class DeviceManagement {
     constructor() {
         this.data_point_provider = new data_point_1.default();
     }
+    getPoint(index) {
+        return this.data_point_provider.getPoint(index);
+    }
     onFrame(data) {
         return new Promise((resolve, reject) => {
             if (data && data.sender) {

@@ -23,6 +23,10 @@ export default class DeviceManagement {
 	    this.data_point_provider = new DataPoint();
     }
 
+    getPoint(index: number) {
+        return this.data_point_provider.getPoint(index);
+    }
+
     onFrame(data: any): Promise<AbstractDevice|undefined> {
         return new Promise((resolve, reject) => {
             if(data && data.sender) {

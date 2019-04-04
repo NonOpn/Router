@@ -8,6 +8,7 @@ export default class DeviceManagement {
     static instance: DeviceManagement;
     data_point_provider: DataPoint;
     constructor();
+    getPoint(index: number): any;
     onFrame(data: any): Promise<AbstractDevice | undefined>;
     list(): Promise<AbstractDevice[]>;
     _databaseDeviceToRealDevice(device: Device | undefined): AbstractDevice | undefined;

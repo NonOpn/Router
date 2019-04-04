@@ -142,6 +142,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
                 }
                 console.log("new index", this._log_id + " " + result.index);
                 if (transaction) {
+                    result.index = transaction.id;
                     result.tx = {
                         i: transaction.id,
                         f: transaction.frame,
