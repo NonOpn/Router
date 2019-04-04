@@ -102,6 +102,19 @@ export default class FrameModel extends Abstract {
     });
   }
 
+  getMinFrame(): Promise<number> {
+    return new Promise((resolve, reject) => {
+      pool.query("SELECT MIN(id) as m FROM Frames")
+      .then(result => {
+        var index = 0;
+        if(result && result.length > 0) index = result[0].m;
+        console.log("getMinFrame", result);
+        resolve(index);
+      })
+      .catch(err => manageErrorCrash(err, reject));
+    })
+  }
+
   getMaxFrame(): Promise<number> {
     return new Promise((resolve, reject) => {
       pool.query("SELECT MAX(id) as m FROM Frames")
