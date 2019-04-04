@@ -173,6 +173,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
 
   }
   onReadRequest(offset: number, cb: BLECallback) {
+    console.log(offset);
     const index = this._log_id;
     this._log_id ++;
     
@@ -195,7 +196,8 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
             t: transaction.timestamp
           };
         }
-        cb(RESULT_SUCCESS, Buffer.from(JSON.stringify(result), "utf-8"));
+        const output = JSON.stringify(result);
+        cb(RESULT_SUCCESS, Buffer.from(output, "utf-8"));
       })
     })
     .catch(err => {

@@ -115,14 +115,15 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
         this._log_id = 0;
     }
     onReadRequest(offset, cb) {
+        console.log(offset);
         const index = this._log_id;
         this._log_id++;
         frame_model_1.default.instance.getFrame(index)
             .then(transaction => {
             var result = {
+                index: index,
                 max: 0,
-                tx: {},
-                index: index
+                tx: {}
             };
             return frame_model_1.default.instance.getMaxFrame()
                 .then(m => {
@@ -134,7 +135,8 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
                         t: transaction.timestamp
                     };
                 }
-                cb(RESULT_SUCCESS, Buffer.from(JSON.stringify(result), "utf-8"));
+                const output = JSON.stringify(result);
+                cb(RESULT_SUCCESS, Buffer.from(output, "utf-8"));
             });
         })
             .catch(err => {
