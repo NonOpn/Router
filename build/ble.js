@@ -11,6 +11,7 @@ const wifi_js_1 = __importDefault(require("./wifi/wifi.js"));
 const device_1 = __importDefault(require("./ble/device"));
 const network_1 = __importDefault(require("./network"));
 const system_1 = __importDefault(require("./system"));
+const frame_model_1 = __importDefault(require("./push_web/frame_model"));
 const PrimaryService = bleno_1.default.PrimaryService;
 const Characteristic = bleno_1.default.Characteristic;
 const Descriptor = bleno_1.default.Descriptor;
@@ -28,6 +29,10 @@ var id = "Routair";
 if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) {
     id += config_1.default.identity.substr(0, 5 * 2);
 }
+var seenDevices = {
+    devices: [],
+    count: 0
+};
 class BLEDescriptionCharacteristic extends Characteristic {
     constructor(uuid, value) {
         super({
@@ -101,6 +106,58 @@ class BLEWriteCharacteristic extends Characteristic {
     }
     ;
 }
+class BLEReadWriteLogCharacteristic extends Characteristic {
+    constructor(uuid) {
+        super({
+            uuid: uuid,
+            properties: ['write', 'read'],
+        });
+        this._log_id = 0;
+    }
+    onReadRequest(offset, cb) {
+        frame_model_1.default.instance.getFrame(this._log_id)
+            .then(transaction => {
+            var result = {
+                max: 0,
+                tx: {}
+            };
+            return frame_model_1.default.instance.getMaxFrame()
+                .then(m => {
+                result.max = m;
+                if (transaction) {
+                    result.tx = {
+                        i: transaction.id,
+                        f: transaction.frame,
+                        t: transaction.timestamp
+                    };
+                }
+                cb(RESULT_SUCCESS, Buffer.from(JSON.stringify(result), "utf-8"));
+            });
+        })
+            .catch(err => {
+            console.error(err);
+            cb(RESULT_UNLIKELY_ERROR, Buffer.from("", "utf-8"));
+        });
+    }
+    onWriteRequest(data, offset, withoutResponse, callback) {
+        var config = data.toString();
+        var configuration = {};
+        try {
+            configuration = JSON.parse(config);
+        }
+        catch (e) {
+            configuration = {};
+        }
+        if (configuration && configuration.index) {
+            this._log_id = configuration.index;
+            callback(RESULT_SUCCESS);
+        }
+        else {
+            callback(RESULT_UNLIKELY_ERROR);
+        }
+    }
+    ;
+}
 class BLEPrimaryService extends PrimaryService {
     constructor(characteristics) {
         super({
@@ -164,6 +221,8 @@ class BLE {
             new BLEDescriptionCharacteristic("0002", config_1.default.version),
             new BLEWriteCharacteristic("0101", "Wifi Config", (value) => this._onWifi(value)),
             new BLEWriteCharacteristic("0102", "Network Config", (value) => this._onNetwork(value)),
+            new BLEAsyncDescriptionCharacteristic("0103", () => this._onDeviceSeenCall()),
+            new BLEReadWriteLogCharacteristic("0104"),
             this._notify_frame
         ];
         this._refreshing_called_once = false;
@@ -255,7 +314,23 @@ class BLE {
     onFrame(frame) {
         console.log("sending frame");
         this._notify_frame.onFrame(frame);
-        device_management.onFrame(frame);
+        device_management.onFrame(frame)
+            .then((device) => {
+            if (device) {
+                device.getInternalSerial()
+                    .then((internal_serial) => {
+                    if (internal_serial && !seenDevices.devices[internal_serial]) {
+                        seenDevices.devices[internal_serial] = true;
+                        seenDevices.count++;
+                    }
+                });
+            }
+        });
+    }
+    _onDeviceSeenCall() {
+        return new Promise((resolve, reject) => {
+            resolve("" + seenDevices.count);
+        });
     }
     json(value) {
         var json = {};

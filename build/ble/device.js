@@ -13,9 +13,14 @@ class DeviceManagement {
         this.data_point_provider = new data_point_1.default();
     }
     onFrame(data) {
-        if (data && data.sender) {
-            this.applyData(data);
-        }
+        return new Promise((resolve, reject) => {
+            if (data && data.sender) {
+                this.applyData(data, (device) => resolve(device));
+            }
+            else {
+                resolve(undefined);
+            }
+        });
     }
     list() {
         return model_devices.list()
@@ -56,7 +61,7 @@ class DeviceManagement {
         })
             .then(device => this._databaseDeviceToRealDevice(device));
     }
-    applyData(data) {
+    applyData(data, device_callback = undefined) {
         if (data && data.rawFrameStr) {
             //rawFrameStr and rawDataStr are set
             if (data.rawFrameStr.length === 60) {
@@ -82,6 +87,9 @@ class DeviceManagement {
                                 console.log("having internal correct");
                                 this.data_point_provider.savePoint(serial, config_internal, data.sender, data.rawDataStr);
                             }
+                        }
+                        if (device_callback && device) {
+                            device_callback(device);
                         }
                     })
                         .catch(err => {

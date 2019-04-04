@@ -84,6 +84,23 @@ class FrameModel extends abstract_js_1.default {
                 .catch(err => manageErrorCrash(err, reject));
         });
     }
+    getMaxFrame() {
+        return new Promise((resolve, reject) => {
+            pool.query("SELECT MAX(id) as m FROM Frames")
+                .then(result => {
+                console.log("getMaxFrame", result);
+                resolve(0);
+            })
+                .catch(err => manageErrorCrash(err, reject));
+        });
+    }
+    getFrame(index) {
+        return new Promise((resolve, reject) => {
+            pool.queryParameters("SELECT * FROM Frames WHERE id = ? LIMIT 1", [index])
+                .then(results => results && results.length > 0 ? resolve(results[0]) : resolve(undefined))
+                .catch(err => manageErrorCrash(err, reject));
+        });
+    }
     beforeForDevice(device, timestamp) {
         return new Promise((resolve, reject) => {
             pool.queryParameters("SELECT * FROM Frames WHERE product_id = ? AND timestamp < ? ORDER BY timestamp LIMIT 100", [device.id, timestamp])

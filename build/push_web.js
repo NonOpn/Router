@@ -131,7 +131,7 @@ class PushWEB extends events_1.EventEmitter {
         });
     }
     onFrame(data) {
-        if (this.is_activated && data && data.sender) {
+        if (data && data.sender) {
             this.applyData(data);
         }
     }
@@ -153,8 +153,7 @@ class PushWEB extends events_1.EventEmitter {
         }
     }
     applyData(data) {
-        if (!this.is_activated)
-            return;
+        //if(!this.is_activated) return;
         var rawData = undefined;
         if (data && data.rawFrameStr) {
             if (data.rawFrameStr.length === 60) {
