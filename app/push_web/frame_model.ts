@@ -119,7 +119,7 @@ export default class FrameModel extends Abstract {
     return new Promise((resolve, reject) => {
       pool.queryParameters("SELECT * FROM Frames WHERE id = ? LIMIT 1", [index])
       .then(results => {
-        console.log("getFrame", results);
+        console.log("getFrame", index);
         results && results.length > 0 ? resolve(results[0]) : resolve(undefined)
       })
       .catch(err => manageErrorCrash(err, reject));
