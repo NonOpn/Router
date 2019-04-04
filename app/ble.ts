@@ -179,9 +179,9 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
     FrameModel.instance.getFrame(index)
     .then(transaction => {
       var result = {
+        index : index,
         max: 0,
-        tx: {},
-        index: index
+        tx: {}
       };
 
       return FrameModel.instance.getMaxFrame()
