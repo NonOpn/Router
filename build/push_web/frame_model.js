@@ -88,8 +88,11 @@ class FrameModel extends abstract_js_1.default {
         return new Promise((resolve, reject) => {
             pool.query("SELECT MAX(id) as m FROM Frames")
                 .then(result => {
+                var index = 0;
+                if (result && result.length > 0)
+                    index = result[0].m;
                 console.log("getMaxFrame", result);
-                resolve(0);
+                resolve(index);
             })
                 .catch(err => manageErrorCrash(err, reject));
         });
