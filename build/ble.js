@@ -134,6 +134,9 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
             return frame_model_1.default.instance.getMaxFrame()
                 .then(m => {
                 result.max = m;
+                if (this._log_id > m) {
+                    this._log_id = m;
+                }
                 if (transaction) {
                     result.tx = {
                         i: transaction.id,

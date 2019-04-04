@@ -198,6 +198,10 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
       .then(m => {
         result.max = m;
 
+        if(this._log_id > m) {
+          this._log_id = m;
+        }
+
         if(transaction) {
           result.tx = {
             i: transaction.id,
