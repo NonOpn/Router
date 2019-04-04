@@ -221,6 +221,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
   }
 
   onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback) {
+    console.log("offset := " + offset);
     console.log(data.toString());
     var config: string = data.toString();
     var configuration: any = {};
