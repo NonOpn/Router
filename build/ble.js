@@ -115,7 +115,9 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
         this._log_id = 0;
     }
     onReadRequest(offset, cb) {
-        frame_model_1.default.instance.getFrame(this._log_id)
+        var id = this._log_id;
+        this._log_id++;
+        frame_model_1.default.instance.getFrame(id)
             .then(transaction => {
             var result = {
                 max: 0,

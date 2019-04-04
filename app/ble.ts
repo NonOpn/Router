@@ -174,7 +174,10 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
 
   }
   onReadRequest(offset: number, cb: BLECallback) {
-    FrameModel.instance.getFrame(this._log_id)
+    var id = this._log_id;
+    this._log_id ++;
+    
+    FrameModel.instance.getFrame(id)
     .then(transaction => {
       var result = {
         max: 0,
