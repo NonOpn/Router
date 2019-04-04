@@ -113,8 +113,14 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
             properties: ['write', 'read']
         });
         this._log_id = 0;
+        this._last = Buffer.from("");
     }
     onReadRequest(offset, cb) {
+        if (offset > 0 && offset < this._last.length) {
+            const sub = this._last.subarray(offset);
+            cb(RESULT_SUCCESS, sub);
+            return;
+        }
         console.log(offset);
         const index = this._log_id;
         this._log_id++;
@@ -136,7 +142,8 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
                     };
                 }
                 const output = JSON.stringify(result);
-                cb(RESULT_SUCCESS, Buffer.from(output, "utf-8"));
+                this._last = Buffer.from(output, "utf-8");
+                cb(RESULT_SUCCESS, this._last);
             });
         })
             .catch(err => {
