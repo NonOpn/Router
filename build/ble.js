@@ -124,6 +124,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
         console.log(offset);
         const index = this._log_id;
         this._log_id++;
+        console.log("get log ", index);
         frame_model_1.default.instance.getFrame(index)
             .then(transaction => {
             var result = {
@@ -137,7 +138,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
                 if (this._log_id > m) {
                     this._log_id = m;
                 }
-                console.log("new index", this._log_id);
+                console.log("new index", this._log_id + " " + result.index);
                 if (transaction) {
                     result.tx = {
                         i: transaction.id,
