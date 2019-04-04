@@ -187,7 +187,10 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
     this._log_id ++;
     console.log("get log ", index);
     FrameModel.instance.getMinFrame()
-    .then(minimum => minimum > index ? minimum : index)
+    .then(minimum => {
+      if(minimum > this._log_id) this._log_id = minimum;
+      minimum > index ? minimum : index
+    })
     .then(minimum => FrameModel.instance.getFrame(minimum))
     .then(transaction => {
       var result = {
