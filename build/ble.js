@@ -107,10 +107,10 @@ class BLEWriteCharacteristic extends Characteristic {
     ;
 }
 class BLEReadWriteLogCharacteristic extends Characteristic {
-    constructor(uuid, compress = false) {
+    constructor(uuid, compress = false, use_write = true) {
         super({
             uuid: uuid,
-            properties: ['write', 'read']
+            properties: use_write ? ['write', 'read'] : ['read']
         });
         this._log_id = 0;
         this._compress = compress;
@@ -278,6 +278,8 @@ class BLE {
             new BLEWriteCharacteristic("0102", "Network Config", (value) => this._onNetwork(value)),
             new BLEAsyncDescriptionCharacteristic("0103", () => this._onDeviceSeenCall()),
             new BLEReadWriteLogCharacteristic("0104"),
+            new BLEReadWriteLogCharacteristic("0105", true),
+            new BLEReadWriteLogCharacteristic("0106", true, false),
             this._notify_frame
         ];
         this._refreshing_called_once = false;
