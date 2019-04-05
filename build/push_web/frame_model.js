@@ -84,6 +84,11 @@ class FrameModel extends abstract_js_1.default {
                 .catch(err => manageErrorCrash(err, reject));
         });
     }
+    getCompressedFrame(frame) {
+        if (frame && frame.length > 14 + 20 + 8)
+            return frame.substring(14 + 0, 14 + 20 + 8);
+        return frame;
+    }
     getInternalSerial(frame) {
         return frame.substring(14 + 0, 14 + 6);
     }

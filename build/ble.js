@@ -162,7 +162,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
                     result.index = transaction.id;
                     const arr = {
                         i: transaction.id,
-                        f: transaction.frame,
+                        f: frame_model_1.default.instance.getCompressedFrame(transaction.frame),
                         t: transaction.timestamp,
                         s: frame_model_1.default.instance.getInternalSerial(transaction.frame),
                         c: frame_model_1.default.instance.getContactair(transaction.frame)

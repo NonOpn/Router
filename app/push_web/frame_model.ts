@@ -102,6 +102,12 @@ export default class FrameModel extends Abstract {
     });
   }
 
+  getCompressedFrame(frame: string) {
+    if(frame && frame.length > 14+20+8)
+      return frame.substring(14+0, 14+20+8);
+    return frame;
+  }
+
   getInternalSerial(frame: string) {
     return frame.substring(14+0, 14+6);
   }
