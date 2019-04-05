@@ -230,7 +230,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
         transactions.forEach((transaction:any) => {
           result.index = transaction.id;
 
-          if(this._compress) {
+          if(!this._compress) {
             const arr = {
               i: transaction.id,
               f: FrameModel.instance.getCompressedFrame(transaction.frame),
@@ -240,18 +240,20 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
             };
             result.txs.push(arr);
           } else {
-            const arr:any = [
-              transaction.id,
-              FrameModel.instance.getCompressedFrame(transaction.frame),
-              transaction.timestamp,
-              FrameModel.instance.getInternalSerial(transaction.frame),
-              FrameModel.instance.getContactair(transaction.frame)
-            ];
+            const arr:any = 
+              transaction.id+","+
+              FrameModel.instance.getCompressedFrame(transaction.frame)+","+
+              transaction.timestamp+","+
+              FrameModel.instance.getInternalSerial(transaction.frame)+","+
+              FrameModel.instance.getContactair(transaction.frame)+",";
             result.txs.push(arr);
           }
         })
       }
-      const output = JSON.stringify(result);
+      var output = JSON.stringify(result);
+      if(this._compress) {
+        output = result.index+","+result.max+","+result.txs.concat();
+      }
       this._last = Buffer.from(output, "utf-8");
       cb(RESULT_SUCCESS, this._last);
     })
