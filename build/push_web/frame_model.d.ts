@@ -14,6 +14,7 @@ export default class FrameModel extends Abstract {
     setSent(id: number, sent: number | boolean): Promise<Transaction | undefined>;
     hasData(device: Device, timestamp_in_past: number): Promise<any[]>;
     getInternalSerial(frame: string): string;
+    getContactair(frame: string): string;
     getMinFrame(): Promise<number>;
     getMaxFrame(): Promise<number>;
     getFrame(index: number): Promise<Transaction | undefined>;
