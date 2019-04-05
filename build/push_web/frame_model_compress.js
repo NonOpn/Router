@@ -134,6 +134,7 @@ class FrameModelCompress extends abstract_js_1.default {
                     if (results && results.length > 0) {
                         var subcall = (idx) => {
                             if (idx >= results.length) {
+                                callback(index + 1);
                             }
                             else {
                                 const transaction = results[idx];

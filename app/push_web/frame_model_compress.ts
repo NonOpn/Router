@@ -160,7 +160,7 @@ export default class FrameModelCompress extends Abstract {
           if(results && results.length > 0) {
             var subcall = (idx:number) => {
               if(idx >= results.length) {
-
+                callback(index+1);
               } else {
                 const transaction = results[idx];
                 if(transaction.id && transaction.id > index) index = transaction.id;
