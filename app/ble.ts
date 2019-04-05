@@ -204,7 +204,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
         result.max = m;
 
         if(this._log_id > m) {
-          this._log_id = m;
+          this._log_id = m+1; //prevent looping
         }
 
         console.log("new index", this._log_id+" "+result.index);
