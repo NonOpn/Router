@@ -240,7 +240,7 @@ export default class FrameModelCompress extends Abstract {
 
       //the frame can be saved
       cache.data = data;
-      cache.timeout = 10;
+      cache.timeout = 30;
       this._contactair_cache[contactair] = cache;
 
       pool.queryParameters("INSERT INTO FramesCompress SET ?", [transaction])
