@@ -141,7 +141,7 @@ export default class FrameModel extends Abstract {
 
   getFrame(index: number, limit: number): Promise<Transaction[]|undefined> {
     return new Promise((resolve, reject) => {
-      pool.queryParameters("SELECT * FROM Frames WHERE id = ? ORDER BY id LIMIT ?", [index, limit])
+      pool.queryParameters("SELECT * FROM Frames WHERE id >= ? ORDER BY id LIMIT ?", [index, limit])
       .then(results => results && results.length > 0 ? resolve(results) : resolve(undefined))
       .catch(err => manageErrorCrash(err, reject));
     });
