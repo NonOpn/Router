@@ -8,6 +8,7 @@ const abstract_js_1 = __importDefault(require("../database/abstract.js"));
 const pool = pool_1.default.instance;
 pool.query("CREATE TABLE IF NOT EXISTS FramesCompress ("
     + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
+    + "`original_id` INT NULL UNIQUE,"
     + "`frame` VARCHAR(255) NOT NULL,"
     + "`timestamp` INTEGER NOT NULL,"
     + "`sent` INTEGER NOT NULL,"
@@ -48,9 +49,12 @@ function txToArrayForInsert(tx) {
 function manageErrorCrash(error, reject) {
     pool.manageErrorCrash("FramesCompress", error, reject);
 }
-class FrameModel extends abstract_js_1.default {
+class FrameModelCompress extends abstract_js_1.default {
     constructor() {
         super();
+        this._contactair_cache = [];
+        this._syncing = false;
+        this._temp_syncing = [];
     }
     getModelName() {
         return FRAME_MODEL;
@@ -65,14 +69,12 @@ class FrameModel extends abstract_js_1.default {
                 .catch(err => manageErrorCrash(err, reject));
         });
     }
-    canSave(contactair) {
-    }
-    flushContactair(contactair) {
-    }
     getRelevantByte(frame) {
-        if (frame && frame.length > 14 + 20 + 8)
-            return frame.substring(14 + 6, 14 + 20);
-        return frame;
+        var compressed = this.getCompressedFrame(frame);
+        if (compressed && compressed.length > 0) {
+            return compressed.slice(-2);
+        }
+        return "00";
     }
     getCompressedFrame(frame) {
         if (frame && frame.length > 14 + 20 + 8)
@@ -121,47 +123,98 @@ class FrameModel extends abstract_js_1.default {
                 .catch(err => manageErrorCrash(err, reject));
         });
     }
-    beforeForDevice(device, timestamp) {
-        return new Promise((resolve, reject) => {
-            pool.queryParameters("SELECT * FROM FramesCompress WHERE product_id = ? AND timestamp < ? ORDER BY timestamp LIMIT 100", [device.id, timestamp])
-                .then(results => resolve(results))
-                .catch(err => manageErrorCrash(err, reject));
-        });
+    start() {
+        if (!this._syncing) {
+            console.log("start migrating...");
+            this._syncing = true;
+            var index = 0;
+            var callback = (from) => {
+                pool.queryParameters("SELECT * FROM Frames WHERE id >= ? ORDER BY id LIMIT 500", [from])
+                    .then((results) => {
+                    if (results && results.length > 0) {
+                        var subcall = (idx) => {
+                            if (idx >= results.length) {
+                            }
+                            else {
+                                const transaction = results[idx];
+                                if (transaction.id && transaction.id > index)
+                                    index = transaction.id;
+                                this.save(transaction, true)
+                                    .then(saved => subcall(idx + 1))
+                                    .catch(err => subcall(idx + 1));
+                            }
+                        };
+                        subcall(0);
+                    }
+                    else {
+                        this.flushAwaiting();
+                    }
+                })
+                    .catch(err => manageErrorCrash(err, () => { }));
+            };
+            callback(0);
+        }
     }
-    before(timestamp) {
-        return new Promise((resolve, reject) => {
-            console.log(timestamp);
-            pool.queryParameters("SELECT * FROM FramesCompress WHERE timestamp < ? ORDER BY timestamp LIMIT 100", [timestamp])
-                .then(results => resolve(results))
-                .catch(err => manageErrorCrash(err, reject));
-        });
-    }
-    saveMultiple(txs) {
-        return new Promise((resolve, reject) => {
-            const array = [];
-            try {
-                txs.forEach(transaction => {
-                    transaction.timestamp = Math.floor(Date.now() / 1000);
-                    array.push(txToArrayForInsert(transaction));
+    flushAwaiting() {
+        var callback = (index) => {
+            if (index > this._temp_syncing.length) {
+                const resolve = this._temp_syncing[index].resolve;
+                const reject = this._temp_syncing[index].reject;
+                const transaction = this._temp_syncing[index].transaction;
+                this.save(transaction, true)
+                    .then(saved => {
+                    resolve(saved);
+                    callback(index + 1);
+                })
+                    .catch(err => {
+                    reject(err);
+                    callback(index + 1);
                 });
             }
-            catch (e) {
+            else {
+                //done
+                this._syncing = false;
             }
-            pool.queryParameters(INSERT_ROWS, [array])
-                .then(() => resolve(txs))
-                .catch(err => manageErrorCrash(err, reject));
-        });
+        };
+        callback(0);
     }
-    save(tx) {
+    save(tx, force = false) {
         return new Promise((resolve, reject) => {
+            if (this._syncing) {
+                return;
+            }
+            const contactair = this.getContactair(tx.frame);
+            const data = this.getRelevantByte(tx.frame);
+            var cache = { data: null, timeout: 11 };
+            console.log("managing frame := " + contactair + " data:=" + data);
+            if (!this._contactair_cache[contactair]) {
+                this._contactair_cache[contactair] = cache;
+            }
+            else {
+                cache = this._contactair_cache[contactair];
+            }
             tx.timestamp = Math.floor(Date.now() / 1000);
             const transaction = txToJson(tx);
+            if (tx.id)
+                transaction.original_id = tx.id;
+            cache.timeout--;
+            if (cache.data && cache.data == data && cache.timeout > 0) {
+                //now set the new cache for this round
+                this._contactair_cache[contactair] = cache;
+                console.log("don't save the frame for " + contactair + " already known for this round, remaining " + cache.timeout);
+                resolve(transaction);
+                return;
+            }
+            //the frame can be saved
+            cache.data = data;
+            cache.timeout = 10;
+            this._contactair_cache[contactair] = cache;
             pool.queryParameters("INSERT INTO FramesCompress SET ?", [transaction])
                 .then(() => resolve(transaction))
                 .catch(err => manageErrorCrash(err, reject));
         });
     }
 }
-FrameModel.instance = new FrameModel();
-exports.default = FrameModel;
+FrameModelCompress.instance = new FrameModelCompress();
+exports.default = FrameModelCompress;
 //# sourceMappingURL=frame_model_compress.js.map

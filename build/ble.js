@@ -6,12 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const bleno_1 = __importDefault(require("bleno"));
 const config_1 = __importDefault(require("../config/config"));
 const device_model_1 = __importDefault(require("./push_web/device_model"));
+const frame_model_compress_1 = __importDefault(require("./push_web/frame_model_compress"));
 const visualisation_1 = __importDefault(require("../config/visualisation"));
 const wifi_js_1 = __importDefault(require("./wifi/wifi.js"));
 const device_1 = __importDefault(require("./ble/device"));
 const network_1 = __importDefault(require("./network"));
 const system_1 = __importDefault(require("./system"));
-const frame_model_1 = __importDefault(require("./push_web/frame_model"));
 const PrimaryService = bleno_1.default.PrimaryService;
 const Characteristic = bleno_1.default.Characteristic;
 const Descriptor = bleno_1.default.Descriptor;
@@ -131,13 +131,13 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
             txs: []
         };
         var to_fetch = 1;
-        frame_model_1.default.instance.getMaxFrame()
+        frame_model_compress_1.default.instance.getMaxFrame()
             .then(maximum => {
             result.max = maximum;
             if (this._log_id > maximum) {
                 this._log_id = maximum + 1; //prevent looping
             }
-            return frame_model_1.default.instance.getMinFrame();
+            return frame_model_compress_1.default.instance.getMinFrame();
         })
             .then(minimum => {
             //check the minimum index to fetch values from
@@ -155,7 +155,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
             this._log_id += to_fetch;
             return value;
         })
-            .then(value => frame_model_1.default.instance.getFrame(value, to_fetch))
+            .then(value => frame_model_compress_1.default.instance.getFrame(value, to_fetch))
             .then(transactions => {
             console.log("new index", this._log_id + " " + result.index);
             if (transactions) {
@@ -164,19 +164,19 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
                     if (!this._compress) {
                         const arr = {
                             i: transaction.id,
-                            f: frame_model_1.default.instance.getCompressedFrame(transaction.frame),
+                            f: frame_model_compress_1.default.instance.getCompressedFrame(transaction.frame),
                             t: transaction.timestamp,
-                            s: frame_model_1.default.instance.getInternalSerial(transaction.frame),
-                            c: frame_model_1.default.instance.getContactair(transaction.frame)
+                            s: frame_model_compress_1.default.instance.getInternalSerial(transaction.frame),
+                            c: frame_model_compress_1.default.instance.getContactair(transaction.frame)
                         };
                         result.txs.push(arr);
                     }
                     else {
                         const arr = transaction.id + "," +
-                            frame_model_1.default.instance.getCompressedFrame(transaction.frame) + "," +
+                            frame_model_compress_1.default.instance.getCompressedFrame(transaction.frame) + "," +
                             transaction.timestamp + "," +
-                            frame_model_1.default.instance.getInternalSerial(transaction.frame) + "," +
-                            frame_model_1.default.instance.getContactair(transaction.frame) + ",";
+                            frame_model_compress_1.default.instance.getInternalSerial(transaction.frame) + "," +
+                            frame_model_compress_1.default.instance.getContactair(transaction.frame) + ",";
                         result.txs.push(arr);
                     }
                 });
@@ -340,6 +340,7 @@ class BLE {
     startDelayed() {
         if (this._started)
             return;
+        frame_model_compress_1.default.instance.start();
         this._started = true;
         bleno_1.default.on('stateChange', (state) => {
             console.log('on -> stateChange: ' + state);

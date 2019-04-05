@@ -1,3 +1,4 @@
+import { Transaction } from './frame_model_compress';
 import { Device } from './device_model';
 import Pool from "./pool";
 import Abstract from "../database/abstract.js";
@@ -7,6 +8,7 @@ const pool: Pool = Pool.instance;
 
 pool.query("CREATE TABLE IF NOT EXISTS FramesCompress ("
   + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
+  + "`original_id` INT NULL UNIQUE,"
   + "`frame` VARCHAR(255) NOT NULL,"
   + "`timestamp` INTEGER NOT NULL,"
   + "`sent` INTEGER NOT NULL,"
@@ -61,8 +63,8 @@ function manageErrorCrash(error: Error, reject: Reject) {
   pool.manageErrorCrash("FramesCompress", error, reject);
 }
 
-export default class FrameModel extends Abstract {
-  static instance: FrameModel = new FrameModel();
+export default class FrameModelCompress extends Abstract {
+  static instance: FrameModelCompress = new FrameModelCompress();
   
   constructor() {
     super();
@@ -83,18 +85,12 @@ export default class FrameModel extends Abstract {
     });
   }
 
-  canSave(contactair: string) {
-
-  }
-
-  flushContactair(contactair: string) {
-
-  }
-
   getRelevantByte(frame: string) {
-    if(frame && frame.length > 14+20+8)
-      return frame.substring(14+6, 14+20);
-    return frame;
+    var compressed = this.getCompressedFrame(frame);
+    if(compressed && compressed.length > 0) {
+      return compressed.slice(-2);
+    }
+    return "00";
   }
 
   getCompressedFrame(frame: string) {
@@ -148,47 +144,105 @@ export default class FrameModel extends Abstract {
     });
   }
 
-  beforeForDevice(device: Device, timestamp: number): Promise<Transaction[]> {
-    return new Promise((resolve, reject) => {
-      pool.queryParameters("SELECT * FROM FramesCompress WHERE product_id = ? AND timestamp < ? ORDER BY timestamp LIMIT 100",
-      [device.id, timestamp])
-      .then(results => resolve(results))
-      .catch(err => manageErrorCrash(err, reject));
-    });
+  _contactair_cache = [];
+  _syncing = false;
+  _temp_syncing: any[] = [];
+
+  start() {
+    if(!this._syncing) {
+      console.log("start migrating...");
+      this._syncing = true;
+      var index = 0;
+
+      var callback = (from: number) => {
+        pool.queryParameters("SELECT * FROM Frames WHERE id >= ? ORDER BY id LIMIT 500", [from])
+        .then((results: Transaction[]|undefined) => {
+          if(results && results.length > 0) {
+            var subcall = (idx:number) => {
+              if(idx >= results.length) {
+
+              } else {
+                const transaction = results[idx];
+                if(transaction.id && transaction.id > index) index = transaction.id;
+  
+                this.save(transaction, true)
+                .then(saved => subcall(idx+1))
+                .catch(err => subcall(idx+1));
+              }
+            }
+            subcall(0);
+          } else {
+            this.flushAwaiting();
+          }
+        })
+        .catch(err => manageErrorCrash(err, () => {}));
+      }
+      callback(0);
+    }
   }
 
-  before(timestamp: number): Promise<Transaction[]> {
-    return new Promise((resolve, reject) => {
-      console.log(timestamp);
-      pool.queryParameters("SELECT * FROM FramesCompress WHERE timestamp < ? ORDER BY timestamp LIMIT 100", [timestamp])
-      .then(results => resolve(results))
-      .catch(err => manageErrorCrash(err, reject));
-    });
-  }
+  flushAwaiting() {
+    var callback = (index: number) => {
+      if(index > this._temp_syncing.length) {
+        const resolve = this._temp_syncing[index].resolve;
+        const reject = this._temp_syncing[index].reject;
+        const transaction = this._temp_syncing[index].transaction;
 
-  saveMultiple(txs: Transaction[]): Promise<Transaction[]> {
-    return new Promise((resolve, reject) => {
-      const array:any[] = [];
-
-      try {
-        txs.forEach(transaction => {
-          transaction.timestamp = Math.floor(Date.now()/1000);
-          array.push(txToArrayForInsert(transaction));
+        this.save(transaction, true)
+        .then(saved => {
+          resolve(saved);
+          callback(index+1);
+        })
+        .catch(err => {
+          reject(err);
+          callback(index+1)
         });
-      } catch(e) {
+      } else {
+        //done
+        this._syncing = false;
+      }
+    }
+    callback(0);
+  }
 
+  save(tx: Transaction, force: boolean = false): Promise<Transaction> {
+    return new Promise((resolve, reject) => {
+      if(this._syncing) {
+
+        return;
       }
 
-      pool.queryParameters(INSERT_ROWS, [array])
-      .then(() => resolve(txs))
-      .catch(err => manageErrorCrash(err, reject));
-    });
-  }
+      const contactair = this.getContactair(tx.frame);
+      const data = this.getRelevantByte(tx.frame);
+      var cache: any = {data: null, timeout: 11};
 
-  save(tx: Transaction): Promise<Transaction> {
-    return new Promise((resolve, reject) => {
+      console.log("managing frame := " + contactair+" data:="+data);
+
+      if(!this._contactair_cache[contactair]) {
+        this._contactair_cache[contactair] = cache;
+      } else {
+        cache = this._contactair_cache[contactair];
+      }
+
       tx.timestamp = Math.floor(Date.now()/1000);
-      const transaction = txToJson(tx);
+      const transaction:any = txToJson(tx);
+      if(tx.id) transaction.original_id = tx.id;
+
+      cache.timeout --;
+
+      if(cache.data && cache.data == data && cache.timeout > 0) {
+        //now set the new cache for this round
+        this._contactair_cache[contactair] = cache;
+        console.log("don't save the frame for " + contactair + " already known for this round, remaining " + cache.timeout);
+        resolve(transaction);
+        return
+      }
+
+      //the frame can be saved
+      cache.data = data;
+      cache.timeout = 10;
+      this._contactair_cache[contactair] = cache;
+
       pool.queryParameters("INSERT INTO FramesCompress SET ?", [transaction])
       .then(() => resolve(transaction))
       .catch(err => manageErrorCrash(err, reject));

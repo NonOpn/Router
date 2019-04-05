@@ -1,3 +1,4 @@
+import { Transaction } from './frame_model_compress';
 import { Device } from './device_model';
 import Abstract from "../database/abstract.js";
 export interface Transaction {
@@ -6,13 +7,11 @@ export interface Transaction {
     timestamp: number;
     sent: number;
 }
-export default class FrameModel extends Abstract {
-    static instance: FrameModel;
+export default class FrameModelCompress extends Abstract {
+    static instance: FrameModelCompress;
     constructor();
     getModelName(): string;
     hasData(device: Device, timestamp_in_past: number): Promise<any[]>;
-    canSave(contactair: string): void;
-    flushContactair(contactair: string): void;
     getRelevantByte(frame: string): string;
     getCompressedFrame(frame: string): string;
     getInternalSerial(frame: string): string;
@@ -20,8 +19,10 @@ export default class FrameModel extends Abstract {
     getMinFrame(): Promise<number>;
     getMaxFrame(): Promise<number>;
     getFrame(index: number, limit: number): Promise<Transaction[] | undefined>;
-    beforeForDevice(device: Device, timestamp: number): Promise<Transaction[]>;
-    before(timestamp: number): Promise<Transaction[]>;
-    saveMultiple(txs: Transaction[]): Promise<Transaction[]>;
-    save(tx: Transaction): Promise<Transaction>;
+    _contactair_cache: never[];
+    _syncing: boolean;
+    _temp_syncing: any[];
+    start(): void;
+    flushAwaiting(): void;
+    save(tx: Transaction, force?: boolean): Promise<Transaction>;
 }

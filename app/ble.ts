@@ -1,13 +1,13 @@
 import bleno from "bleno";
 import config from "../config/config";
 import DeviceModel from "./push_web/device_model";
+import FrameModelCompress from "./push_web/frame_model_compress";
 import visualisation from "../config/visualisation";
 import Wifi from "./wifi/wifi.js";
 import DeviceManagement from "./ble/device";
 import AbstractDevice from "./snmp/abstract";
 import NetworkInfo from "./network";
 import Diskspace from "./system";
-import FrameModel from "./push_web/frame_model";
 
 const PrimaryService = bleno.PrimaryService;
 const Characteristic = bleno.Characteristic;
@@ -195,7 +195,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
     };
     var to_fetch = 1;
 
-    FrameModel.instance.getMaxFrame()
+    FrameModelCompress.instance.getMaxFrame()
     .then(maximum => {
       result.max = maximum;
 
@@ -203,7 +203,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
         this._log_id = maximum+1; //prevent looping
       }
 
-      return FrameModel.instance.getMinFrame();
+      return FrameModelCompress.instance.getMinFrame();
     })
     .then(minimum => {
       //check the minimum index to fetch values from
@@ -221,7 +221,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
 
       return value;
     })
-    .then(value => FrameModel.instance.getFrame(value, to_fetch))
+    .then(value => FrameModelCompress.instance.getFrame(value, to_fetch))
     .then(transactions => {
 
       console.log("new index", this._log_id+" "+result.index);
@@ -233,19 +233,19 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
           if(!this._compress) {
             const arr = {
               i: transaction.id,
-              f: FrameModel.instance.getCompressedFrame(transaction.frame),
+              f: FrameModelCompress.instance.getCompressedFrame(transaction.frame),
               t: transaction.timestamp,
-              s: FrameModel.instance.getInternalSerial(transaction.frame),
-              c: FrameModel.instance.getContactair(transaction.frame)
+              s: FrameModelCompress.instance.getInternalSerial(transaction.frame),
+              c: FrameModelCompress.instance.getContactair(transaction.frame)
             };
             result.txs.push(arr);
           } else {
             const arr:any = 
               transaction.id+","+
-              FrameModel.instance.getCompressedFrame(transaction.frame)+","+
+              FrameModelCompress.instance.getCompressedFrame(transaction.frame)+","+
               transaction.timestamp+","+
-              FrameModel.instance.getInternalSerial(transaction.frame)+","+
-              FrameModel.instance.getContactair(transaction.frame)+",";
+              FrameModelCompress.instance.getInternalSerial(transaction.frame)+","+
+              FrameModelCompress.instance.getContactair(transaction.frame)+",";
             result.txs.push(arr);
           }
         })
@@ -441,6 +441,8 @@ export default class BLE {
 
   startDelayed() {
     if(this._started) return;
+
+    FrameModelCompress.instance.start();
 
     this._started = true;
     bleno.on('stateChange', (state: string) => {
