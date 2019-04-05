@@ -150,7 +150,8 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
                     result.tx = {
                         i: transaction.id,
                         f: transaction.frame,
-                        t: transaction.timestamp
+                        t: transaction.timestamp,
+                        s: frame_model_1.default.instance.getInternalSerial(transaction.frame)
                     };
                 }
                 const output = JSON.stringify(result);

@@ -84,6 +84,9 @@ class FrameModel extends abstract_js_1.default {
                 .catch(err => manageErrorCrash(err, reject));
         });
     }
+    getInternalSerial(frame) {
+        return frame.substring(14 + 0, 14 + 6);
+    }
     getMinFrame() {
         return new Promise((resolve, reject) => {
             pool.query("SELECT MIN(id) as m FROM Frames")

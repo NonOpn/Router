@@ -102,6 +102,10 @@ export default class FrameModel extends Abstract {
     });
   }
 
+  getInternalSerial(frame: string) {
+    return frame.substring(14+0, 14+6);
+  }
+
   getMinFrame(): Promise<number> {
     return new Promise((resolve, reject) => {
       pool.query("SELECT MIN(id) as m FROM Frames")
