@@ -165,13 +165,15 @@ class BLEWriteCharacteristic extends Characteristic {
 class BLEReadWriteLogCharacteristic extends Characteristic {
   _log_id:number = 0;
   _last: Buffer;
+  _compress: boolean;
 
-  constructor(uuid: string) {
+  constructor(uuid: string, compress:boolean = false) {
     super({
       uuid: uuid,
       properties: [ 'write', 'read' ]
     });
 
+    this._compress = compress;
     this._last = Buffer.from("");
   }
 
@@ -227,14 +229,26 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
       if(transactions) {
         transactions.forEach((transaction:any) => {
           result.index = transaction.id;
-          const arr = {
-            i: transaction.id,
-            f: FrameModel.instance.getCompressedFrame(transaction.frame),
-            t: transaction.timestamp,
-            s: FrameModel.instance.getInternalSerial(transaction.frame),
-            c: FrameModel.instance.getContactair(transaction.frame)
-          };
-          result.txs.push(arr);
+
+          if(this._compress) {
+            const arr = {
+              i: transaction.id,
+              f: FrameModel.instance.getCompressedFrame(transaction.frame),
+              t: transaction.timestamp,
+              s: FrameModel.instance.getInternalSerial(transaction.frame),
+              c: FrameModel.instance.getContactair(transaction.frame)
+            };
+            result.txs.push(arr);
+          } else {
+            const arr:any = [
+              transaction.id,
+              FrameModel.instance.getCompressedFrame(transaction.frame),
+              transaction.timestamp,
+              FrameModel.instance.getInternalSerial(transaction.frame),
+              FrameModel.instance.getContactair(transaction.frame)
+            ];
+            result.txs.push(arr);
+          }
         })
       }
       const output = JSON.stringify(result);

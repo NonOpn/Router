@@ -107,12 +107,13 @@ class BLEWriteCharacteristic extends Characteristic {
     ;
 }
 class BLEReadWriteLogCharacteristic extends Characteristic {
-    constructor(uuid) {
+    constructor(uuid, compress = false) {
         super({
             uuid: uuid,
             properties: ['write', 'read']
         });
         this._log_id = 0;
+        this._compress = compress;
         this._last = Buffer.from("");
     }
     onReadRequest(offset, cb) {
@@ -160,14 +161,26 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
             if (transactions) {
                 transactions.forEach((transaction) => {
                     result.index = transaction.id;
-                    const arr = {
-                        i: transaction.id,
-                        f: frame_model_1.default.instance.getCompressedFrame(transaction.frame),
-                        t: transaction.timestamp,
-                        s: frame_model_1.default.instance.getInternalSerial(transaction.frame),
-                        c: frame_model_1.default.instance.getContactair(transaction.frame)
-                    };
-                    result.txs.push(arr);
+                    if (this._compress) {
+                        const arr = {
+                            i: transaction.id,
+                            f: frame_model_1.default.instance.getCompressedFrame(transaction.frame),
+                            t: transaction.timestamp,
+                            s: frame_model_1.default.instance.getInternalSerial(transaction.frame),
+                            c: frame_model_1.default.instance.getContactair(transaction.frame)
+                        };
+                        result.txs.push(arr);
+                    }
+                    else {
+                        const arr = [
+                            transaction.id,
+                            frame_model_1.default.instance.getCompressedFrame(transaction.frame),
+                            transaction.timestamp,
+                            frame_model_1.default.instance.getInternalSerial(transaction.frame),
+                            frame_model_1.default.instance.getContactair(transaction.frame)
+                        ];
+                        result.txs.push(arr);
+                    }
                 });
             }
             const output = JSON.stringify(result);
