@@ -181,7 +181,8 @@ class FrameModelCompress extends abstract_js_1.default {
     }
     save(tx, force = false) {
         return new Promise((resolve, reject) => {
-            if (this._syncing) {
+            if (this._syncing && !force) {
+                this._temp_syncing.push({ resolve, reject, transaction: tx });
                 return;
             }
             const contactair = this.getContactair(tx.frame);

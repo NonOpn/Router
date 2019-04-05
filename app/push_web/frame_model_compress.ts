@@ -207,8 +207,8 @@ export default class FrameModelCompress extends Abstract {
 
   save(tx: Transaction, force: boolean = false): Promise<Transaction> {
     return new Promise((resolve, reject) => {
-      if(this._syncing) {
-
+      if(this._syncing && !force) {
+        this._temp_syncing.push({resolve, reject, transaction: tx})
         return;
       }
 
