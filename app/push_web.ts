@@ -4,6 +4,7 @@ import Errors from "./errors";
 import request from "request";
 import FrameModel from "./push_web/frame_model";
 import push_web_config from "../config/push_web";
+import FrameModelCompress from "./push_web/frame_model_compress.js";
 
 const errors = Errors.instance;
 
@@ -176,7 +177,10 @@ export default class PushWEB extends EventEmitter {
 
 		if(rawData) {
 			const to_save = FrameModel.instance.from(rawData);
-			FrameModel.instance.save(to_save)
+			Promise.all([
+				FrameModel.instance.save(to_save),
+				FrameModelCompress.instance.save(to_save)
+			])
 			.then(saved => console.log(saved))
 			.catch(err => {
 				errors.postJsonError(err);

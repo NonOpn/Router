@@ -9,6 +9,7 @@ const errors_1 = __importDefault(require("./errors"));
 const request_1 = __importDefault(require("request"));
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
 const push_web_1 = __importDefault(require("../config/push_web"));
+const frame_model_compress_js_1 = __importDefault(require("./push_web/frame_model_compress.js"));
 const errors = errors_1.default.instance;
 const VERSION = 7;
 function _post(json) {
@@ -165,7 +166,10 @@ class PushWEB extends events_1.EventEmitter {
         }
         if (rawData) {
             const to_save = frame_model_1.default.instance.from(rawData);
-            frame_model_1.default.instance.save(to_save)
+            Promise.all([
+                frame_model_1.default.instance.save(to_save),
+                frame_model_compress_js_1.default.instance.save(to_save)
+            ])
                 .then(saved => console.log(saved))
                 .catch(err => {
                 errors.postJsonError(err);
