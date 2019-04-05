@@ -123,42 +123,56 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
         }
         console.log(offset);
         const index = this._log_id;
-        this._log_id++;
         console.log("get log ", index);
-        frame_model_1.default.instance.getMinFrame()
+        var result = {
+            index: index,
+            max: 0,
+            txs: []
+        };
+        var to_fetch = 1;
+        frame_model_1.default.instance.getMaxFrame()
+            .then(maximum => {
+            result.max = maximum;
+            if (this._log_id > maximum) {
+                this._log_id = maximum + 1; //prevent looping
+            }
+            return frame_model_1.default.instance.getMinFrame();
+        })
             .then(minimum => {
+            //check the minimum index to fetch values from
             if (minimum > this._log_id)
                 this._log_id = minimum;
             return minimum > index ? minimum : index;
         })
-            .then(value => frame_model_1.default.instance.getFrame(value))
-            .then(transaction => {
-            var result = {
-                index: index,
-                max: 0,
-                tx: {}
-            };
-            return frame_model_1.default.instance.getMaxFrame()
-                .then(m => {
-                result.max = m;
-                if (this._log_id > m) {
-                    this._log_id = m + 1; //prevent looping
-                }
-                console.log("new index", this._log_id + " " + result.index);
-                if (transaction) {
+            .then(value => {
+            //get at least 1..5 transactions
+            to_fetch = result.max - value;
+            if (to_fetch > 5)
+                to_fetch = 5;
+            if (to_fetch < 1)
+                to_fetch = 1;
+            this._log_id += to_fetch;
+            return value;
+        })
+            .then(value => frame_model_1.default.instance.getFrame(value, to_fetch))
+            .then(transactions => {
+            console.log("new index", this._log_id + " " + result.index);
+            if (transactions) {
+                transactions.forEach((transaction) => {
                     result.index = transaction.id;
-                    result.tx = {
+                    const arr = {
                         i: transaction.id,
                         f: transaction.frame,
                         t: transaction.timestamp,
                         s: frame_model_1.default.instance.getInternalSerial(transaction.frame),
                         c: frame_model_1.default.instance.getContactair(transaction.frame)
                     };
-                }
-                const output = JSON.stringify(result);
-                this._last = Buffer.from(output, "utf-8");
-                cb(RESULT_SUCCESS, this._last);
-            });
+                    result.txs.push(arr);
+                });
+            }
+            const output = JSON.stringify(result);
+            this._last = Buffer.from(output, "utf-8");
+            cb(RESULT_SUCCESS, this._last);
         })
             .catch(err => {
             console.error(err);

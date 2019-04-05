@@ -184,45 +184,62 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
 
     console.log(offset);
     const index = this._log_id;
-    this._log_id ++;
     console.log("get log ", index);
-    FrameModel.instance.getMinFrame()
+
+    var result = {
+      index: index,
+      max: 0,
+      txs: []
+    };
+    var to_fetch = 1;
+
+    FrameModel.instance.getMaxFrame()
+    .then(maximum => {
+      result.max = maximum;
+
+      if(this._log_id > maximum) {
+        this._log_id = maximum+1; //prevent looping
+      }
+
+      return FrameModel.instance.getMinFrame();
+    })
     .then(minimum => {
+      //check the minimum index to fetch values from
       if(minimum > this._log_id) this._log_id = minimum;
       return minimum > index ? minimum : index
     })
-    .then(value => FrameModel.instance.getFrame(value))
-    .then(transaction => {
-      var result = {
-        index: index,
-        max: 0,
-        tx: {}
-      };
+    .then(value => {
+      //get at least 1..5 transactions
+      to_fetch = result.max - value;
+      if(to_fetch > 5) to_fetch = 5;
+      if(to_fetch < 1) to_fetch = 1;
 
-      return FrameModel.instance.getMaxFrame()
-      .then(m => {
-        result.max = m;
 
-        if(this._log_id > m) {
-          this._log_id = m+1; //prevent looping
-        }
+    this._log_id += to_fetch;
 
-        console.log("new index", this._log_id+" "+result.index);
+      return value;
+    })
+    .then(value => FrameModel.instance.getFrame(value, to_fetch))
+    .then(transactions => {
 
-        if(transaction) {
+      console.log("new index", this._log_id+" "+result.index);
+
+      if(transactions) {
+        transactions.forEach((transaction:any) => {
           result.index = transaction.id;
-          result.tx = {
+          const arr = {
             i: transaction.id,
             f: transaction.frame,
             t: transaction.timestamp,
             s: FrameModel.instance.getInternalSerial(transaction.frame),
             c: FrameModel.instance.getContactair(transaction.frame)
           };
-        }
-        const output = JSON.stringify(result);
-        this._last = Buffer.from(output, "utf-8");
-        cb(RESULT_SUCCESS, this._last);
-      })
+          result.txs.push(arr);
+        })
+      }
+      const output = JSON.stringify(result);
+      this._last = Buffer.from(output, "utf-8");
+      cb(RESULT_SUCCESS, this._last);
     })
     .catch(err => {
       console.error(err);

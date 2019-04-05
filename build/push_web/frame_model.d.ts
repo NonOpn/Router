@@ -17,7 +17,7 @@ export default class FrameModel extends Abstract {
     getContactair(frame: string): string;
     getMinFrame(): Promise<number>;
     getMaxFrame(): Promise<number>;
-    getFrame(index: number): Promise<Transaction | undefined>;
+    getFrame(index: number, limit: number): Promise<Transaction[] | undefined>;
     beforeForDevice(device: Device, timestamp: number): Promise<Transaction[]>;
     before(timestamp: number): Promise<Transaction[]>;
     getUnsent(): Promise<Transaction[]>;
