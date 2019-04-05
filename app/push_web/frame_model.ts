@@ -104,7 +104,7 @@ export default class FrameModel extends Abstract {
 
   getCompressedFrame(frame: string) {
     if(frame && frame.length > 14+20+8)
-      return frame.substring(14+0, 14+20+8);
+      return frame.substring(14+6, 14+20);
     return frame;
   }
 

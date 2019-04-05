@@ -86,7 +86,7 @@ class FrameModel extends abstract_js_1.default {
     }
     getCompressedFrame(frame) {
         if (frame && frame.length > 14 + 20 + 8)
-            return frame.substring(14 + 0, 14 + 20 + 8);
+            return frame.substring(14 + 6, 14 + 20);
         return frame;
     }
     getInternalSerial(frame) {

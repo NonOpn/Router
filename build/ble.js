@@ -147,8 +147,8 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
             .then(value => {
             //get at least 1..4 transactions
             to_fetch = result.max - value;
-            if (to_fetch > 4)
-                to_fetch = 4;
+            if (to_fetch > 7)
+                to_fetch = 7;
             if (to_fetch < 1)
                 to_fetch = 1;
             this._log_id += to_fetch;
