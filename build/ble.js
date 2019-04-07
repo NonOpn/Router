@@ -267,7 +267,7 @@ class BLEPrimaryDeviceService extends PrimaryService {
     }
     createSeenDeviceCallback() {
         return this.device.getInternalSerial()
-            .then(internal_serial => !!seenDevices.devices[internal_serial]);
+            .then(internal_serial => !!seenDevices.devices[internal_serial] ? "true" : "false");
     }
 }
 class BLE {
