@@ -324,6 +324,9 @@ class BLEPrimaryNetworkService extends PrimaryService {
 }
 
 class BLEPrimaryDeviceService extends PrimaryService {
+
+  device: AbstractDevice;
+
   constructor(device: AbstractDevice) {
     super({
       uuid: device.getUUID(),
@@ -332,9 +335,17 @@ class BLEPrimaryDeviceService extends PrimaryService {
         new BLEAsyncDescriptionCharacteristic("0002", () => device.getSerial()),
         new BLEAsyncDescriptionCharacteristic("0003", () => device.getType()),
         new BLEAsyncDescriptionCharacteristic("0004", () => device.getConnectedState()),
-        new BLEAsyncDescriptionCharacteristic("0005", () => device.getImpactedState())
+        new BLEAsyncDescriptionCharacteristic("0005", () => device.getImpactedState()),
+        new BLEAsyncDescriptionCharacteristic("0006", () => this.createSeenDeviceCallback())
       ]
     });
+
+    this.device = device;
+  }
+
+  createSeenDeviceCallback() {
+    return this.device.getInternalSerial()
+    .then(internal_serial => !!seenDevices.devices[internal_serial]);
   }
 }
 
