@@ -181,6 +181,9 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
                     }
                 });
             }
+            if (this._log_id > result.max + 1) {
+                this._log_id = result.max + 1;
+            }
             var output = JSON.stringify(result);
             if (this._compress) {
                 output = result.index + "," + result.max + "," + result.txs.concat();

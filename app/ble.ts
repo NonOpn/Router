@@ -216,8 +216,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
       if(to_fetch > 7) to_fetch = 7;
       if(to_fetch < 1) to_fetch = 1;
 
-
-    this._log_id += to_fetch;
+      this._log_id += to_fetch;
 
       return value;
     })
@@ -249,6 +248,10 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
             result.txs.push(arr);
           }
         })
+      }
+
+      if(this._log_id > result.max + 1) {
+        this._log_id = result.max + 1;
       }
       var output = JSON.stringify(result);
       if(this._compress) {
