@@ -5,14 +5,20 @@ class SSH {
     constructor() {
     }
     stop() {
-        return new Promise((resolve, reject) => {
-            const ssh = spawn('/bin/systemctl', ['stop', 'ssh']);
-            this._launch(resolve, reject, ssh);
-        });
+        return this._executeCmd("stop");
     }
     disable() {
+        return this._executeCmd("disable");
+    }
+    start() {
+        return this._executeCmd("start");
+    }
+    enable() {
+        return this._executeCmd("enable");
+    }
+    _executeCmd(main) {
         return new Promise((resolve, reject) => {
-            const ssh = spawn('/bin/systemctl', ['disable', 'ssh']);
+            const ssh = spawn('/bin/systemctl', [main, 'ssh']);
             this._launch(resolve, reject, ssh);
         });
     }

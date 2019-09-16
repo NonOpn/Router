@@ -6,15 +6,24 @@ export default class SSH {
     }
 
     stop(): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            const ssh = spawn('/bin/systemctl', ['stop', 'ssh']);
-            this._launch(resolve, reject, ssh);
-        });
+        return this._executeCmd("stop");
     }
 
     disable(): Promise<boolean> {
+        return this._executeCmd("disable");
+    }
+
+    start(): Promise<boolean> {
+        return this._executeCmd("start");
+    }
+
+    enable(): Promise<boolean> {
+        return this._executeCmd("enable");
+    }
+
+    _executeCmd(main: string): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            const ssh = spawn('/bin/systemctl', ['disable', 'ssh']);
+            const ssh = spawn('/bin/systemctl', [main, 'ssh']);
             this._launch(resolve, reject, ssh);
         });
     }
