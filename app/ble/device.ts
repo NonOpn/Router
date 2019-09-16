@@ -23,9 +23,11 @@ export default class DeviceManagement {
 	    this.data_point_provider = new DataPoint();
     }
 
+    /* UNUSED and no more available in data_point_provider
     getPoint(index: number) {
         return this.data_point_provider.getPoint(index);
     }
+    */
 
     onFrame(data: any): Promise<AbstractDevice|undefined> {
         return new Promise((resolve, reject) => {
