@@ -82,13 +82,13 @@ export default class MainEntryPoint {
         var ble = new BLE();
         var ssh = new SSH();
         
-        ssh.stop()
+        ssh.enable()
         .then(() => {
-          console.log("ssh stopped normally...");
-          return ssh.disable();
+          console.log("ssh enabled normally...");
+          return ssh.start();
         })
         .then(() => {
-          console.log("ssh disabled normally");
+          console.log("ssh started normally");
         })
         .catch(err => {
           console.log("error on ssh", err);
