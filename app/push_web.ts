@@ -8,7 +8,7 @@ import FrameModelCompress from "./push_web/frame_model_compress.js";
 
 const errors = Errors.instance;
 
-const VERSION = 7;
+const VERSION = 8;
 
 function _post(json: any) {
 	console.log("posting json");
