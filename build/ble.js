@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const bleno_1 = __importDefault(require("bleno"));
 const config_1 = __importDefault(require("../config/config"));
@@ -26,7 +26,7 @@ const RESULT_ATTR_NOT_LONG = 0x0b;
 const RESULT_INVALID_ATTRIBUTE_LENGTH = 0x0d;
 const RESULT_UNLIKELY_ERROR = 0x0e;
 var id = "Routair";
-if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) {
+if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) { //0xAABBCCDD
     id += config_1.default.identity.substr(0, 5 * 2);
 }
 var seenDevices = {

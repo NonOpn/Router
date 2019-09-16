@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
 const config_js_1 = __importDefault(require("../config/config.js"));
@@ -132,7 +132,7 @@ class PushWEB extends events_1.EventEmitter {
         });
     }
     onFrame(data) {
-        if (data && data.sender) {
+        if ( /*this.is_activated && */data && data.sender) {
             this.applyData(data);
         }
     }
@@ -157,10 +157,10 @@ class PushWEB extends events_1.EventEmitter {
         //if(!this.is_activated) return;
         var rawData = undefined;
         if (data && data.rawFrameStr) {
-            if (data.rawFrameStr.length === 60) {
+            if (data.rawFrameStr.length === 60) { //30*2
                 rawData = data.rawFrameStr; //compress30(data.rawFrameStr);
             }
-            else if (data.rawFrameStr.length === 48) {
+            else if (data.rawFrameStr.length === 48) { //24*2
                 rawData = data.rawFrameStr; //compress24(data.rawFrameStr);
             }
         }

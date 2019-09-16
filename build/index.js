@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const enocean_js_1 = __importDefault(require("./enocean.js"));
 const server_js_1 = __importDefault(require("./server.js"));
@@ -11,6 +11,7 @@ const push_web_js_1 = __importDefault(require("./push_web.js"));
 const discovery_1 = __importDefault(require("./discovery"));
 const wifi_js_1 = __importDefault(require("./wifi/wifi.js"));
 const errors_1 = __importDefault(require("./errors"));
+const ssh_js_1 = __importDefault(require("./ssh.js"));
 const wifi = wifi_js_1.default.instance;
 const errors = errors_1.default.instance;
 class MainEntryPoint {
@@ -73,6 +74,18 @@ class MainEntryPoint {
                 var push_web = new push_web_js_1.default();
                 var discovery_service = new discovery_1.default();
                 var ble = new ble_1.default();
+                var ssh = new ssh_js_1.default();
+                ssh.stop()
+                    .then(() => {
+                    console.log("ssh stopped normally...");
+                    return ssh.disable();
+                })
+                    .then(() => {
+                    console.log("ssh disabled normally");
+                })
+                    .catch(err => {
+                    console.log("error on ssh", err);
+                });
                 wifi.start();
                 server.start();
                 snmp.connect();
