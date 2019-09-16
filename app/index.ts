@@ -6,6 +6,7 @@ import PushWEB from "./push_web.js";
 import DiscoveryService from "./discovery";
 import Wifi from "./wifi/wifi.js";
 import Errors from "./errors";
+import SSH from "./ssh.js";
 
 const wifi = Wifi.instance;
 const errors = Errors.instance;
@@ -79,7 +80,20 @@ export default class MainEntryPoint {
         var push_web = new PushWEB();
         var discovery_service = new DiscoveryService();
         var ble = new BLE();
-  
+        var ssh = new SSH();
+        
+        ssh.stop()
+        .then(() => {
+          console.log("ssh stopped normally...");
+          return ssh.disable();
+        })
+        .then(() => {
+          console.log("ssh disabled normally");
+        })
+        .catch(err => {
+          console.log("error on ssh", err);
+        });
+
         wifi.start();
         server.start();
         snmp.connect();
