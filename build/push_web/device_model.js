@@ -6,15 +6,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const pool_1 = __importDefault(require("./pool"));
 const abstract_js_1 = __importDefault(require("../database/abstract.js"));
 const pool = pool_1.default.instance;
-pool.query("CREATE TABLE IF NOT EXISTS Device ("
-    + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
-    + "`serial` VARCHAR(20) NOT NULL,"
-    + "`internal_serial` VARCHAR(20) NOT NULL,"
-    + "`type` INTEGER,"
-    + "KEY `internal_serial` (`internal_serial`)"
-    + ")ENGINE=MyISAM;")
-    .then(results => {
-    console.log("device_model done");
+function create() {
+    pool.query("CREATE TABLE IF NOT EXISTS Device ("
+        + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
+        + "`serial` VARCHAR(20) NOT NULL,"
+        + "`internal_serial` VARCHAR(20) NOT NULL,"
+        + "`type` INTEGER,"
+        + "KEY `internal_serial` (`internal_serial`)"
+        + ")ENGINE=MyISAM;")
+        .then(results => {
+        console.log("device_model done");
+    });
+}
+pool.query("REPAIR TABLE Device")
+    .then(() => create())
+    .catch(err => {
+    console.log(err);
+    create();
 });
 const MODEL = "Device";
 function createInsertRows() {
@@ -39,6 +47,7 @@ function ToArrayForInsert(device) {
     ];
 }
 function manageErrorCrash(error, reject) {
+    console.log("Device crash", error);
     pool.manageErrorCrash("Device", error, reject);
 }
 class DeviceModel extends abstract_js_1.default {
@@ -56,7 +65,10 @@ class DeviceModel extends abstract_js_1.default {
                     results = [];
                 resolve(results);
             })
-                .catch(error => manageErrorCrash(error, reject));
+                .catch(error => {
+                manageErrorCrash(error, () => console.log("crashed in list()"));
+                resolve([]);
+            });
         });
     }
     listDevice() {
@@ -74,7 +86,10 @@ class DeviceModel extends abstract_js_1.default {
                 else
                     resolve(ToJson(results[0]));
             })
-                .catch(error => manageErrorCrash(error, reject));
+                .catch(error => {
+                manageErrorCrash(error, () => console.log("crashed in getDeviceForInternalSerial()"));
+                resolve(undefined);
+            });
         });
     }
     getDeviceForSerial(serial) {
@@ -88,7 +103,10 @@ class DeviceModel extends abstract_js_1.default {
                 else
                     resolve(ToJson(results[0]));
             })
-                .catch(error => manageErrorCrash(error, reject));
+                .catch(error => {
+                manageErrorCrash(error, () => console.log("crashed in getDeviceForSerial()"));
+                resolve(undefined);
+            });
         });
     }
     saveDevice(device) {
