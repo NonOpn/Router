@@ -4,15 +4,23 @@ import { Reject } from "../promise";
 
 const pool: Pool = Pool.instance;
 
-pool.query("CREATE TABLE IF NOT EXISTS Device ("
-  + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
-  + "`serial` VARCHAR(20) NOT NULL,"
-  + "`internal_serial` VARCHAR(20) NOT NULL,"
-  + "`type` INTEGER,"
-  + "KEY `internal_serial` (`internal_serial`)"
-  + ")ENGINE=MyISAM;")
-.then(results => {
-  console.log("device_model done");
+function create() {
+  pool.query("CREATE TABLE IF NOT EXISTS Device ("
+    + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
+    + "`serial` VARCHAR(20) NOT NULL,"
+    + "`internal_serial` VARCHAR(20) NOT NULL,"
+    + "`type` INTEGER,"
+    + "KEY `internal_serial` (`internal_serial`)"
+    + ")ENGINE=MyISAM;")
+  .then(results => {
+    console.log("device_model done");
+  });
+}
+pool.query("REPAIR TABLE Device")
+.then(() => create())
+.catch(err => {
+  console.log(err);
+  create();
 })
 
 const MODEL = "Device";
@@ -50,6 +58,7 @@ function ToArrayForInsert(device: Device): any[] {
 }
 
 function manageErrorCrash(error: Error, reject: Reject) {
+  console.log("Device crash", error);
   pool.manageErrorCrash("Device", error, reject);
 }
 
