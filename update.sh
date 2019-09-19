@@ -14,6 +14,8 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   cp config/snmp.json tmp_config.json
   # pull the update
   git checkout .
+  git fetch --all
+  git reset --hard origin/wip/ts_develop_ble
   git pull origin wip/ts_develop_ble
   # restore the config
   cp tmp_config.json config/snmp.json
