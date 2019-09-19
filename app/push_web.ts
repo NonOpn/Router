@@ -113,11 +113,6 @@ export default class PushWEB extends EventEmitter {
 	}
 
 	sendEcho() {
-		if(!this.is_activated) {
-			console.log("inactivated....");
-			return;
-		}
-
 		new Promise((resolve, reject) => {
 			request.post({
 				url: "https://contact-platform.com/api/echo",
@@ -146,6 +141,11 @@ export default class PushWEB extends EventEmitter {
 	connect() {
 		if(!this.is_activated) {
 			console.log("PushWEB is disabled see .env.example");
+			this.sendEcho();
+			setInterval(() => {
+				this.sendEcho();
+			}, 15 * 60 * 1000); //set echo every 15minutes
+
 		} else {
 			console.log("PushWEB is now init");
 
