@@ -1,4 +1,5 @@
 import request from 'request';
+import config from "../config/config.js";
 //error modification extracted from https://github.com/kgryte/utils-error-to-json
 
 interface Err {
@@ -40,6 +41,13 @@ function toJSON( err: any ) {
 	if (err.code) out.code = err.code;
 	if (err.errno) out.errno = err.errno;
 	if (err.syscall) out.syscall = err.syscall;
+
+	if(config) {
+		out.config = {
+			identity: config.identity,
+			version: config.version
+		};
+	}
 
 	keys = Object.keys(err);
 	keys.forEach(key => (out[key] = err[key]));

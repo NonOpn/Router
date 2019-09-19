@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const request_1 = __importDefault(require("request"));
+const config_js_1 = __importDefault(require("../config/config.js"));
 var CTORS = [
     { error: TypeError, name: 'TypeError' },
     { error: SyntaxError, name: 'SyntaxError' },
@@ -39,6 +40,12 @@ function toJSON(err) {
         out.errno = err.errno;
     if (err.syscall)
         out.syscall = err.syscall;
+    if (config_js_1.default) {
+        out.config = {
+            identity: config_js_1.default.identity,
+            version: config_js_1.default.version
+        };
+    }
     keys = Object.keys(err);
     keys.forEach(key => (out[key] = err[key]));
     return out;
