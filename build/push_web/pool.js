@@ -27,7 +27,13 @@ class Pool {
         });
     }
     manageErrorCrash(table_name, error, reject) {
-        if (error && error.code === "ER_CRASHED_ON_USAGE") {
+        console.log("Manage crash", { error });
+        if (error && error.code === "HA_ERR_NOT_A_TABLE") {
+            this.pool.query("REPAIR TABLE " + table_name)
+                .then(() => reject(error))
+                .catch(() => reject(error));
+        }
+        else if (error && error.code === "ER_CRASHED_ON_USAGE") {
             this.pool.query("REPAIR TABLE " + table_name)
                 .then(() => reject(error))
                 .catch(() => reject(error));
