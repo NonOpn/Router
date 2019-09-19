@@ -17,10 +17,11 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   echo "reset the local repo"
   git checkout .
   git fetch --all
-  git reset --hard origin/wip/ts_develop_ble
+  git reset --hard origin/master
+  git checkout master
 
   echo "pull the update"
-  git pull origin wip/ts_develop_ble
+  git pull origin master
   # restore the config
   cp tmp_config.json config/snmp.json
 
