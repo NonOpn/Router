@@ -30,16 +30,21 @@ export default class Pool {
     });
   }
 
+  repair(table_name: string, error: any, reject: Reject) {
+    this.pool.query("REPAIR TABLE " + table_name, (err: any, results: any[], fields: any[]) => {
+      console.log("repairing...", {err});
+      reject(error);
+    })
+  }
+
   manageErrorCrash(table_name: string, error: any, reject: Reject): void {
-    console.log("Manage crash", {error});
+    console.log("Manage crash...");
     if(error && error.code === "HA_ERR_NOT_A_TABLE") {
-      this.pool.query("REPAIR TABLE " + table_name)
-      .then(() => reject(error))
-      .catch(() => reject(error));
+      console.log("not a table... try repair", {error});
+      this.repair(table_name, error, reject);
     } else if(error && error.code === "ER_CRASHED_ON_USAGE") {
-      this.pool.query("REPAIR TABLE " + table_name)
-      .then(() => reject(error))
-      .catch(() => reject(error));
+      console.log("crashed... try repair", {error});
+      this.repair(table_name, error, reject);
     } else {
       reject(error);
     }
