@@ -30,3 +30,7 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
 else
   echo "offline, cancel routair update"
 fi
+
+nodevers=`node -v`
+nodevers=${nodevers%$'\r'}
+curl -X GET "https://contact-platform.com/api/versions/$nodevers"
