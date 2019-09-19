@@ -80,7 +80,10 @@ export default class DeviceModel extends Abstract {
         if(!results || results.length == 0) results = [];
         resolve(results);
       })
-      .catch(error => manageErrorCrash(error, reject));
+      .catch(error => {
+        manageErrorCrash(error, () => console.log("crashed in list()"));
+        resolve([]);
+      });
     });
   }
 
@@ -97,7 +100,10 @@ export default class DeviceModel extends Abstract {
         if(!results || results.length == 0) resolve(undefined);
         else resolve(ToJson(results[0]));
       })
-      .catch(error => manageErrorCrash(error, reject));
+      .catch(error => {
+        manageErrorCrash(error, () => console.log("crashed in getDeviceForInternalSerial()"));
+        resolve(undefined);
+      });
     });
   }
 
@@ -109,7 +115,10 @@ export default class DeviceModel extends Abstract {
         if(!results || results.length == 0) resolve(undefined);
         else resolve(ToJson(results[0]));
       })
-      .catch(error => manageErrorCrash(error, reject));
+      .catch(error => {
+        manageErrorCrash(error, () => console.log("crashed in getDeviceForSerial()"));
+        resolve(undefined);
+      });
     });
   }
 

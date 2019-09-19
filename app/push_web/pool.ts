@@ -30,8 +30,8 @@ export default class Pool {
     });
   }
 
-  repair(table_name: string, error: any, reject: Reject) {
-    this.pool.query("REPAIR TABLE " + table_name, (err: any, results: any[], fields: any[]) => {
+  repair(request: string, error: any, reject: Reject) {
+    this.pool.query(request, (err: any, results: any[], fields: any[]) => {
       console.log("repairing...", {err});
       reject(error);
     })
@@ -41,10 +41,10 @@ export default class Pool {
     console.log("Manage crash...");
     if(error && error.code === "HA_ERR_NOT_A_TABLE") {
       console.log("not a table... try repair", {error});
-      this.repair(table_name, error, reject);
+      this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
     } else if(error && error.code === "ER_CRASHED_ON_USAGE") {
       console.log("crashed... try repair", {error});
-      this.repair(table_name, error, reject);
+      this.repair("REPAIR TABLE " + table_name, error, reject);
     } else {
       reject(error);
     }

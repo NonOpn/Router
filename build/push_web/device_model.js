@@ -65,7 +65,10 @@ class DeviceModel extends abstract_js_1.default {
                     results = [];
                 resolve(results);
             })
-                .catch(error => manageErrorCrash(error, reject));
+                .catch(error => {
+                manageErrorCrash(error, () => console.log("crashed in list()"));
+                resolve([]);
+            });
         });
     }
     listDevice() {
@@ -83,7 +86,10 @@ class DeviceModel extends abstract_js_1.default {
                 else
                     resolve(ToJson(results[0]));
             })
-                .catch(error => manageErrorCrash(error, reject));
+                .catch(error => {
+                manageErrorCrash(error, () => console.log("crashed in getDeviceForInternalSerial()"));
+                resolve(undefined);
+            });
         });
     }
     getDeviceForSerial(serial) {
@@ -97,7 +103,10 @@ class DeviceModel extends abstract_js_1.default {
                 else
                     resolve(ToJson(results[0]));
             })
-                .catch(error => manageErrorCrash(error, reject));
+                .catch(error => {
+                manageErrorCrash(error, () => console.log("crashed in getDeviceForSerial()"));
+                resolve(undefined);
+            });
         });
     }
     saveDevice(device) {
