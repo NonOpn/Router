@@ -1,5 +1,5 @@
 import mysql from "mysql";
-import config from "../../config/mysql.js";
+import config from "../config/mysql.js";
 import { Resolve, Reject } from "../promise.jsx";
 
 export default class Pool {

@@ -16,7 +16,8 @@
     "strict": true,
     "jsx": "preserve",
     "noImplicitReturns": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "resolveJsonModule": true
   },
   "include": [ "*", "**/*" ],
   "exclude": [

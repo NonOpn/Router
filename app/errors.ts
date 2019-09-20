@@ -1,10 +1,13 @@
 import request from 'request';
-import config from "../config/config.js";
+import config from "./config/config.js";
 //error modification extracted from https://github.com/kgryte/utils-error-to-json
 
 interface Err {
   error: TypeErrorConstructor;
   name: string;
+  code?: number;
+  errno?: number;
+  syscall?: any;
 }
 
 var CTORS = [
@@ -25,12 +28,9 @@ function typeName( error: Error ) {
   return name;
 }
 
-function toJSON( err: any ) {
+function toJSON( err: Err|any ) {
 	var keys, out: any, i;
 
-	if ( !(err instanceof Error) ) {
-		throw new TypeError( 'invalid input argument. Must provide an error object. Value: `' + err + '`.' );
-	}
 	out = {};
 
 	out.type = typeName(err);
@@ -66,22 +66,22 @@ export default class Errors {
 	postJsonErrorPromise(err: any) {
 		return new Promise((resolve, reject) => {
 			if(err) {
-	  		request.post({
-	  			url: "https://contact-platform.com/api/ping",
-	  			json: {
-	  				error: toJSON(err),
+				request.post({
+					url: "https://contact-platform.com/api/ping",
+					json: {
+						error: toJSON(err),
 						version: "999"
-	  			}
-	  		}, (e: any, response: any, body: any) => {
-					var code = response ? response.statusCode : 200;
-					if(e || code < 200 || code > 299) {
-						console.log("store error");
-					} else {
-						console.log("error manager");
 					}
-					resolve(err);
-	  		});
-	  	} else {
+				}, (e: any, response: any, body: any) => {
+						var code = response ? response.statusCode : 200;
+						if(e || code < 200 || code > 299) {
+							console.log("store error");
+						} else {
+							console.log("error manager");
+						}
+						resolve(err);
+				});
+			} else {
 				resolve(err);
 			}
 		})

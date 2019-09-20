@@ -1,9 +1,9 @@
 import { EventEmitter } from "events";
-import config from "../config/config.js";
+import config from "./config/config.js";
 import Errors from "./errors";
 import request from "request";
 import FrameModel from "./push_web/frame_model";
-import push_web_config from "../config/push_web";
+import push_web_config from "./config/push_web";
 import FrameModelCompress from "./push_web/frame_model_compress.js";
 
 const errors = Errors.instance;

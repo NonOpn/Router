@@ -1,8 +1,8 @@
 import bleno from "bleno";
-import config from "../config/config";
+import config from "./config/config";
 import DeviceModel from "./push_web/device_model";
 import FrameModelCompress from "./push_web/frame_model_compress";
-import visualisation from "../config/visualisation";
+import visualisation from "./config/visualisation";
 import Wifi from "./wifi/wifi.js";
 import DeviceManagement from "./ble/device";
 import AbstractDevice from "./snmp/abstract";
@@ -162,6 +162,20 @@ class BLEWriteCharacteristic extends Characteristic {
   };
 }
 
+interface Compressed {
+  i: number,
+  f: string, //compressed frame
+  t: number, //timestamp
+  s: string, //internal serial
+  c: string //contactair
+}
+
+interface Result {
+  index: number,
+  max: number,
+  txs: Compressed[]
+}
+
 class BLEReadWriteLogCharacteristic extends Characteristic {
   _log_id:number = 0;
   _last: Buffer;
@@ -188,7 +202,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
     const index = this._log_id;
     console.log("get log ", index);
 
-    var result = {
+    var result: Result = {
       index: index,
       max: 0,
       txs: []

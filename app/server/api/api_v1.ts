@@ -1,6 +1,7 @@
+import express from "express";
+
 import { WifiConfiguration } from './../../wifi/wifi';
 import FrameModel from '../../push_web/frame_model';
-import express from "express";
 import Wifi from "../../wifi/wifi";
 
 const router = express.Router();
@@ -25,16 +26,16 @@ function logs(req: any, res: any, timestamp: Date) {
   });
 }
 
-router.get("/logs.json", (req, res) => {
+router.get("/logs.json", (req: any, res: any) => {
   logs(req, res, req.query.from);
 });
 
-router.post("/logs.json", (req, res) => {
+router.post("/logs.json", (req: any, res: any) => {
   req.body = req.body || {};
   logs(req, res, req.body.from);
 });
 
-router.post("/wifi/config.json", (req, res) => {
+router.post("/wifi/config.json", (req: any, res: any) => {
   req.body = req.body || {};
 
   const ssid = req.body.ssid;

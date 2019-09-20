@@ -6,7 +6,7 @@ import Setup from "setup";
 import api_v1 from "./server/api/api_v1";
 import api_public from "./server/api/api_public";
 import bodyParser from 'body-parser';
-import config from "../config/visualisation.js";
+import config from "./config/visualisation.js";
 
 import Wifi from "./wifi/wifi";
 import EnoceanLoader from "./enocean";

@@ -32,7 +32,7 @@
     "request": "^2.83.0",
     "setup": "0.0.3",
     "snmpjs": "git+https://github.com/codlab/node-snmpjs.git",
-    "socket.io": "^2.0.3",
+    "socket.io": "2.0.3",
     "tslib": "^1.9.3",
     "typescript": "^3.3.3333",
     "uuid": "^3.1.0",

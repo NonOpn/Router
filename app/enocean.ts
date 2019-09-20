@@ -1,9 +1,9 @@
 import { EventEmitter } from "events";
-import Enocean from "node-enocean";
-import config from "../config/enocean";
-import SerialPort from "serialport";
-import { Buffer } from "buffer";
 import uuidV4 from "uuid/v4";
+import SerialPort from "serialport";
+import Enocean from "node-enocean";
+
+import config from "./config/enocean";
 import EnoceanSend from "./enocean_send";
 
 const enocean = Enocean();
