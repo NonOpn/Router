@@ -82,6 +82,9 @@ export default class MainEntryPoint {
         var ble = new BLE();
         var ssh = new SSH();
         
+        //test successfull, since working, will reintroduce it in the future
+        //expect around october
+        /*
         ssh.stop()
         .then(() => {
           console.log("ssh stopped normally...");
@@ -93,6 +96,20 @@ export default class MainEntryPoint {
         .catch(err => {
           console.log("error on ssh", err);
         });
+        */
+
+        ssh.enable()
+        .then(() => {
+          console.log("ssh enabled normally...");
+          return ssh.start();
+        })
+        .then(() => {
+          console.log("ssh started normally");
+        })
+        .catch(err => {
+          console.log("error on ssh", err);
+        });
+
 
         wifi.start();
         server.start();

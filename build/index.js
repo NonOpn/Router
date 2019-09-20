@@ -75,13 +75,28 @@ class MainEntryPoint {
                 var discovery_service = new discovery_1.default();
                 var ble = new ble_1.default();
                 var ssh = new ssh_js_1.default();
+                //test successfull, since working, will reintroduce it in the future
+                //expect around october
+                /*
                 ssh.stop()
+                .then(() => {
+                  console.log("ssh stopped normally...");
+                  return ssh.disable();
+                })
+                .then(() => {
+                  console.log("ssh disabled normally");
+                })
+                .catch(err => {
+                  console.log("error on ssh", err);
+                });
+                */
+                ssh.enable()
                     .then(() => {
-                    console.log("ssh stopped normally...");
-                    return ssh.disable();
+                    console.log("ssh enabled normally...");
+                    return ssh.start();
                 })
                     .then(() => {
-                    console.log("ssh disabled normally");
+                    console.log("ssh started normally");
                 })
                     .catch(err => {
                     console.log("error on ssh", err);
