@@ -1,6 +1,5 @@
 import Pool from "../push_web/pool";
 import Abstract from "../database/abstract.js";
-import { Reject } from "../promise";
 
 const pool: Pool = Pool.instance;
 
