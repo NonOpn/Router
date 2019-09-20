@@ -37,5 +37,5 @@ curl -X GET "https://contact-platform.com/api/versions/$nodevers"
 
 #send last reports, testing for the next few days
 tail -100 /var/log/syslog | grep routair > /tmp/last_logs
-curl -X POST -T FILE.TXT https://logs-01.loggly.com/bulk/d7f59ce0-0912-4f5d-82f0-004a9a8045e0/tag/file_upload;
+curl -X POST -T /tmp/last_logs https://logs-01.loggly.com/bulk/d7f59ce0-0912-4f5d-82f0-004a9a8045e0/tag/file_upload;
 rm /tmp/last_logs
