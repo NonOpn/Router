@@ -10,12 +10,13 @@ export default class Paratonair extends AbstractDevice {
 
   getStandardFilter(): Filter {
     return {
-      serial: this.params.lpsfr.serial
+      key: "serial",
+      value: this.params.lpsfr.serial
     };
   }
 
 
-  getConnectedStateString(item: DataPointModel): string {
+  getConnectedStateString(item: DataPointModel|undefined): string {
     if(!item || !item.data) return " ";
     const buffer = new Buffer(item.data, "hex");
     if(buffer.length >= 16) {
@@ -25,7 +26,7 @@ export default class Paratonair extends AbstractDevice {
     return "connected";
   }
 
-  getImpactedString(item:DataPointModel): string {
+  getImpactedString(item: DataPointModel|undefined): string {
     if(!item || !item.data) return " ";
     const buffer = new Buffer(item.data, "hex");
     if(buffer.length >= 16) {

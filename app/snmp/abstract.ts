@@ -3,7 +3,8 @@ import DataPoint from "../database/data_point";
 import snmp from "snmpjs";
 
 export interface Filter {
-  serial: string;
+  key: string,
+  value: string;
 }
 
 export interface CallbackOID {
@@ -72,11 +73,11 @@ export default class AbstractDevice {
     return this.params && this.params.lpsfr ? this.params.lpsfr.internal : undefined;
   }
 
-  getConnectedStateString(item: DataPointModel): string {
+  getConnectedStateString(item: DataPointModel|undefined): string {
     return "not_implemented";
   }
 
-  getImpactedString(item: DataPointModel): string {
+  getImpactedString(item: DataPointModel|undefined): string {
     return "not_implemented";
   }
 
@@ -84,8 +85,9 @@ export default class AbstractDevice {
     return this.params.lpsfr;
   }
 
-  getLatest(): Promise<DataPointModel> {
-    return this.data_point_provider.findLatestWithParams(this.getStandardFilter());
+  getLatest(): Promise<DataPointModel|undefined> {
+    const filter: Filter = this.getStandardFilter();
+    return this.data_point_provider.findMatching(filter.key, filter.value);
   }
 
   getConnectedState(): Promise<string> {

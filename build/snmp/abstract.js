@@ -63,7 +63,8 @@ class AbstractDevice {
         return this.params.lpsfr;
     }
     getLatest() {
-        return this.data_point_provider.findLatestWithParams(this.getStandardFilter());
+        const filter = this.getStandardFilter();
+        return this.data_point_provider.findMatching(filter.key, filter.value);
     }
     getConnectedState() {
         return this.getLatest()

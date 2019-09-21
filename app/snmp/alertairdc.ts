@@ -1,5 +1,6 @@
 import AbstractDevice, { Filter, OID } from "./abstract";
 import os from "os";
+import { DataPointModel } from "../database/data_point";
 
 export default class AlertairDC extends AbstractDevice {
   constructor(params: any) {
@@ -9,11 +10,12 @@ export default class AlertairDC extends AbstractDevice {
 
   getStandardFilter(): Filter {
     return {
-      serial: this.params.lpsfr.serial
+      key: "serial",
+      value: this.params.lpsfr.serial
     };
   }
 
-  getConnectedStateString(item: any): string {
+  getConnectedStateString(item: DataPointModel|undefined): string {
     if(!item || !item.data) return " ";
     const buffer = new Buffer(item.data, "hex");
     if(buffer.length >= 16) {
@@ -23,7 +25,7 @@ export default class AlertairDC extends AbstractDevice {
     return "connected";
   }
 
-  getImpactedString(item: any): string {
+  getImpactedString(item: DataPointModel|undefined): string {
     if(!item || !item.data) return " ";
     const buffer = new Buffer(item.data, "hex");
     if(buffer.length >= 16) {

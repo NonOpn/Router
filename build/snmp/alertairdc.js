@@ -12,7 +12,8 @@ class AlertairDC extends abstract_1.default {
     }
     getStandardFilter() {
         return {
-            serial: this.params.lpsfr.serial
+            key: "serial",
+            value: this.params.lpsfr.serial
         };
     }
     getConnectedStateString(item) {

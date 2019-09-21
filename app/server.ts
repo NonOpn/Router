@@ -1,6 +1,5 @@
 import express from "express";
 import { EventEmitter } from "events";
-import basicAuth from "basic-auth-connect";
 import socketio from "socket.io";
 import Setup from "setup";
 import api_v1 from "./server/api/api_v1";

@@ -1,30 +1,44 @@
-import mongoose from "mongoose";
+import Pool from "../push_web/pool";
+import Abstract from "../database/abstract.js";
 
-const MONGO_SNMP = "mongodb://localhost/blog"
+const pool: Pool = Pool.instance;
 
-var DATA_POINT = new mongoose.Schema({
-  serial : { type : String, default: "" },
-  internal : { type : String, default: "" },
-  contactair : { type : String, default: "" },
-  enocean_relay : { type : String, default: "" },
-  data : { type : String, default: "" },
-  created_at : { type : Date, default : Date.now }
-});
+pool.query("CREATE TABLE IF NOT EXISTS DataPoint ("
+  + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
+  + "`serial` VARCHAR(255) NOT NULL,"
+  + "`internal` VARCHAR(255) NOT NULL,"
+  + "`contactair` VARCHAR(255) NOT NULL,"
+  + "`enocean_relay` VARCHAR(255) NOT NULL,"
+  + "`data` VARCHAR(255) NOT NULL,"
+  + "`created_at` INTEGER NOT NULL"
+  + ")ENGINE=MyISAM;")
+.then(() => console.log("table creation finished"));
 
+function createInsertRows(): string {
+  var columns = ["serial","internal", "contactair", "enocean_relay", "data", "created_at"]
+  columns = columns.map((col) => "`"+col+"`");
+  return "INSERT INTO DataPoint ("+columns.join(",")+") VALUES ? ";
+}
 
-var options = { promiseLibrary: global.Promise };
-var db = mongoose.createConnection(MONGO_SNMP, options);
-
-var DataPointModel = db.model("DataPointModel", DATA_POINT);
+function toInsertArray(point: DataPointModel) {
+  return [
+    point.serial || "",
+    point.internal || "",
+    point.contactair || "",
+    point.enocean_relay || "",
+    point.data || "",
+    point.created_at || new Date()
+  ]
+}
 
 export interface DataPointModel {
+  id?: number,
   serial: string;
   internal: string;
   contactair: string;
+  enocean_relay: string;
   data: string;
   created_at: Date;
-
-  //TODO method signatures
 }
 
 export default class DataPoint {
@@ -36,46 +50,42 @@ export default class DataPoint {
 
   savePoint(serial: string, internal: string, contactair: string, data: string): Promise<DataPointModel> {
     return new Promise((resolve, reject) => {
-      console.log("save "+serial+" "+internal+" "+contactair);
-      const object = new DataPointModel({
-        serial: serial,
-        internal: internal,
-        contactair: contactair,
-        data : data
-      });
+      const created_at = new Date();
+      const enocean_relay = "";
 
-      object.save((err: Error) => {
-        if(err) reject(err);
-        else resolve(object);
-      });
+      const point: DataPointModel = {
+        serial,
+        internal,
+        contactair,
+        data,
+        created_at,
+        enocean_relay
+      };
+
+      pool.queryParameters(createInsertRows(), [toInsertArray(point)])
+      .then(() => resolve(point))
+      .catch(error =>   pool.manageErrorCrash("DataPoint", error, reject) );
     });
   }
 
-  latestForContactair(contactair: string): Promise<DataPointModel> {
-    return this.findLatestWithParams({contactair: contactair});
+  latestForContactair(contactair: string): Promise<DataPointModel|undefined> {
+    return this.findMatching("contactair", contactair);
   }
 
-  latestForSerial(serial: string): Promise<DataPointModel> {
-    return this.findLatestWithParams({serial: serial});
+  latestForSerial(serial: string): Promise<DataPointModel|undefined> {
+    return this.findMatching("serial", serial);
   }
 
-  latestForInternal(internal: string): Promise<DataPointModel> {
-    return this.findLatestWithParams({internal: internal});
+  latestForInternal(internal: string): Promise<DataPointModel|undefined> {
+    return this.findMatching("internal", internal);
   }
 
-  findLatestWithParams(params: any): Promise<DataPointModel> {
+  
+  findMatching(key: string, value: string): Promise<DataPointModel|undefined> {
     return new Promise((resolve, reject) => {
-      this.queryWithParams(params)
-      .findOne()
-      .sort({"created_at": -1})
-      .exec((err: Error, data: DataPointModel) => {
-        if(err) reject(err);
-        else resolve(data);
-      })
+      pool.queryParameters("SELECT * FROM DataPoint WHERE `"+key+"` = ? ORDER BY created_at DESC", [value])
+      .then(results => resolve(results && results.length > 0 ? results[0] : undefined))
+      .catch(error =>   pool.manageErrorCrash("DataPoint", error, reject) );
     });
-  }
-
-  queryWithParams(params: any): any {
-    return DataPointModel.find(params);
   }
 }

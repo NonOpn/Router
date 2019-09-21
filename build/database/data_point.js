@@ -3,63 +3,68 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const mongoose_1 = __importDefault(require("mongoose"));
-const MONGO_SNMP = "mongodb://localhost/blog";
-var DATA_POINT = new mongoose_1.default.Schema({
-    serial: { type: String, default: "" },
-    internal: { type: String, default: "" },
-    contactair: { type: String, default: "" },
-    enocean_relay: { type: String, default: "" },
-    data: { type: String, default: "" },
-    created_at: { type: Date, default: Date.now }
-});
-var options = { promiseLibrary: global.Promise };
-var db = mongoose_1.default.createConnection(MONGO_SNMP, options);
-var DataPointModel = db.model("DataPointModel", DATA_POINT);
+const pool_1 = __importDefault(require("../push_web/pool"));
+const pool = pool_1.default.instance;
+pool.query("CREATE TABLE IF NOT EXISTS DataPoint ("
+    + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
+    + "`serial` VARCHAR(255) NOT NULL,"
+    + "`internal` VARCHAR(255) NOT NULL,"
+    + "`contactair` VARCHAR(255) NOT NULL,"
+    + "`enocean_relay` VARCHAR(255) NOT NULL,"
+    + "`data` VARCHAR(255) NOT NULL,"
+    + "`created_at` INTEGER NOT NULL"
+    + ")ENGINE=MyISAM;")
+    .then(() => console.log("table creation finished"));
+function createInsertRows() {
+    var columns = ["serial", "internal", "contactair", "enocean_relay", "data", "created_at"];
+    columns = columns.map((col) => "`" + col + "`");
+    return "INSERT INTO DataPoint (" + columns.join(",") + ") VALUES ? ";
+}
+function toInsertArray(point) {
+    return [
+        point.serial || "",
+        point.internal || "",
+        point.contactair || "",
+        point.enocean_relay || "",
+        point.data || "",
+        point.created_at || new Date()
+    ];
+}
 class DataPoint {
     constructor() {
     }
     savePoint(serial, internal, contactair, data) {
         return new Promise((resolve, reject) => {
-            console.log("save " + serial + " " + internal + " " + contactair);
-            const object = new DataPointModel({
-                serial: serial,
-                internal: internal,
-                contactair: contactair,
-                data: data
-            });
-            object.save((err) => {
-                if (err)
-                    reject(err);
-                else
-                    resolve(object);
-            });
+            const created_at = new Date();
+            const enocean_relay = "";
+            const point = {
+                serial,
+                internal,
+                contactair,
+                data,
+                created_at,
+                enocean_relay
+            };
+            pool.queryParameters(createInsertRows(), [toInsertArray(point)])
+                .then(() => resolve(point))
+                .catch(error => pool.manageErrorCrash("DataPoint", error, reject));
         });
     }
     latestForContactair(contactair) {
-        return this.findLatestWithParams({ contactair: contactair });
+        return this.findMatching("contactair", contactair);
     }
     latestForSerial(serial) {
-        return this.findLatestWithParams({ serial: serial });
+        return this.findMatching("serial", serial);
     }
     latestForInternal(internal) {
-        return this.findLatestWithParams({ internal: internal });
+        return this.findMatching("internal", internal);
     }
-    findLatestWithParams(params) {
+    findMatching(key, value) {
         return new Promise((resolve, reject) => {
-            this.queryWithParams(params)
-                .findOne()
-                .sort({ "created_at": -1 })
-                .exec((err, data) => {
-                if (err)
-                    reject(err);
-                else
-                    resolve(data);
-            });
+            pool.queryParameters("SELECT * FROM DataPoint WHERE `" + key + "` = ? ORDER BY created_at DESC", [value])
+                .then(results => resolve(results && results.length > 0 ? results[0] : undefined))
+                .catch(error => pool.manageErrorCrash("DataPoint", error, reject));
         });
-    }
-    queryWithParams(params) {
-        return DataPointModel.find(params);
     }
 }
 DataPoint.instance = new DataPoint();

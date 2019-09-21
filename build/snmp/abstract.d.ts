@@ -1,7 +1,8 @@
 import { DataPointModel } from '../database/data_point';
 import DataPoint from "../database/data_point";
 export interface Filter {
-    serial: string;
+    key: string;
+    value: string;
 }
 export interface CallbackOID {
     (prq: any): void;
@@ -24,10 +25,10 @@ export default class AbstractDevice {
     getType(): Promise<number>;
     _getPromiseCharacteristic(name: string): Promise<any>;
     getSyncInternalSerial(): string | undefined;
-    getConnectedStateString(item: DataPointModel): string;
-    getImpactedString(item: DataPointModel): string;
+    getConnectedStateString(item: DataPointModel | undefined): string;
+    getImpactedString(item: DataPointModel | undefined): string;
     getLPSFR(): any;
-    getLatest(): Promise<DataPointModel>;
+    getLatest(): Promise<DataPointModel | undefined>;
     getConnectedState(): Promise<string>;
     getImpactedState(): Promise<string>;
     getStandardFilter(): Filter;
