@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const bleno_1 = __importDefault(require("bleno"));
 const config_1 = __importDefault(require("./config/config"));
 const device_model_1 = __importDefault(require("./push_web/device_model"));
 const frame_model_compress_1 = __importDefault(require("./push_web/frame_model_compress"));
@@ -12,9 +11,7 @@ const wifi_js_1 = __importDefault(require("./wifi/wifi.js"));
 const device_1 = __importDefault(require("./ble/device"));
 const network_1 = __importDefault(require("./network"));
 const system_1 = __importDefault(require("./system"));
-const PrimaryService = bleno_1.default.PrimaryService;
-const Characteristic = bleno_1.default.Characteristic;
-const Descriptor = bleno_1.default.Descriptor;
+const safeBleno_1 = require("./ble/safeBleno");
 const device_management = device_1.default.instance;
 const wifi = wifi_js_1.default.instance;
 const network = network_1.default.instance;
@@ -33,7 +30,7 @@ var seenDevices = {
     devices: [],
     count: 0
 };
-class BLEDescriptionCharacteristic extends Characteristic {
+class BLEDescriptionCharacteristic extends safeBleno_1.Characteristic {
     constructor(uuid, value) {
         super({
             uuid: uuid,
@@ -44,7 +41,7 @@ class BLEDescriptionCharacteristic extends Characteristic {
     }
     onReadRequest(offset, cb) { cb(RESULT_SUCCESS, this._value); }
 }
-class BLEAsyncDescriptionCharacteristic extends Characteristic {
+class BLEAsyncDescriptionCharacteristic extends safeBleno_1.Characteristic {
     constructor(uuid, callback) {
         super({
             uuid: uuid,
@@ -57,7 +54,7 @@ class BLEAsyncDescriptionCharacteristic extends Characteristic {
             .then(value => cb(RESULT_SUCCESS, Buffer.from(value, "utf-8")));
     }
 }
-class BLEFrameNotify extends Characteristic {
+class BLEFrameNotify extends safeBleno_1.Characteristic {
     constructor(uuid, value) {
         super({
             uuid: uuid,
@@ -75,7 +72,7 @@ class BLEFrameNotify extends Characteristic {
         }
     }
 }
-class BLEWriteCharacteristic extends Characteristic {
+class BLEWriteCharacteristic extends safeBleno_1.Characteristic {
     constructor(uuid, value, onValueRead) {
         super({
             uuid: uuid,
@@ -106,7 +103,7 @@ class BLEWriteCharacteristic extends Characteristic {
     }
     ;
 }
-class BLEReadWriteLogCharacteristic extends Characteristic {
+class BLEReadWriteLogCharacteristic extends safeBleno_1.Characteristic {
     constructor(uuid, compress = false, use_write = true) {
         super({
             uuid: uuid,
@@ -217,7 +214,7 @@ class BLEReadWriteLogCharacteristic extends Characteristic {
     }
     ;
 }
-class BLEPrimaryService extends PrimaryService {
+class BLEPrimaryService extends safeBleno_1.PrimaryService {
     constructor(characteristics) {
         super({
             uuid: 'bee5',
@@ -225,7 +222,7 @@ class BLEPrimaryService extends PrimaryService {
         });
     }
 }
-class BLEPrimarySystemService extends PrimaryService {
+class BLEPrimarySystemService extends safeBleno_1.PrimaryService {
     constructor(uuid) {
         super({
             uuid: uuid,
@@ -238,7 +235,7 @@ class BLEPrimarySystemService extends PrimaryService {
         });
     }
 }
-class BLEPrimaryNetworkService extends PrimaryService {
+class BLEPrimaryNetworkService extends safeBleno_1.PrimaryService {
     constructor(uuid, name, intfs) {
         super({
             uuid: uuid,
@@ -253,7 +250,7 @@ class BLEPrimaryNetworkService extends PrimaryService {
         });
     }
 }
-class BLEPrimaryDeviceService extends PrimaryService {
+class BLEPrimaryDeviceService extends safeBleno_1.PrimaryService {
     constructor(device) {
         super({
             uuid: device.getUUID(),
@@ -280,6 +277,21 @@ class BLE {
         this._started = false;
         this._started_advertising_ok = false;
         this._interval = undefined;
+        if (!safeBleno_1.isBlenoAvailable) {
+            console.log("disabling bluetooth... incompatible...");
+            this._characteristics = [];
+            this._refreshing_called_once = false;
+            this._started_advertising = false;
+            this._started = false;
+            this._services = [];
+            this._services_uuid = [];
+            this._notify_frame = new BLEFrameNotify("0102", "Notify");
+            this._ble_service = new BLEPrimaryService(this._characteristics);
+            this._eth0_service = new BLEPrimaryNetworkService("bee6", "eth0", ["eth0", "en1"]);
+            this._wlan0_service = new BLEPrimaryNetworkService("bee7", "wlan0", ["wlan0", "en0"]);
+            this._system_service = new BLEPrimarySystemService("bee8");
+            return;
+        }
         this._notify_frame = new BLEFrameNotify("0102", "Notify");
         this._characteristics = [
             new BLEDescriptionCharacteristic("0001", config_1.default.identity),
@@ -308,6 +320,10 @@ class BLE {
         this._started = false;
     }
     refreshDevices() {
+        if (!safeBleno_1.isBlenoAvailable) {
+            console.log("disabling bluetooth... incompatible...");
+            return;
+        }
         console.log("refreshing devices");
         device_management.list()
             .then(devices => {
@@ -332,26 +348,34 @@ class BLE {
                 this._refreshing_called_once = true;
                 console.log("we called one time or have services to add");
                 this._services_uuid = this._services.map(i => i.uuid);
-                bleno_1.default.startAdvertising(id, this._services_uuid);
+                safeBleno_1.startAdvertising(id, this._services_uuid);
                 if (this._started_advertising_ok) {
-                    bleno_1.default.setServices(this._services, (err) => console.log('setServices: ' + (err ? 'error ' + err : 'success')));
+                    safeBleno_1.setServices(this._services, (err) => console.log('setServices: ' + (err ? 'error ' + err : 'success')));
                 }
             }
         })
             .catch(err => {
             console.error(err);
-            bleno_1.default.startAdvertising(id, this._services_uuid);
+            safeBleno_1.startAdvertising(id, this._services_uuid);
         });
     }
     start() {
+        if (!safeBleno_1.isBlenoAvailable) {
+            console.log("disabling bluetooth... incompatible...");
+            return;
+        }
         setTimeout(() => this.startDelayed(), 1000);
     }
     startDelayed() {
+        if (!safeBleno_1.isBlenoAvailable) {
+            console.log("disabling bluetooth... incompatible...");
+            return;
+        }
         if (this._started)
             return;
         frame_model_compress_1.default.instance.start();
         this._started = true;
-        bleno_1.default.on('stateChange', (state) => {
+        safeBleno_1.onBlenoEvent('stateChange', (state) => {
             console.log('on -> stateChange: ' + state);
             if (state == 'poweredOn' && !this._started_advertising) {
                 this._started_advertising = true;
@@ -363,23 +387,27 @@ class BLE {
                 this._started_advertising = false;
                 console.log("stopping ", state);
                 this._interval && clearInterval(this._interval);
-                bleno_1.default.stopAdvertising();
+                safeBleno_1.stopAdvertising();
             }
         });
-        bleno_1.default.on('advertisingStart', (err) => {
+        safeBleno_1.onBlenoEvent('advertisingStart', (err) => {
             console.log('on -> advertisingStart: ' + (err ? 'error ' + err : 'success'));
             if (!err && this._started_advertising) {
                 this._started_advertising_ok = true;
-                bleno_1.default.setServices(this._services, (err) => {
+                safeBleno_1.setServices(this._services, (err) => {
                     console.log('setServices: ' + (err ? 'error ' + err : 'success'));
                 });
             }
         });
-        bleno_1.default.on("advertisingStop", (err) => this._started_advertising_ok = false);
-        bleno_1.default.on("advertisingStartError", (err) => console.log(err));
-        bleno_1.default.on("disconnect", (client) => console.log("disconnect : client ->", client));
+        safeBleno_1.onBlenoEvent("advertisingStop", (err) => this._started_advertising_ok = false);
+        safeBleno_1.onBlenoEvent("advertisingStartError", (err) => console.log(err));
+        safeBleno_1.onBlenoEvent("disconnect", (client) => console.log("disconnect : client ->", client));
     }
     onFrame(frame) {
+        if (!safeBleno_1.isBlenoAvailable) {
+            console.log("disabling bluetooth... incompatible...");
+            return;
+        }
         console.log("sending frame");
         this._notify_frame.onFrame(frame);
         device_management.onFrame(frame)

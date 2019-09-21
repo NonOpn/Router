@@ -1,6 +1,5 @@
 /// <reference types="node" />
-declare const PrimaryService: any;
-declare const Characteristic: any;
+import { Characteristic, PrimaryService } from "./ble/safeBleno";
 interface BufferCallback {
     (buffer: Buffer): void;
 }
