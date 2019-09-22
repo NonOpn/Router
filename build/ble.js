@@ -321,10 +321,8 @@ class BLE {
     }
     refreshDevices() {
         if (!safeBleno_1.isBlenoAvailable) {
-            console.log("disabling bluetooth... incompatible...");
             return;
         }
-        console.log("refreshing devices");
         device_management.list()
             .then(devices => {
             const to_add = [];
@@ -345,7 +343,6 @@ class BLE {
             }
             if (!this._refreshing_called_once || to_add.length > 0) {
                 this._refreshing_called_once = true;
-                console.log("we called one time or have services to add");
                 this._services_uuid = this._services.map(i => i.uuid);
                 safeBleno_1.startAdvertising(id, this._services_uuid);
                 if (this._started_advertising_ok) {

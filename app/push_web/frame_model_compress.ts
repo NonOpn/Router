@@ -155,7 +155,6 @@ export default class FrameModelCompress extends Abstract {
       var index = 0;
 
       var callback = (from: number) => {
-        console.log("callback sync with " + from);
         pool.queryParameters("SELECT * FROM Frames WHERE id >= ? ORDER BY id LIMIT 500", [from])
         .then((results: Transaction[]|undefined) => {
           if(results && results.length > 0) {
