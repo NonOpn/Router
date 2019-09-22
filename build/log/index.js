@@ -13,9 +13,10 @@ class _Logger {
             this._post("error", error);
         };
         this.data = (data) => this._post("data", data);
-        this.identity = (data) => {
+        this.identity = (data, tags = []) => {
             identity && data && (data.identity = identity);
-            this._post(identity, data);
+            tags.push(identity); //set at least the identity in a tag
+            this._post(tags.join(","), data);
         };
     }
     _post(tag, data) {

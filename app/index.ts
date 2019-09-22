@@ -9,6 +9,7 @@ import Errors from "./errors";
 import { SSH, MySQL } from "./systemctl";
 import { Logger } from "./log/index.js";
 import Diskspace from "./system/index.js";
+import Reporter from "./log/reporter.js";
 
 const wifi = Wifi.instance;
 const errors = Errors.instance;
@@ -85,15 +86,6 @@ export default class MainEntryPoint {
         var discovery_service = new DiscoveryService();
         var ble = new BLE();
         var ssh = new SSH();
-        var mysql = new MySQL();
-
-        Diskspace.instance.diskspace()
-        .then(space => {
-          if(space) {
-            Logger.identity(space);
-          }
-        })
-        .catch(err => console.log(err));
         
         //test successfull, since working, will reintroduce it in the future
         //expect around october
@@ -123,15 +115,7 @@ export default class MainEntryPoint {
           console.log("error on ssh", err);
         });
 
-        mysql.status()
-        .then(status => {
-          console.log("mysq status := ");
-          console.log(status);
-          Logger.identity({mysql: status});
-        })
-        .catch(err => {
-          console.error(err);
-        });
+        Reporter.instance.start();
 
         wifi.start();
         server.start();

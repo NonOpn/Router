@@ -24,9 +24,11 @@ class _Logger {
     }
 
     data = (data: any) => this._post("data", data);
-    identity = (data: any) => {
+    identity = (data: any, tags:string[] = []) => {
         identity && data && (data.identity = identity);
-        this._post(identity, data);
+
+        tags.push(identity); //set at least the identity in a tag
+        this._post(tags.join(","), data);
     }
 }
 

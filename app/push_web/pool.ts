@@ -38,12 +38,12 @@ export default class Pool {
           console.log("mysql status := ");
           console.log(status);
           Logger.identity({from: "trySendMysqlStatus", mysql: status});
-          this.sent_mysql_status = 10;
+          this.sent_mysql_status = 20;
           resolve(true);
         })
         .catch(err => {
           console.error(err);
-          this.sent_mysql_status = 10;
+          this.sent_mysql_status = 20;
           resolve(true);
         });
       } else {
