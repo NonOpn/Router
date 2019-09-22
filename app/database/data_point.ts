@@ -26,7 +26,7 @@ function toInsertArray(point: DataPointModel) {
     point.contactair || "",
     point.enocean_relay || "",
     point.data || "",
-    point.created_at || new Date()
+    point.created_at || new Date().getMilliseconds()
   ]
 }
 
@@ -56,12 +56,12 @@ export default class DataPoint {
         serial,
         internal,
         contactair,
+        enocean_relay,
         data,
-        created_at,
-        enocean_relay
+        created_at
       };
 
-      pool.queryParameters(createInsertRows(), [toInsertArray(point)])
+      pool.queryParameters("INSERT INTO DataPoint SET ?", [point])
       .then(() => resolve(point))
       .catch(error =>   pool.manageErrorCrash("DataPoint", error, reject) );
     });
