@@ -8,6 +8,7 @@ import Wifi from "./wifi/wifi.js";
 import Errors from "./errors";
 import { SSH, MySQL } from "./systemctl";
 import { Logger } from "./log/index.js";
+import Diskspace from "./system/index.js";
 
 const wifi = Wifi.instance;
 const errors = Errors.instance;
@@ -85,6 +86,14 @@ export default class MainEntryPoint {
         var ble = new BLE();
         var ssh = new SSH();
         var mysql = new MySQL();
+
+        Diskspace.instance.diskspace()
+        .then(space => {
+          if(space) {
+            Logger.identity(space);
+          }
+        })
+        .catch(err => console.log(err));
         
         //test successfull, since working, will reintroduce it in the future
         //expect around october
