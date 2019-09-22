@@ -6,7 +6,8 @@ import PushWEB from "./push_web.js";
 import DiscoveryService from "./discovery";
 import Wifi from "./wifi/wifi.js";
 import Errors from "./errors";
-import SSH from "./ssh.js";
+import { SSH, MySQL } from "./systemctl/ssh.js";
+import { Logger } from "./log/index.js";
 
 const wifi = Wifi.instance;
 const errors = Errors.instance;
@@ -81,6 +82,7 @@ export default class MainEntryPoint {
         var discovery_service = new DiscoveryService();
         var ble = new BLE();
         var ssh = new SSH();
+        var mysql = new MySQL();
         
         //test successfull, since working, will reintroduce it in the future
         //expect around october
@@ -110,6 +112,13 @@ export default class MainEntryPoint {
           console.log("error on ssh", err);
         });
 
+        mysql.status()
+        .then(status => {
+          Logger.identity(status);
+        })
+        .catch(err => {
+          console.error(err);
+        });
 
         wifi.start();
         server.start();

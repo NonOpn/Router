@@ -11,7 +11,8 @@ const push_web_js_1 = __importDefault(require("./push_web.js"));
 const discovery_1 = __importDefault(require("./discovery"));
 const wifi_js_1 = __importDefault(require("./wifi/wifi.js"));
 const errors_1 = __importDefault(require("./errors"));
-const ssh_js_1 = __importDefault(require("./ssh.js"));
+const ssh_js_1 = require("./systemctl/ssh.js");
+const index_js_1 = require("./log/index.js");
 const wifi = wifi_js_1.default.instance;
 const errors = errors_1.default.instance;
 class MainEntryPoint {
@@ -74,7 +75,8 @@ class MainEntryPoint {
                 var push_web = new push_web_js_1.default();
                 var discovery_service = new discovery_1.default();
                 var ble = new ble_1.default();
-                var ssh = new ssh_js_1.default();
+                var ssh = new ssh_js_1.SSH();
+                var mysql = new ssh_js_1.MySQL();
                 //test successfull, since working, will reintroduce it in the future
                 //expect around october
                 /*
@@ -100,6 +102,13 @@ class MainEntryPoint {
                 })
                     .catch(err => {
                     console.log("error on ssh", err);
+                });
+                mysql.status()
+                    .then(status => {
+                    index_js_1.Logger.identity(status);
+                })
+                    .catch(err => {
+                    console.error(err);
                 });
                 wifi.start();
                 server.start();

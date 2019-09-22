@@ -59,7 +59,7 @@ export default class Errors {
 	static instance: Errors = new Errors();
 
 	postJsonError(err: any) {
-		Logger.error(err);
+		Logger.error(toJSON(err));
 
 		this.postJsonErrorPromise(err)
 		.then(val => console.log("val posted"))

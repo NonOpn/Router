@@ -50,7 +50,7 @@ function toJSON(err) {
 }
 class Errors {
     postJsonError(err) {
-        index_js_1.Logger.error(err);
+        index_js_1.Logger.error(toJSON(err));
         this.postJsonErrorPromise(err)
             .then(val => console.log("val posted"))
             .catch(err => console.log("err obtained"));
