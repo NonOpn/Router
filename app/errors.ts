@@ -1,5 +1,6 @@
 import request from 'request';
 import config from "./config/config.js";
+import { Logger } from './log/index.js';
 //error modification extracted from https://github.com/kgryte/utils-error-to-json
 
 interface Err {
@@ -58,6 +59,8 @@ export default class Errors {
 	static instance: Errors = new Errors();
 
 	postJsonError(err: any) {
+		Logger.error(err);
+
 		this.postJsonErrorPromise(err)
 		.then(val => console.log("val posted"))
 		.catch(err => console.log("err obtained"));

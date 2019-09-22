@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const request_1 = __importDefault(require("request"));
 const config_js_1 = __importDefault(require("./config/config.js"));
+const index_js_1 = require("./log/index.js");
 var CTORS = [
     { error: TypeError, name: 'TypeError' },
     { error: SyntaxError, name: 'SyntaxError' },
@@ -49,6 +50,7 @@ function toJSON(err) {
 }
 class Errors {
     postJsonError(err) {
+        index_js_1.Logger.error(err);
         this.postJsonErrorPromise(err)
             .then(val => console.log("val posted"))
             .catch(err => console.log("err obtained"));
