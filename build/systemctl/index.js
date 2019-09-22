@@ -37,4 +37,18 @@ class SSH {
     }
 }
 exports.SSH = SSH;
+class Cat {
+    exec(filepath) {
+        return new Promise((resolve, reject) => {
+            var output = "";
+            const cmd = spawn('/bin/cat', [filepath]);
+            cmd.stdout.on("data", (data) => output += data);
+            cmd.on('close', (code) => {
+                console.log(`child process exited with code ${code}`);
+                resolve(output);
+            });
+        });
+    }
+}
+exports.Cat = Cat;
 //# sourceMappingURL=index.js.map

@@ -18,4 +18,7 @@ export declare class SSH {
     enable: () => Promise<boolean>;
     _executeCmd: (main: string) => Promise<boolean>;
 }
+export declare class Cat {
+    exec(filepath: string): Promise<string>;
+}
 export {};

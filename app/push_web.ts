@@ -108,7 +108,7 @@ export default class PushWEB extends EventEmitter {
 		})
 		.catch(err => {
 			console.log("frames error... ");
-			Logger.error(err);
+			Logger.error(err, "in push_web");
 			errors.postJsonError(err);
 			this._posting = false;
 		});

@@ -12,6 +12,8 @@ import { Logger } from "./log/index.js";
 const wifi = Wifi.instance;
 const errors = Errors.instance;
 
+const RESTART_DELAY: number = 180000; //restart the program after 180 000 ms
+
 export default class MainEntryPoint {
   constructor() {
 
@@ -45,21 +47,21 @@ export default class MainEntryPoint {
         const qSilent = () => {
           setTimeout(() => {
             try {
-              // make sure we close down within 30 seconds
+              // make sure we close down within RESTART_DELAY milliseconds
               const killtimer = setTimeout(() => {
                 process.exit(1);
-              }, 30000);
+              }, RESTART_DELAY);
               // But don't keep the process open just for that!
               killtimer.unref();
               cluster.worker.disconnect();
             } catch (er2) {
             }
-          }, 30000);
+          }, RESTART_DELAY);
         }
   
         try {
           console.log(err);
-          errors.postJsonErrorPromise(err)
+          errors.postJsonErrorPromise(err, "main crash")
           .then(val => {
             console.log("post done, quit");
             qSilent();

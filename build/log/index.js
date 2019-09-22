@@ -8,7 +8,10 @@ const config_1 = __importDefault(require("../config/config"));
 const identity = config_1.default.identity || "unknown";
 class _Logger {
     constructor() {
-        this.error = (error) => this._post("error", error);
+        this.error = (error, reason = undefined) => {
+            reason && (error.reason = reason);
+            this._post("error", error);
+        };
         this.data = (data) => this._post("data", data);
         this.identity = (data) => this._post(identity, data);
     }

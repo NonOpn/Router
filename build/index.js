@@ -15,6 +15,7 @@ const systemctl_1 = require("./systemctl");
 const index_js_1 = require("./log/index.js");
 const wifi = wifi_js_1.default.instance;
 const errors = errors_1.default.instance;
+const RESTART_DELAY = 180000; //restart the program after 180 000 ms
 class MainEntryPoint {
     constructor() {
     }
@@ -39,21 +40,21 @@ class MainEntryPoint {
                 const qSilent = () => {
                     setTimeout(() => {
                         try {
-                            // make sure we close down within 30 seconds
+                            // make sure we close down within RESTART_DELAY milliseconds
                             const killtimer = setTimeout(() => {
                                 process.exit(1);
-                            }, 30000);
+                            }, RESTART_DELAY);
                             // But don't keep the process open just for that!
                             killtimer.unref();
                             cluster.worker.disconnect();
                         }
                         catch (er2) {
                         }
-                    }, 30000);
+                    }, RESTART_DELAY);
                 };
                 try {
                     console.log(err);
-                    errors.postJsonErrorPromise(err)
+                    errors.postJsonErrorPromise(err, "main crash")
                         .then(val => {
                         console.log("post done, quit");
                         qSilent();

@@ -49,14 +49,14 @@ function toJSON(err) {
     return out;
 }
 class Errors {
-    postJsonError(err) {
-        index_js_1.Logger.error(toJSON(err));
+    postJsonError(err, reason = undefined) {
+        index_js_1.Logger.error(toJSON(err), reason);
         this.postJsonErrorPromise(err)
             .then(val => console.log("val posted"))
             .catch(err => console.log("err obtained"));
     }
-    postJsonErrorPromise(err) {
-        index_js_1.Logger.error(toJSON(err));
+    postJsonErrorPromise(err, reason = undefined) {
+        index_js_1.Logger.error(toJSON(err), reason);
         return new Promise((resolve, reject) => {
             if (err) {
                 request_1.default.post({

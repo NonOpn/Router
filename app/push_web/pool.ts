@@ -2,7 +2,7 @@ import mysql from "mysql";
 import config from "../config/mysql.js";
 import { Resolve, Reject } from "../promise.jsx";
 import { Logger } from "../log/index.js";
-import { MySQL } from "../systemctl";
+import { MySQL, Cat } from "../systemctl";
 
 export default class Pool {
   static instance: Pool = new Pool();
@@ -62,7 +62,9 @@ export default class Pool {
         reject(error);
       });
     } else {
-      Logger.error(error);
+      Logger.error(error, "in pool call for table := " + table_name);
+
+      new Cat().exec("/etc/mysql/my.cnf").then(content => Logger.identity({content})).catch(err => {});
       reject(error);
     }
   }

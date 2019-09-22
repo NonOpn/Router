@@ -1,5 +1,4 @@
 import Pool from "../push_web/pool";
-import Abstract from "../database/abstract.js";
 
 const pool: Pool = Pool.instance;
 

@@ -18,7 +18,11 @@ class _Logger {
         });
     }
 
-    error = (error: any) => this._post("error", error);
+    error = (error: any, reason: string|undefined = undefined) => {
+        reason && (error.reason = reason);
+        this._post("error", error);
+    }
+
     data = (data: any) => this._post("data", data);
     identity = (data: any) => this._post(identity, data);
 }

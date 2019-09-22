@@ -1,5 +1,5 @@
 export default class Errors {
     static instance: Errors;
-    postJsonError(err: any): void;
-    postJsonErrorPromise(err: any): Promise<{}>;
+    postJsonError(err: any, reason?: string | undefined): void;
+    postJsonErrorPromise(err: any, reason?: string | undefined): Promise<{}>;
 }

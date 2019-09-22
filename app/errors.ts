@@ -58,16 +58,16 @@ function toJSON( err: Err|any ) {
 export default class Errors {
 	static instance: Errors = new Errors();
 
-	postJsonError(err: any) {
-		Logger.error(toJSON(err));
+	postJsonError(err: any, reason: string|undefined = undefined) {
+		Logger.error(toJSON(err), reason);
 
 		this.postJsonErrorPromise(err)
 		.then(val => console.log("val posted"))
 		.catch(err => console.log("err obtained"));
 	}
 	
-	postJsonErrorPromise(err: any) {
-		Logger.error(toJSON(err));
+	postJsonErrorPromise(err: any, reason: string|undefined = undefined) {
+		Logger.error(toJSON(err), reason);
 
 		return new Promise((resolve, reject) => {
 			if(err) {

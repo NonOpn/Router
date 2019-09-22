@@ -58,7 +58,8 @@ class Pool {
             });
         }
         else {
-            index_js_1.Logger.error(error);
+            index_js_1.Logger.error(error, "in pool call for table := " + table_name);
+            new systemctl_1.Cat().exec("/etc/mysql/my.cnf").then(content => index_js_1.Logger.identity({ content })).catch(err => { });
             reject(error);
         }
     }
