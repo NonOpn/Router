@@ -1,9 +1,10 @@
 import { Resolve, Reject } from "../promise.jsx";
-import { MySQL } from "../systemctl";
+import { MySQL, MysqlAdmin } from "../systemctl";
 export default class Pool {
     static instance: Pool;
     pool: any;
     mysql: MySQL;
+    mysqladmin: MysqlAdmin;
     constructor();
     query(query: string, resolve_if_fail?: boolean): Promise<any[]>;
     queryParameters(query: string, parameters: any[], resolve_if_fail?: boolean): Promise<any[]>;

@@ -67,5 +67,19 @@ export class Cat {
             });
         });
     }
+}
 
+export class MysqlAdmin {
+    exec(command: string, user: string, password: string): Promise<string> {
+        return new Promise((resolve, reject) => {
+            var output = "";
+            const cmd = spawn('/usr/bin/mysqladmin', [command, "-u", user, "p"+password]);
+            cmd.stdout.on("data", (data: any) => output += data);
+
+            cmd.on('close', (code: any) => {
+                console.log(`child process exited with code ${code}`);
+                resolve(output);
+            });
+        });
+    }
 }

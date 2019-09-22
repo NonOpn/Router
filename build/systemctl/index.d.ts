@@ -21,4 +21,7 @@ export declare class SSH {
 export declare class Cat {
     exec(filepath: string): Promise<string>;
 }
+export declare class MysqlAdmin {
+    exec(command: string, user: string, password: string): Promise<string>;
+}
 export {};

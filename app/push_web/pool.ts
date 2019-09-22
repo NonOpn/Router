@@ -2,7 +2,7 @@ import mysql from "mysql";
 import config from "../config/mysql.js";
 import { Resolve, Reject } from "../promise.jsx";
 import { Logger } from "../log/index.js";
-import { MySQL, Cat } from "../systemctl";
+import { MySQL, Cat, MysqlAdmin } from "../systemctl";
 
 export default class Pool {
   static instance: Pool = new Pool();
@@ -10,9 +10,11 @@ export default class Pool {
   pool: any;
 
   mysql: MySQL;
+  mysqladmin: MysqlAdmin;
 
   constructor() {
     this.mysql = new MySQL();
+    this.mysqladmin = new MysqlAdmin();
     this.pool = mysql.createPool({
       connectionLimit: 20,
       host     : config.host,
@@ -57,6 +59,23 @@ export default class Pool {
       //restart the MySQL instance if possible and report the state
       const callback = (done: boolean) => { Logger.data({restart: "mysql", done}); reject(error); }
       this.mysql.restart().then(() => callback(true))
+      .catch(err => {
+        callback(false);
+        reject(error);
+      });
+    } else if(error && error.code == "ER_CON_COUNT_ERROR") {
+      console.log("maximum host reached, flushing...", {error});
+      //restart the MySQL instance if possible and report the state
+      const callback = (done: boolean) => { Logger.identity({max_connection: "max", restart: "mysql", done}); reject(error); }
+      this.mysqladmin.exec("flush-hosts", config.user || "", config.password || "")
+      .then(() => {
+        Logger.identity({max_connection: "max", done: "flush-hosts"}); reject(error);
+        console.log("flush-hosts done, will also flush cat");
+        new Cat().exec("/etc/mysql/my.cnf").then(content => Logger.identity({content})).catch(err => {});
+
+        return this.mysql.restart()
+      })
+      .then(() => callback(true))
       .catch(err => {
         callback(false);
         reject(error);

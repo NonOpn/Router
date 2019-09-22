@@ -51,4 +51,18 @@ class Cat {
     }
 }
 exports.Cat = Cat;
+class MysqlAdmin {
+    exec(command, user, password) {
+        return new Promise((resolve, reject) => {
+            var output = "";
+            const cmd = spawn('/usr/bin/mysqladmin', [command, "-u", user, "p" + password]);
+            cmd.stdout.on("data", (data) => output += data);
+            cmd.on('close', (code) => {
+                console.log(`child process exited with code ${code}`);
+                resolve(output);
+            });
+        });
+    }
+}
+exports.MysqlAdmin = MysqlAdmin;
 //# sourceMappingURL=index.js.map

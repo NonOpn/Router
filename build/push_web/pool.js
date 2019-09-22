@@ -10,6 +10,7 @@ const systemctl_1 = require("../systemctl");
 class Pool {
     constructor() {
         this.mysql = new systemctl_1.MySQL();
+        this.mysqladmin = new systemctl_1.MysqlAdmin();
         this.pool = mysql_1.default.createPool({
             connectionLimit: 20,
             host: mysql_js_1.default.host,
@@ -52,6 +53,24 @@ class Pool {
             //restart the MySQL instance if possible and report the state
             const callback = (done) => { index_js_1.Logger.data({ restart: "mysql", done }); reject(error); };
             this.mysql.restart().then(() => callback(true))
+                .catch(err => {
+                callback(false);
+                reject(error);
+            });
+        }
+        else if (error && error.code == "ER_CON_COUNT_ERROR") {
+            console.log("maximum host reached, flushing...", { error });
+            //restart the MySQL instance if possible and report the state
+            const callback = (done) => { index_js_1.Logger.identity({ max_connection: "max", restart: "mysql", done }); reject(error); };
+            this.mysqladmin.exec("flush-hosts", mysql_js_1.default.user || "", mysql_js_1.default.password || "")
+                .then(() => {
+                index_js_1.Logger.identity({ max_connection: "max", done: "flush-hosts" });
+                reject(error);
+                console.log("flush-hosts done, will also flush cat");
+                new systemctl_1.Cat().exec("/etc/mysql/my.cnf").then(content => index_js_1.Logger.identity({ content })).catch(err => { });
+                return this.mysql.restart();
+            })
+                .then(() => callback(true))
                 .catch(err => {
                 callback(false);
                 reject(error);
