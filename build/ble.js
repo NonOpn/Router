@@ -327,7 +327,6 @@ class BLE {
         console.log("refreshing devices");
         device_management.list()
             .then(devices => {
-            console.log("device_management", devices);
             const to_add = [];
             if (devices) {
                 devices = devices.filter(device => device.getInternalSerial() && "ffffff" != device.getSyncInternalSerial());
