@@ -21,6 +21,7 @@ class MySQL {
     constructor() {
         this.status = () => this.systemctl.exec("status", "mysql");
         this.start = () => this.systemctl.exec("start", "mysql");
+        this.restart = () => this.systemctl.exec("restart", "mysql");
         this.systemctl = new Systemctl();
     }
 }
@@ -36,4 +37,4 @@ class SSH {
     }
 }
 exports.SSH = SSH;
-//# sourceMappingURL=ssh.js.map
+//# sourceMappingURL=index.js.map

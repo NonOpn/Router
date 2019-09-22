@@ -32,6 +32,8 @@ export class MySQL {
     status = (): Promise<string> => this.systemctl.exec("status", "mysql");
 
     start = (): Promise<string> => this.systemctl.exec("start", "mysql");
+
+    restart = (): Promise<string> => this.systemctl.exec("restart", "mysql");
 }
 
 export class SSH {

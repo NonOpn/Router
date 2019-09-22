@@ -6,7 +6,7 @@ import PushWEB from "./push_web.js";
 import DiscoveryService from "./discovery";
 import Wifi from "./wifi/wifi.js";
 import Errors from "./errors";
-import { SSH, MySQL } from "./systemctl/ssh.js";
+import { SSH, MySQL } from "./systemctl";
 import { Logger } from "./log/index.js";
 
 const wifi = Wifi.instance;

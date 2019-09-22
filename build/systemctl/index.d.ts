@@ -7,6 +7,7 @@ export declare class MySQL {
     constructor();
     status: () => Promise<string>;
     start: () => Promise<string>;
+    restart: () => Promise<string>;
 }
 export declare class SSH {
     systemctl: Systemctl;

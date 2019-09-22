@@ -6,8 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mysql_1 = __importDefault(require("mysql"));
 const mysql_js_1 = __importDefault(require("../config/mysql.js"));
 const index_js_1 = require("../log/index.js");
+const systemctl_1 = require("../systemctl");
 class Pool {
     constructor() {
+        this.mysql = new systemctl_1.MySQL();
         this.pool = mysql_1.default.createPool({
             connectionLimit: 20,
             host: mysql_js_1.default.host,
@@ -44,6 +46,16 @@ class Pool {
             console.log("crashed... try repair", { error });
             this.repair("REPAIR TABLE " + table_name, error, reject);
             index_js_1.Logger.data({ repair: table_name });
+        }
+        else if (error && error.code === "ECONNREFUSED") {
+            console.log("trying starting...", { error });
+            //restart the MySQL instance if possible and report the state
+            const callback = (done) => { index_js_1.Logger.data({ restart: "mysql", done }); reject(error); };
+            this.mysql.restart().then(() => callback(true))
+                .catch(err => {
+                callback(false);
+                reject(error);
+            });
         }
         else {
             index_js_1.Logger.error(error);

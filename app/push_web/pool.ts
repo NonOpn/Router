@@ -2,13 +2,17 @@ import mysql from "mysql";
 import config from "../config/mysql.js";
 import { Resolve, Reject } from "../promise.jsx";
 import { Logger } from "../log/index.js";
+import { MySQL } from "../systemctl";
 
 export default class Pool {
   static instance: Pool = new Pool();
 
   pool: any;
 
+  mysql: MySQL;
+
   constructor() {
+    this.mysql = new MySQL();
     this.pool = mysql.createPool({
       connectionLimit: 20,
       host     : config.host,
@@ -48,6 +52,15 @@ export default class Pool {
       console.log("crashed... try repair", {error});
       this.repair("REPAIR TABLE " + table_name, error, reject);
       Logger.data({repair: table_name});
+    } else if(error && error.code === "ECONNREFUSED") {
+      console.log("trying starting...", {error});
+      //restart the MySQL instance if possible and report the state
+      const callback = (done: boolean) => { Logger.data({restart: "mysql", done}); reject(error); }
+      this.mysql.restart().then(() => callback(true))
+      .catch(err => {
+        callback(false);
+        reject(error);
+      });
     } else {
       Logger.error(error);
       reject(error);
