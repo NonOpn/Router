@@ -105,6 +105,8 @@ class MainEntryPoint {
                 });
                 mysql.status()
                     .then(status => {
+                    console.log("mysq status := ");
+                    console.log(status);
                     index_js_1.Logger.identity(status);
                 })
                     .catch(err => {

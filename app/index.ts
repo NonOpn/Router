@@ -114,6 +114,8 @@ export default class MainEntryPoint {
 
         mysql.status()
         .then(status => {
+          console.log("mysq status := ");
+          console.log(status);
           Logger.identity(status);
         })
         .catch(err => {

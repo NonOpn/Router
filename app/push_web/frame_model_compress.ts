@@ -217,7 +217,7 @@ export default class FrameModelCompress extends Abstract {
       const data = this.getRelevantByte(tx.frame);
       var cache: any = {data: null, timeout: 11};
 
-      console.log("managing frame := " + contactair+" data:="+data);
+      //console.log("managing frame := " + contactair+" data:="+data);
 
       if(!this._contactair_cache[contactair]) {
         this._contactair_cache[contactair] = cache;
@@ -234,7 +234,7 @@ export default class FrameModelCompress extends Abstract {
       if(cache.data && cache.data == data && cache.timeout > 0) {
         //now set the new cache for this round
         this._contactair_cache[contactair] = cache;
-        console.log("don't save the frame for " + contactair + " already known for this round, remaining " + cache.timeout);
+        //console.log("don't save the frame for " + contactair + " already known for this round, remaining " + cache.timeout);
         resolve(transaction);
         return
       }
