@@ -24,7 +24,10 @@ class _Logger {
     }
 
     data = (data: any) => this._post("data", data);
-    identity = (data: any) => this._post(identity, data);
+    identity = (data: any) => {
+        identity && data && (data.identity = identity);
+        this._post(identity, data);
+    }
 }
 
 export const Logger = new _Logger;

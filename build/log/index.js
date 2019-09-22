@@ -13,7 +13,10 @@ class _Logger {
             this._post("error", error);
         };
         this.data = (data) => this._post("data", data);
-        this.identity = (data) => this._post(identity, data);
+        this.identity = (data) => {
+            identity && data && (data.identity = identity);
+            this._post(identity, data);
+        };
     }
     _post(tag, data) {
         const json = {};
