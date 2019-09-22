@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mysql_1 = __importDefault(require("mysql"));
 const mysql_js_1 = __importDefault(require("../config/mysql.js"));
+const index_js_1 = require("../log/index.js");
 class Pool {
     constructor() {
         this.pool = mysql_1.default.createPool({
@@ -33,16 +34,19 @@ class Pool {
         });
     }
     manageErrorCrash(table_name, error, reject) {
-        console.log("Manage crash...");
+        console.log("Manage crash... " + (error ? error.code : "error no code"));
         if (error && error.code === "HA_ERR_NOT_A_TABLE") {
             console.log("not a table... try repair", { error });
             this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
+            index_js_1.Logger.data({ repair: table_name, use_frm: true });
         }
         else if (error && error.code === "ER_CRASHED_ON_USAGE") {
             console.log("crashed... try repair", { error });
             this.repair("REPAIR TABLE " + table_name, error, reject);
+            index_js_1.Logger.data({ repair: table_name });
         }
         else {
+            index_js_1.Logger.error(error);
             reject(error);
         }
     }

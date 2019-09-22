@@ -1,6 +1,7 @@
 import mysql from "mysql";
 import config from "../config/mysql.js";
 import { Resolve, Reject } from "../promise.jsx";
+import { Logger } from "../log/index.js";
 
 export default class Pool {
   static instance: Pool = new Pool();
@@ -38,14 +39,17 @@ export default class Pool {
   }
 
   manageErrorCrash(table_name: string, error: any, reject: Reject): void {
-    console.log("Manage crash...");
+    console.log("Manage crash... " + (error ? error.code : "error no code"));
     if(error && error.code === "HA_ERR_NOT_A_TABLE") {
       console.log("not a table... try repair", {error});
       this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
+      Logger.data({repair: table_name, use_frm: true});
     } else if(error && error.code === "ER_CRASHED_ON_USAGE") {
       console.log("crashed... try repair", {error});
       this.repair("REPAIR TABLE " + table_name, error, reject);
+      Logger.data({repair: table_name});
     } else {
+      Logger.error(error);
       reject(error);
     }
   }

@@ -10,6 +10,7 @@ const request_1 = __importDefault(require("request"));
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
 const push_web_1 = __importDefault(require("./config/push_web"));
 const frame_model_compress_js_1 = __importDefault(require("./push_web/frame_model_compress.js"));
+const index_js_1 = require("./log/index.js");
 const errors = errors_1.default.instance;
 const VERSION = 8;
 function _post(json) {
@@ -104,6 +105,7 @@ class PushWEB extends events_1.EventEmitter {
         })
             .catch(err => {
             console.log("frames error... ");
+            index_js_1.Logger.error(err);
             errors.postJsonError(err);
             this._posting = false;
         });

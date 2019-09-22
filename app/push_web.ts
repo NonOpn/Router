@@ -5,6 +5,7 @@ import request from "request";
 import FrameModel from "./push_web/frame_model";
 import push_web_config from "./config/push_web";
 import FrameModelCompress from "./push_web/frame_model_compress.js";
+import { Logger } from "./log/index.js";
 
 const errors = Errors.instance;
 
@@ -107,6 +108,7 @@ export default class PushWEB extends EventEmitter {
 		})
 		.catch(err => {
 			console.log("frames error... ");
+			Logger.error(err);
 			errors.postJsonError(err);
 			this._posting = false;
 		});
