@@ -31,16 +31,16 @@ class Pool {
                     console.log(status);
                     index_js_1.Logger.identity({ from: "trySendMysqlStatus", mysql: status });
                     this.sent_mysql_status = 10;
-                    resolve();
+                    resolve(true);
                 })
                     .catch(err => {
                     console.error(err);
                     this.sent_mysql_status = 10;
-                    resolve();
+                    resolve(true);
                 });
             }
             else {
-                resolve();
+                resolve(false);
             }
         });
     }
@@ -76,14 +76,16 @@ class Pool {
             console.log("trying starting...", { error });
             //send status to see what happens
             this.trySendMysqlStatus()
-                .then(() => {
-                //restart the MySQL instance if possible and report the state
-                const callback = (done) => { index_js_1.Logger.data({ restart: "mysql", done }); reject(error); };
-                this.mysql.restart().then(() => callback(true))
-                    .catch(err => {
-                    callback(false);
-                    reject(error);
-                });
+                .then(can_be_done => {
+                if (can_be_done) {
+                    //restart the MySQL instance if possible and report the state
+                    const callback = (done) => { index_js_1.Logger.data({ restart: "mysql", done }); reject(error); };
+                    this.mysql.restart().then(() => callback(true))
+                        .catch(err => {
+                        callback(false);
+                        reject(error);
+                    });
+                }
             });
         }
         else if (error && error.code == "ER_CON_COUNT_ERROR") {
