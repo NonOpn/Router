@@ -5,6 +5,7 @@ import Enocean from "node-enocean";
 
 import config from "./config/enocean";
 import EnoceanSend from "./enocean_send";
+import { Logger } from "./log";
 
 const enocean = Enocean();
 const enocean_send = new EnoceanSend();
@@ -59,9 +60,7 @@ export default class EnoceanLoader extends EventEmitter {
   
     enocean.on("data", (data: any) => {
       try{
-        enocean.info(data.senderId, (sensor: any) => {
-          this.onLastValuesRetrieved(sensor, (sensor == undefined ? {} : undefined), data);
-        });
+        enocean.info(data.senderId, (sensor: any) => this.onLastValuesRetrieved(sensor, (sensor == undefined ? {} : undefined), data));
       }catch(e){
         console.log(e)
       }
@@ -160,6 +159,9 @@ export default class EnoceanLoader extends EventEmitter {
           }
 
           console.log(output);
+
+          //log the input enocean for the given device
+          Logger.identity(output);
 
           this.emit("managed_frame", output);
         }
