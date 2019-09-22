@@ -5,7 +5,9 @@ export default class Pool {
     pool: any;
     mysql: MySQL;
     mysqladmin: MysqlAdmin;
+    sent_mysql_status: number;
     constructor();
+    trySendMysqlStatus(): Promise<{}>;
     query(query: string, resolve_if_fail?: boolean): Promise<any[]>;
     queryParameters(query: string, parameters: any[], resolve_if_fail?: boolean): Promise<any[]>;
     repair(request: string, error: any, reject: Reject): void;

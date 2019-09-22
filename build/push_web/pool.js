@@ -9,6 +9,7 @@ const index_js_1 = require("../log/index.js");
 const systemctl_1 = require("../systemctl");
 class Pool {
     constructor() {
+        this.sent_mysql_status = 0;
         this.mysql = new systemctl_1.MySQL();
         this.mysqladmin = new systemctl_1.MysqlAdmin();
         this.pool = mysql_1.default.createPool({
@@ -18,6 +19,29 @@ class Pool {
             password: mysql_js_1.default.password,
             database: mysql_js_1.default.database,
             debug: false
+        });
+    }
+    trySendMysqlStatus() {
+        return new Promise((resolve) => {
+            this.sent_mysql_status--;
+            if (this.sent_mysql_status <= 0) {
+                this.mysql.status()
+                    .then(status => {
+                    console.log("mysql status := ");
+                    console.log(status);
+                    index_js_1.Logger.identity({ from: "trySendMysqlStatus", mysql: status });
+                    this.sent_mysql_status = 10;
+                    resolve();
+                })
+                    .catch(err => {
+                    console.error(err);
+                    this.sent_mysql_status = 10;
+                    resolve();
+                });
+            }
+            else {
+                resolve();
+            }
         });
     }
     query(query, resolve_if_fail = false) {
@@ -50,12 +74,16 @@ class Pool {
         }
         else if (error && error.code === "ECONNREFUSED") {
             console.log("trying starting...", { error });
-            //restart the MySQL instance if possible and report the state
-            const callback = (done) => { index_js_1.Logger.data({ restart: "mysql", done }); reject(error); };
-            this.mysql.restart().then(() => callback(true))
-                .catch(err => {
-                callback(false);
-                reject(error);
+            //send status to see what happens
+            this.trySendMysqlStatus()
+                .then(() => {
+                //restart the MySQL instance if possible and report the state
+                const callback = (done) => { index_js_1.Logger.data({ restart: "mysql", done }); reject(error); };
+                this.mysql.restart().then(() => callback(true))
+                    .catch(err => {
+                    callback(false);
+                    reject(error);
+                });
             });
         }
         else if (error && error.code == "ER_CON_COUNT_ERROR") {

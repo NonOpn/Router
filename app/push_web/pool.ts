@@ -12,7 +12,10 @@ export default class Pool {
   mysql: MySQL;
   mysqladmin: MysqlAdmin;
 
+  sent_mysql_status: number;
+
   constructor() {
+    this.sent_mysql_status = 0;
     this.mysql = new MySQL();
     this.mysqladmin = new MysqlAdmin();
     this.pool = mysql.createPool({
@@ -23,6 +26,30 @@ export default class Pool {
       database : config.database,
       debug: false
     });
+  }
+
+  trySendMysqlStatus() {
+    return new Promise((resolve) => {
+      this.sent_mysql_status --;
+
+      if(this.sent_mysql_status <= 0) {
+        this.mysql.status()
+        .then(status => {
+          console.log("mysql status := ");
+          console.log(status);
+          Logger.identity({from: "trySendMysqlStatus", mysql: status});
+          this.sent_mysql_status = 10;
+          resolve();
+        })
+        .catch(err => {
+          console.error(err);
+          this.sent_mysql_status = 10;
+          resolve();
+        });
+      } else {
+        resolve();
+      }
+    })
   }
 
   query(query: string, resolve_if_fail: boolean = false): Promise<any[]> {
@@ -56,13 +83,17 @@ export default class Pool {
       Logger.data({repair: table_name});
     } else if(error && error.code === "ECONNREFUSED") {
       console.log("trying starting...", {error});
-      //restart the MySQL instance if possible and report the state
-      const callback = (done: boolean) => { Logger.data({restart: "mysql", done}); reject(error); }
-      this.mysql.restart().then(() => callback(true))
-      .catch(err => {
-        callback(false);
-        reject(error);
-      });
+      //send status to see what happens
+      this.trySendMysqlStatus()
+      .then(() => {
+        //restart the MySQL instance if possible and report the state
+        const callback = (done: boolean) => { Logger.data({restart: "mysql", done}); reject(error); }
+        this.mysql.restart().then(() => callback(true))
+        .catch(err => {
+          callback(false);
+          reject(error);
+        });
+      })
     } else if(error && error.code == "ER_CON_COUNT_ERROR") {
       console.log("maximum host reached, flushing...", {error});
       //restart the MySQL instance if possible and report the state
