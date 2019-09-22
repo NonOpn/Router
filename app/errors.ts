@@ -67,6 +67,8 @@ export default class Errors {
 	}
 	
 	postJsonErrorPromise(err: any) {
+		Logger.error(toJSON(err));
+
 		return new Promise((resolve, reject) => {
 			if(err) {
 				request.post({

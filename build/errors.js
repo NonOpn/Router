@@ -56,6 +56,7 @@ class Errors {
             .catch(err => console.log("err obtained"));
     }
     postJsonErrorPromise(err) {
+        index_js_1.Logger.error(toJSON(err));
         return new Promise((resolve, reject) => {
             if (err) {
                 request_1.default.post({
