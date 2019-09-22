@@ -26,9 +26,25 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   cp tmp_config.json config/snmp.json
 
   npm install
+
+  # stop services
+  systemctl stop routair.service
+  sleep 5
+  systemctl stop mysql.service
+  sleep 5
+  systemctl start mysql.service
+  sleep 5
   systemctl restart routair.service
 else
   echo "offline, cancel routair update"
+  echo "restart services anyway for now <1.8"
+  systemctl stop routair.service
+  sleep 5
+  systemctl stop mysql.service
+  sleep 5
+  systemctl start mysql.service
+  sleep 5
+  systemctl restart routair.service
 fi
 
 nodevers=`node -v`
