@@ -30,6 +30,11 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   # stop services
   systemctl stop routair.service
   sleep 5
+  mongo local  --eval "printjson(db.dropDatabase())"
+  mongo blog  --eval "printjson(db.dropDatabase())"
+  service mongodb stop
+  rm -rf /var/lib/mongodb/journal/*
+  service mongodb start
   systemctl stop mysql.service
   sleep 5
   systemctl start mysql.service
@@ -40,6 +45,11 @@ else
   echo "restart services anyway for now <1.8"
   systemctl stop routair.service
   sleep 5
+  mongo local  --eval "printjson(db.dropDatabase())"
+  mongo blog  --eval "printjson(db.dropDatabase())"
+  service mongodb stop
+  rm -rf /var/lib/mongodb/journal/*
+  service mongodb start
   systemctl stop mysql.service
   sleep 5
   systemctl start mysql.service
