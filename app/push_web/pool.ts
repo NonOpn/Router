@@ -122,9 +122,13 @@ export default class Pool {
   }
 
   _exec(query: string, parameters: any[], resolve: Resolve, reject: Reject, resolve_if_fail: boolean) {
-    this.pool.query(query, parameters, (error: any, results: any[], fields: any[]) => {
-      if(error && error.code !== "ER_DUP_ENTRY" && !resolve_if_fail) reject(error);
-      else resolve(results);
-    });
+    try {
+      this.pool.query(query, parameters, (error: any, results: any[], fields: any[]) => {
+        if(error && error.code !== "ER_DUP_ENTRY" && !resolve_if_fail) reject(error);
+        else resolve(results);
+      });
+    } catch(e) {
+      reject(e);
+    }
   }
 }

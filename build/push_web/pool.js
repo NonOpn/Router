@@ -113,12 +113,17 @@ class Pool {
         }
     }
     _exec(query, parameters, resolve, reject, resolve_if_fail) {
-        this.pool.query(query, parameters, (error, results, fields) => {
-            if (error && error.code !== "ER_DUP_ENTRY" && !resolve_if_fail)
-                reject(error);
-            else
-                resolve(results);
-        });
+        try {
+            this.pool.query(query, parameters, (error, results, fields) => {
+                if (error && error.code !== "ER_DUP_ENTRY" && !resolve_if_fail)
+                    reject(error);
+                else
+                    resolve(results);
+            });
+        }
+        catch (e) {
+            reject(e);
+        }
     }
 }
 Pool.instance = new Pool();
