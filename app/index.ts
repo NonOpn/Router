@@ -90,7 +90,7 @@ export default class MainEntryPoint {
         Diskspace.instance.usage()
         .then(usage => {
           if(usage) {
-            Logger.identity(usage, ["usage"]);
+            Logger.identity({usage}, ["usage"]);
           }
         })
         .catch(err => console.log(err));

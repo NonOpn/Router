@@ -82,7 +82,7 @@ class MainEntryPoint {
                 index_js_2.default.instance.usage()
                     .then(usage => {
                     if (usage) {
-                        index_js_1.Logger.identity(usage, ["usage"]);
+                        index_js_1.Logger.identity({ usage }, ["usage"]);
                     }
                 })
                     .catch(err => console.log(err));
