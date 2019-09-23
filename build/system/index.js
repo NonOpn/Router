@@ -4,8 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const fd_diskspace_1 = __importDefault(require("fd-diskspace"));
+const systemctl_1 = require("../systemctl");
 class Diskspace {
     constructor() {
+        this.du = new systemctl_1.DU();
     }
     diskspace() {
         return new Promise((resolve, reject) => {
@@ -25,6 +27,9 @@ class Diskspace {
                 }
             });
         });
+    }
+    usage() {
+        return this.du.exec("/", 1);
     }
 }
 Diskspace.instance = new Diskspace();

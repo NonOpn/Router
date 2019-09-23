@@ -18,6 +18,9 @@ export declare class SSH {
     enable: () => Promise<boolean>;
     _executeCmd: (main: string) => Promise<boolean>;
 }
+export declare class DU {
+    exec(path: string, depth: number): Promise<string>;
+}
 export declare class Cat {
     exec(filepath: string): Promise<string>;
 }

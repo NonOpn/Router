@@ -1,4 +1,5 @@
 import fd from "fd-diskspace";
+import { DU } from "../systemctl";
 
 export interface Space {
     free: number;
@@ -9,10 +10,11 @@ export interface Space {
 
 export default class Diskspace {
 
+    private du: DU;
     public static instance = new Diskspace();
 
     constructor() {
-
+        this.du = new DU();
     }
 
     public diskspace(): Promise<Space> {
@@ -32,5 +34,9 @@ export default class Diskspace {
                 }
             });
         });
+    }
+
+    public usage(): Promise<string> {
+        return this.du.exec("/", 1);
     }
 }

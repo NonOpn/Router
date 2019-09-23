@@ -58,60 +58,64 @@ export default class PushWEB extends EventEmitter {
 	}
 
 	trySend() {
-		if(this._posting || !this.is_activated) return;
-		this._posting = true;
-		console.log("try send to send frames");
-
-		FrameModel.instance.getUnsent()
-		.then((frames) => {
-			console.log("frames ? " + frames);
-			const callback = (i: number) => {
-				console.log("callback called with " + i);
-				if(null == frames || i >= frames.length) {
-					_post({
-						host: config.identity,
-						version: VERSION,
-						fnished: true
-					})
-					.then(body => {
-						console.log("finished");
-						this._posting = false;
-					})
-					.catch(err => {
-						console.log("finished with network err");
-						this._posting = false;
-						errors.postJsonError(err);
-					});
-				} else {
-					const frame = frames[i];
-					//const hex = Buffer.from(frame.frame, "hex");
-					const json = createRequestRaw(frame.frame); //createRequest(hex);
-					json.remaining = frames.length - i;
-					json.id = frame.id;
-
-					_post(json)
-					.then(body => {
-						return FrameModel.instance.setSent(frame.id || 0, true);
-					})
-					.then(saved => {
-						callback(i+1);
-					})
-					.catch(err => {
-						console.log(err);
-						errors.postJsonError(err);
-						callback(i+1);
-					});
+		try {
+			if(this._posting || !this.is_activated) return;
+			this._posting = true;
+			console.log("try send to send frames");
+	
+			FrameModel.instance.getUnsent()
+			.then((frames) => {
+				console.log("frames ? " + frames);
+				const callback = (i: number) => {
+					console.log("callback called with " + i);
+					if(null == frames || i >= frames.length) {
+						_post({
+							host: config.identity,
+							version: VERSION,
+							fnished: true
+						})
+						.then(body => {
+							console.log("finished");
+							this._posting = false;
+						})
+						.catch(err => {
+							console.log("finished with network err");
+							this._posting = false;
+							errors.postJsonError(err);
+						});
+					} else {
+						const frame = frames[i];
+						//const hex = Buffer.from(frame.frame, "hex");
+						const json = createRequestRaw(frame.frame); //createRequest(hex);
+						json.remaining = frames.length - i;
+						json.id = frame.id;
+	
+						_post(json)
+						.then(body => {
+							return FrameModel.instance.setSent(frame.id || 0, true);
+						})
+						.then(saved => {
+							callback(i+1);
+						})
+						.catch(err => {
+							console.log(err);
+							errors.postJsonError(err);
+							callback(i+1);
+						});
+					}
 				}
-			}
-
-			callback(0);
-		})
-		.catch(err => {
-			console.log("frames error... ");
-			Logger.error(err, "in push_web");
-			errors.postJsonError(err);
+	
+				callback(0);
+			})
+			.catch(err => {
+				console.log("frames error... ");
+				//Logger.error(err, "in push_web");
+				//errors.postJsonError(err);
+				this._posting = false;
+			});
+		} catch(e) {
 			this._posting = false;
-		});
+		}
 	}
 
 	sendEcho() {
@@ -140,8 +144,13 @@ export default class PushWEB extends EventEmitter {
 		}
 	}
 
+	private _started: boolean = false;
+
 	connect() {
+		if(this._started) return;
+
 		if(!this.is_activated) {
+			this._started = true;
 			console.log("PushWEB is disabled see .env.example");
 			this.sendEcho();
 			setInterval(() => {
@@ -149,6 +158,7 @@ export default class PushWEB extends EventEmitter {
 			}, 15 * 60 * 1000); //set echo every 15minutes
 
 		} else {
+			this._started = true;
 			console.log("PushWEB is now init");
 
 			this.sendEcho();

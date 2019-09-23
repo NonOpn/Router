@@ -7,6 +7,7 @@ export default class PushWEB extends EventEmitter {
     trySend(): void;
     sendEcho(): void;
     onFrame(data: any): void;
+    private _started;
     connect(): void;
     applyData(data: any): void;
 }

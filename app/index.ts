@@ -86,7 +86,15 @@ export default class MainEntryPoint {
         var discovery_service = new DiscoveryService();
         var ble = new BLE();
         var ssh = new SSH();
-        
+
+        Diskspace.instance.usage()
+        .then(usage => {
+          if(usage) {
+            Logger.identity(usage, ["usage"]);
+          }
+        })
+        .catch(err => console.log(err));
+
         //test successfull, since working, will reintroduce it in the future
         //expect around october
         /*

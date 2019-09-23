@@ -54,6 +54,21 @@ export class SSH {
     _executeCmd = (main: string): Promise<boolean> => this.systemctl.exec(main, "ssh").then(() => true);
 }
 
+export class DU {
+    exec(path: string, depth: number): Promise<string> {
+        return new Promise((resolve, reject) => {
+            var output = "";
+            const cmd = spawn('/usr/bin/du', ["-h", "-d", ""+depth, path]);
+            cmd.stdout.on("data", (data: any) => output += data);
+
+            cmd.on('close', (code: any) => {
+                console.log(`child process exited with code ${code}`);
+                resolve(output);
+            });
+        });
+    }
+}
+
 export class Cat {
     exec(filepath: string): Promise<string> {
         return new Promise((resolve, reject) => {

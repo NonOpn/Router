@@ -12,6 +12,8 @@ const discovery_1 = __importDefault(require("./discovery"));
 const wifi_js_1 = __importDefault(require("./wifi/wifi.js"));
 const errors_1 = __importDefault(require("./errors"));
 const systemctl_1 = require("./systemctl");
+const index_js_1 = require("./log/index.js");
+const index_js_2 = __importDefault(require("./system/index.js"));
 const reporter_js_1 = __importDefault(require("./log/reporter.js"));
 const wifi = wifi_js_1.default.instance;
 const errors = errors_1.default.instance;
@@ -77,6 +79,13 @@ class MainEntryPoint {
                 var discovery_service = new discovery_1.default();
                 var ble = new ble_1.default();
                 var ssh = new systemctl_1.SSH();
+                index_js_2.default.instance.usage()
+                    .then(usage => {
+                    if (usage) {
+                        index_js_1.Logger.identity(usage, ["usage"]);
+                    }
+                })
+                    .catch(err => console.log(err));
                 //test successfull, since working, will reintroduce it in the future
                 //expect around october
                 /*

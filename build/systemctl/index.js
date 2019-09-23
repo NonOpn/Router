@@ -37,6 +37,20 @@ class SSH {
     }
 }
 exports.SSH = SSH;
+class DU {
+    exec(path, depth) {
+        return new Promise((resolve, reject) => {
+            var output = "";
+            const cmd = spawn('/usr/bin/du', ["-h", "-d", "" + depth, path]);
+            cmd.stdout.on("data", (data) => output += data);
+            cmd.on('close', (code) => {
+                console.log(`child process exited with code ${code}`);
+                resolve(output);
+            });
+        });
+    }
+}
+exports.DU = DU;
 class Cat {
     exec(filepath) {
         return new Promise((resolve, reject) => {
