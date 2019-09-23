@@ -72,72 +72,81 @@ class MainEntryPoint {
                 }
             });
             created_domain.run(() => {
-                var enocean = new enocean_js_1.default();
-                var server = new server_js_1.default(enocean);
-                var snmp = new snmp_js_1.default();
-                var push_web = new push_web_js_1.default();
-                var discovery_service = new discovery_1.default();
-                var ble = new ble_1.default();
-                var ssh = new systemctl_1.SSH();
-                index_js_2.default.instance.usage()
-                    .then(usage => {
-                    if (usage) {
-                        index_js_1.Logger.identity({ usage }, ["usage"]);
-                    }
-                })
-                    .catch(err => console.log(err));
-                //test successfull, since working, will reintroduce it in the future
-                //expect around october
-                /*
-                ssh.stop()
-                .then(() => {
-                  console.log("ssh stopped normally...");
-                  return ssh.disable();
-                })
-                .then(() => {
-                  console.log("ssh disabled normally");
-                })
-                .catch(err => {
-                  console.log("error on ssh", err);
-                });
-                */
-                ssh.enable()
+                new Promise((resolve) => {
+                    reporter_js_1.default.instance.start();
+                    index_js_2.default.instance.usage()
+                        .then(usage => {
+                        if (usage) {
+                            index_js_1.Logger.identity({ usage }, ["usage"]);
+                        }
+                        //delay the answer to prevent any issue in this session - to improve, just exploring new features
+                        setTimeout(() => resolve(true), 5000);
+                    })
+                        .catch(err => {
+                        console.log(err);
+                        //delay the answer to prevent any issue in this session - to improve, just exploring new features
+                        setTimeout(() => resolve(true), 5000);
+                    });
+                }).then(() => {
+                    var enocean = new enocean_js_1.default();
+                    var server = new server_js_1.default(enocean);
+                    var snmp = new snmp_js_1.default();
+                    var push_web = new push_web_js_1.default();
+                    var discovery_service = new discovery_1.default();
+                    var ble = new ble_1.default();
+                    var ssh = new systemctl_1.SSH();
+                    //test successfull, since working, will reintroduce it in the future
+                    //expect around october
+                    /*
+                    ssh.stop()
                     .then(() => {
-                    console.log("ssh enabled normally...");
-                    return ssh.start();
-                })
+                      console.log("ssh stopped normally...");
+                      return ssh.disable();
+                    })
                     .then(() => {
-                    console.log("ssh started normally");
-                })
+                      console.log("ssh disabled normally");
+                    })
                     .catch(err => {
-                    console.log("error on ssh", err);
-                });
-                reporter_js_1.default.instance.start();
-                wifi.start();
-                server.start();
-                snmp.connect();
-                push_web.connect();
-                enocean.register(server);
-                discovery_service.bind();
-                ble.start();
-                enocean.on("usb-open", (port) => {
-                    console.log("device opened and ready");
-                    server.emit("usb-open");
-                });
-                enocean.on("usb-closed", (port_instantiated) => {
-                    console.log("device removed");
-                    server.emit("usb-closed");
-                });
-                enocean.on("managed_frame", (frame) => {
-                    ble.onFrame(frame);
-                    server.onFrame(frame);
-                    snmp.onFrame(frame);
-                    push_web.onFrame(frame);
-                });
-                enocean.on("frame", (frame) => {
-                });
-                snmp.on("log", (log) => {
-                    server.emit("log", log);
+                      console.log("error on ssh", err);
+                    });
+                    */
+                    ssh.enable()
+                        .then(() => {
+                        console.log("ssh enabled normally...");
+                        return ssh.start();
+                    })
+                        .then(() => {
+                        console.log("ssh started normally");
+                    })
+                        .catch(err => {
+                        console.log("error on ssh", err);
+                    });
+                    wifi.start();
+                    server.start();
+                    snmp.connect();
+                    push_web.connect();
+                    enocean.register(server);
+                    discovery_service.bind();
+                    ble.start();
+                    enocean.on("usb-open", (port) => {
+                        console.log("device opened and ready");
+                        server.emit("usb-open");
+                    });
+                    enocean.on("usb-closed", (port_instantiated) => {
+                        console.log("device removed");
+                        server.emit("usb-closed");
+                    });
+                    enocean.on("managed_frame", (frame) => {
+                        ble.onFrame(frame);
+                        server.onFrame(frame);
+                        snmp.onFrame(frame);
+                        push_web.onFrame(frame);
+                    });
+                    enocean.on("frame", (frame) => {
+                    });
+                    snmp.on("log", (log) => {
+                        server.emit("log", log);
+                    });
                 });
             });
         }
