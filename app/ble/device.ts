@@ -6,12 +6,30 @@ import Ellips from "../snmp/ellips";
 
 import DataPoint, { DataPointModel } from "../database/data_point";
 import AbstractDevice from "../snmp/abstract";
+import Comptair from "../snmp/comptair";
 
 const model_devices = DeviceModel.instance;
 const TYPE_PARATONAIR = 0;
+const TYPE_COMPTAIR = 1;
+const TYPE_ALERTAIRDC = 2;
 
 export interface OnFrameCallback {
     (device: AbstractDevice|undefined): void;
+}
+
+function stringTypeToInt(type: string) {
+    if(type == "comptair") return 1;
+    if(type == "alertairdc") return 2;
+    if(type == "paratonair") return 0;
+    return 0;
+}
+
+function intTypeToString(type: number) {
+    switch(type) {
+        case TYPE_COMPTAIR: "comptair";
+        case TYPE_ALERTAIRDC: "alertairdc";
+        default: return "paratonair";
+    }
 }
 
 export default class DeviceManagement {
@@ -52,20 +70,52 @@ export default class DeviceManagement {
     }
 
     _databaseDeviceToRealDevice(device: Device|undefined): AbstractDevice|undefined {
-        if(device && device.type == TYPE_PARATONAIR) {
-            return new Paratonair({
-                no_snmp: true,
-                lpsfr: {
-                    type: "paratonair",
-                    serial: device.serial,
-                    internal: device.internal_serial,
-                    id: device.id
-                }
-            });
-        } else {
-            console.log("unnown type !", device);
-            return undefined;
-        } 
+        if(device) {
+            switch(device.type) {
+                case TYPE_COMPTAIR:
+                    return new Comptair({
+                        no_snmp: true,
+                        lpsfr: {
+                            type: intTypeToString(TYPE_COMPTAIR),
+                            serial: device.serial,
+                            internal: device.internal_serial,
+                            id: device.id
+                        }
+                    });
+                case TYPE_ALERTAIRDC:
+                    return new AlertairDC({
+                        no_snmp: true,
+                        lpsfr: {
+                            type: intTypeToString(TYPE_ALERTAIRDC),
+                            serial: device.serial,
+                            internal: device.internal_serial,
+                            id: device.id
+                        }
+                    });
+                case TYPE_PARATONAIR:
+                default:
+                    return new Paratonair({
+                        no_snmp: true,
+                        lpsfr: {
+                            type: intTypeToString(TYPE_PARATONAIR),
+                            serial: device.serial,
+                            internal: device.internal_serial,
+                            id: device.id
+                        }
+                    });
+            }
+        }
+
+        console.log("unnown type !", device);
+        return undefined;
+    }
+
+    setType(device: AbstractDevice, type?: string): Promise<AbstractDevice|undefined> {
+        return device.getInternalSerial()
+        .then(internal_serial => device.setType(type).then(() => internal_serial))
+        .then(internal_serial => model_devices.saveType(internal_serial, stringTypeToInt(type || "paratonair")))
+        .then(() => device)
+        .catch(err => device);
     }
 
     getDevice(internal: string): Promise<AbstractDevice|undefined> {

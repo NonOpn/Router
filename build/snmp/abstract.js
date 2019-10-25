@@ -42,12 +42,24 @@ class AbstractDevice {
     getType() {
         return this._getPromiseCharacteristic("type");
     }
+    setType(type) {
+        if (!type)
+            return new Promise(r => r(true));
+        return this._setPromiseCharacteristic("type", type || "paratonair");
+    }
     _getPromiseCharacteristic(name) {
         return new Promise((resolve, reject) => {
             if (this.params && this.params.lpsfr)
                 resolve(this.params.lpsfr[name]);
             else
                 resolve("");
+        });
+    }
+    _setPromiseCharacteristic(name, value) {
+        return new Promise((resolve, reject) => {
+            if (this.params && this.params.lpsfr)
+                this.params.lpsfr[name] = value;
+            resolve(true);
         });
     }
     getSyncInternalSerial() {

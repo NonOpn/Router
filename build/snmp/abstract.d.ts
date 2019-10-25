@@ -22,8 +22,10 @@ export default class AbstractDevice {
     getUUID(): string;
     getSerial(): Promise<string>;
     getInternalSerial(): Promise<string>;
-    getType(): Promise<number>;
+    getType(): Promise<string>;
+    setType(type?: string): Promise<boolean>;
     _getPromiseCharacteristic(name: string): Promise<any>;
+    _setPromiseCharacteristic(name: string, value: string): Promise<boolean>;
     getSyncInternalSerial(): string | undefined;
     getConnectedStateString(item: DataPointModel | undefined): string;
     getImpactedString(item: DataPointModel | undefined): string;

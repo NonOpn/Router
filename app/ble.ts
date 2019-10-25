@@ -341,11 +341,33 @@ class BLEPrimaryDeviceService extends PrimaryService {
         new BLEAsyncDescriptionCharacteristic("0003", () => device.getType()),
         new BLEAsyncDescriptionCharacteristic("0004", () => device.getConnectedState()),
         new BLEAsyncDescriptionCharacteristic("0005", () => device.getImpactedState()),
-        new BLEAsyncDescriptionCharacteristic("0006", () => this.createSeenDeviceCallback())
+        new BLEAsyncDescriptionCharacteristic("0006", () => this.createSeenDeviceCallback()),
+        new BLEWriteCharacteristic("0007", "Update", (value: string) => this._editType(value))
       ]
     });
 
     this.device = device;
+  }
+
+  _editType(new_type?: string): Promise<boolean> {
+    return device_management.setType(this.device, new_type).then(device => !!device);
+  }
+
+  tryUpdateDevice(device: AbstractDevice) {
+    if(!this.device && device) {
+      this.device = device;
+    } else {
+      Promise.all([
+        this.device.getType(),
+        device.getType()
+      ]).then(types => {
+        if(types && types.length == 2) {
+          if(types[0] != types[1]) {
+            this.device = device;
+          }
+        }
+      }).catch(err => {});
+    }
   }
 
   createSeenDeviceCallback() {
@@ -441,7 +463,10 @@ export default class BLE {
           this._services.forEach(service => {
             const uuid_left = device.getUUID().toLowerCase();
             const uuid_right = service.uuid.toLowerCase();
-            if(uuid_left == uuid_right) found = true;
+            if(service && uuid_left == uuid_right) {
+              found = true;
+              service.tryUpdateDevice(device);
+            }
           });
           if(!found) to_add.push(new BLEPrimaryDeviceService(device));
         });

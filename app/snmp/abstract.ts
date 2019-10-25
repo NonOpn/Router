@@ -58,14 +58,26 @@ export default class AbstractDevice {
     return this._getPromiseCharacteristic("internal");
   }
 
-  getType(): Promise<number> {
+  getType(): Promise<string> {
     return this._getPromiseCharacteristic("type");
+  }
+
+  setType(type?: string): Promise<boolean> {
+    if(!type) return new Promise(r => r(true));
+    return this._setPromiseCharacteristic("type", type || "paratonair");
   }
 
   _getPromiseCharacteristic(name: string): Promise<any> {
     return new Promise((resolve, reject) => {
       if(this.params && this.params.lpsfr) resolve(this.params.lpsfr[name]);
       else resolve("");
+    })
+  }
+
+  _setPromiseCharacteristic(name: string, value: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      if(this.params && this.params.lpsfr) this.params.lpsfr[name] = value;
+      resolve(true);
     })
   }
 

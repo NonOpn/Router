@@ -122,6 +122,19 @@ export default class DeviceModel extends Abstract {
     });
   }
 
+  saveType(internal_serial: string, type: number) {
+    return new Promise((resolve, reject) => {
+      pool.queryParameters("UPDATE Device SET type=? WHERE internal_serial=? ORDER BY id LIMIT 1", [type, internal_serial])
+      .then(results => {
+        resolve(true);
+      })
+      .catch(error => {
+        manageErrorCrash(error, () => console.log("crashed in saveType()"));
+        resolve(undefined);
+      });
+    });
+  }
+
   saveDevice(device: Device): Promise<Device|undefined> {
     return this.saveMultiple([device]).then(devices => {
       console.log("saveDevice", devices);

@@ -11,6 +11,7 @@ export default class DeviceManagement {
     onFrame(data: any): Promise<AbstractDevice | undefined>;
     list(): Promise<AbstractDevice[]>;
     _databaseDeviceToRealDevice(device: Device | undefined): AbstractDevice | undefined;
+    setType(device: AbstractDevice, type?: string): Promise<AbstractDevice | undefined>;
     getDevice(internal: string): Promise<AbstractDevice | undefined>;
     applyData(data: any, device_callback?: OnFrameCallback | undefined): void;
 }

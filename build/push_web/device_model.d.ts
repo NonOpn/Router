@@ -13,6 +13,7 @@ export default class DeviceModel extends Abstract {
     listDevice(): Promise<Device[]>;
     getDeviceForInternalSerial(internal_serial: string): Promise<Device | undefined>;
     getDeviceForSerial(serial: string): Promise<Device | undefined>;
+    saveType(internal_serial: string, type: number): Promise<{}>;
     saveDevice(device: Device): Promise<Device | undefined>;
     saveMultiple(devices: Device[]): Promise<Device[]>;
 }

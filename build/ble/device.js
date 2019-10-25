@@ -5,9 +5,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const device_model_1 = __importDefault(require("../push_web/device_model"));
 const paratonair_1 = __importDefault(require("../snmp/paratonair"));
+const alertairdc_1 = __importDefault(require("../snmp/alertairdc"));
 const data_point_1 = __importDefault(require("../database/data_point"));
+const comptair_1 = __importDefault(require("../snmp/comptair"));
 const model_devices = device_model_1.default.instance;
 const TYPE_PARATONAIR = 0;
+const TYPE_COMPTAIR = 1;
+const TYPE_ALERTAIRDC = 2;
+function stringTypeToInt(type) {
+    if (type == "comptair")
+        return 1;
+    if (type == "alertairdc")
+        return 2;
+    if (type == "paratonair")
+        return 0;
+    return 0;
+}
+function intTypeToString(type) {
+    switch (type) {
+        case TYPE_COMPTAIR: "comptair";
+        case TYPE_ALERTAIRDC: "alertairdc";
+        default: return "paratonair";
+    }
+}
 class DeviceManagement {
     constructor() {
         this.data_point_provider = new data_point_1.default();
@@ -40,21 +60,50 @@ class DeviceManagement {
         });
     }
     _databaseDeviceToRealDevice(device) {
-        if (device && device.type == TYPE_PARATONAIR) {
-            return new paratonair_1.default({
-                no_snmp: true,
-                lpsfr: {
-                    type: "paratonair",
-                    serial: device.serial,
-                    internal: device.internal_serial,
-                    id: device.id
-                }
-            });
+        if (device) {
+            switch (device.type) {
+                case TYPE_COMPTAIR:
+                    return new comptair_1.default({
+                        no_snmp: true,
+                        lpsfr: {
+                            type: intTypeToString(TYPE_COMPTAIR),
+                            serial: device.serial,
+                            internal: device.internal_serial,
+                            id: device.id
+                        }
+                    });
+                case TYPE_ALERTAIRDC:
+                    return new alertairdc_1.default({
+                        no_snmp: true,
+                        lpsfr: {
+                            type: intTypeToString(TYPE_ALERTAIRDC),
+                            serial: device.serial,
+                            internal: device.internal_serial,
+                            id: device.id
+                        }
+                    });
+                case TYPE_PARATONAIR:
+                default:
+                    return new paratonair_1.default({
+                        no_snmp: true,
+                        lpsfr: {
+                            type: intTypeToString(TYPE_PARATONAIR),
+                            serial: device.serial,
+                            internal: device.internal_serial,
+                            id: device.id
+                        }
+                    });
+            }
         }
-        else {
-            console.log("unnown type !", device);
-            return undefined;
-        }
+        console.log("unnown type !", device);
+        return undefined;
+    }
+    setType(device, type) {
+        return device.getInternalSerial()
+            .then(internal_serial => device.setType(type).then(() => internal_serial))
+            .then(internal_serial => model_devices.saveType(internal_serial, stringTypeToInt(type || "paratonair")))
+            .then(() => device)
+            .catch(err => device);
     }
     getDevice(internal) {
         console.log("getDevice", internal);
