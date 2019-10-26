@@ -25,6 +25,7 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   # restore the config
   cp tmp_config.json config/snmp.json
 
+  npm install https://github.com/codlab/node-enocean
   npm install
 
   # stop services
