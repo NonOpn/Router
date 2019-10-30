@@ -112,7 +112,10 @@ export default class DeviceManagement {
 
     setType(device: AbstractDevice, type?: string): Promise<AbstractDevice|undefined> {
         return device.getInternalSerial()
-        .then(internal_serial => device.setType(type).then(() => internal_serial))
+        .then(internal_serial => {
+            console.log("setType " + internal_serial+" := " + type);
+            return device.setType(type).then(() => internal_serial)
+        })
         .then(internal_serial => model_devices.saveType(internal_serial, stringTypeToInt(type || "paratonair")))
         .then(() => device)
         .catch(err => device);
