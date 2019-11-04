@@ -93,6 +93,15 @@ export default class AbstractDevice {
     return "not_implemented";
   }
 
+  
+  getAdditionnalInfo1String(item: DataPointModel|undefined): string {
+    return "not_implemented";
+  }
+
+  getAdditionnalInfo2String(item: DataPointModel|undefined): string {
+    return "not_implemented";
+  }
+
   getLPSFR(): any {
     return this.params.lpsfr;
   }
@@ -100,6 +109,16 @@ export default class AbstractDevice {
   getLatest(): Promise<DataPointModel|undefined> {
     const filter: Filter = this.getStandardFilter();
     return this.data_point_provider.findMatching(filter.key, filter.value);
+  }
+
+  getAdditionnalInfo1(): Promise<string> {
+    return this.getLatest()
+    .then(item => this.getAdditionnalInfo1String(item));
+  }
+
+  getAdditionnalInfo2(): Promise<string> {
+    return this.getLatest()
+    .then(item => this.getAdditionnalInfo2String(item));
   }
 
   getConnectedState(): Promise<string> {

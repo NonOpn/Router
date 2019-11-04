@@ -342,7 +342,9 @@ class BLEPrimaryDeviceService extends PrimaryService {
         new BLEAsyncDescriptionCharacteristic("0004", () => device.getConnectedState()),
         new BLEAsyncDescriptionCharacteristic("0005", () => device.getImpactedState()),
         new BLEAsyncDescriptionCharacteristic("0006", () => this.createSeenDeviceCallback()),
-        new BLEWriteCharacteristic("0007", "Update", (value: string) => this._editType(value))
+        new BLEWriteCharacteristic("0007", "Update", (value: string) => this._editType(value)),
+        new BLEAsyncDescriptionCharacteristic("0008", () => device.getAdditionnalInfo1()),
+        new BLEAsyncDescriptionCharacteristic("0009", () => device.getAdditionnalInfo2()),
       ]
     });
 
@@ -350,7 +352,11 @@ class BLEPrimaryDeviceService extends PrimaryService {
   }
 
   _editType(new_type?: string): Promise<boolean> {
-    return device_management.setType(this.device, new_type).then(device => !!device);
+    return device_management.setType(this.device, new_type).then(device => {
+      if(device) this.device = device;
+      console.warn("device is now ... ", device);
+      return !!device;
+    });
   }
 
   tryUpdateDevice(device: AbstractDevice) {
