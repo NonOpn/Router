@@ -71,12 +71,26 @@ class AbstractDevice {
     getImpactedString(item) {
         return "not_implemented";
     }
+    getAdditionnalInfo1String(item) {
+        return "not_implemented";
+    }
+    getAdditionnalInfo2String(item) {
+        return "not_implemented";
+    }
     getLPSFR() {
         return this.params.lpsfr;
     }
     getLatest() {
         const filter = this.getStandardFilter();
         return this.data_point_provider.findMatching(filter.key, filter.value);
+    }
+    getAdditionnalInfo1() {
+        return this.getLatest()
+            .then(item => this.getAdditionnalInfo1String(item));
+    }
+    getAdditionnalInfo2() {
+        return this.getLatest()
+            .then(item => this.getAdditionnalInfo2String(item));
     }
     getConnectedState() {
         return this.getLatest()

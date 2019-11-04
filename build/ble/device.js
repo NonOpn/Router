@@ -8,23 +8,28 @@ const paratonair_1 = __importDefault(require("../snmp/paratonair"));
 const alertairdc_1 = __importDefault(require("../snmp/alertairdc"));
 const data_point_1 = __importDefault(require("../database/data_point"));
 const comptair_1 = __importDefault(require("../snmp/comptair"));
+const alertairts_1 = __importDefault(require("../snmp/alertairts"));
 const model_devices = device_model_1.default.instance;
-const TYPE_PARATONAIR = 0;
+const TYPE_PARATONAIR = 3;
 const TYPE_COMPTAIR = 1;
 const TYPE_ALERTAIRDC = 2;
+const TYPE_ALERTAIRTS = 4;
 function stringTypeToInt(type) {
     if (type == "comptair")
         return 1;
     if (type == "alertairdc")
         return 2;
     if (type == "paratonair")
-        return 0;
+        return 3;
+    if (type == "alertairts")
+        return 4;
     return 0;
 }
 function intTypeToString(type) {
     switch (type) {
-        case TYPE_COMPTAIR: "comptair";
-        case TYPE_ALERTAIRDC: "alertairdc";
+        case TYPE_COMPTAIR: return "comptair";
+        case TYPE_ALERTAIRDC: return "alertairdc";
+        case TYPE_ALERTAIRTS: return "alertairts";
         default: return "paratonair";
     }
 }
@@ -82,6 +87,16 @@ class DeviceManagement {
                             id: device.id
                         }
                     });
+                case TYPE_ALERTAIRTS:
+                    return new alertairts_1.default({
+                        no_snmp: true,
+                        lpsfr: {
+                            type: intTypeToString(TYPE_ALERTAIRTS),
+                            serial: device.serial,
+                            internal: device.internal_serial,
+                            id: device.id
+                        }
+                    });
                 case TYPE_PARATONAIR:
                 default:
                     return new paratonair_1.default({
@@ -100,9 +115,15 @@ class DeviceManagement {
     }
     setType(device, type) {
         return device.getInternalSerial()
-            .then(internal_serial => device.setType(type).then(() => internal_serial))
-            .then(internal_serial => model_devices.saveType(internal_serial, stringTypeToInt(type || "paratonair")))
-            .then(() => device)
+            .then(internal_serial => {
+            console.log("setType " + internal_serial + " := " + type);
+            return device.setType(type).then(() => internal_serial);
+        })
+            .then(internal_serial => {
+            return model_devices.saveType(internal_serial, stringTypeToInt(type || "paratonair"))
+                .then(() => this.getDevice(internal_serial));
+        })
+            .then(device => device)
             .catch(err => device);
     }
     getDevice(internal) {
@@ -136,12 +157,23 @@ class DeviceManagement {
                             if (config_internal)
                                 config_internal = config_internal.substring(0, 6);
                         }
+                        if (!type)
+                            type = "";
                         console.log("having device := ", device);
-                        if (rawdata.length > 6 && (type === "paratonair" || type === "comptair")) {
-                            if (internal === config_internal) {
-                                console.log("having internal correct");
-                                this.data_point_provider.savePoint(serial, config_internal, data.sender, data.rawDataStr);
-                            }
+                        var valid_device = false;
+                        switch (type) {
+                            case "paratonair":
+                            case "comptair":
+                            case "alertairdc":
+                            case "alertairts":
+                                valid_device = true;
+                                break;
+                            default:
+                                valid_device = false;
+                        }
+                        if (rawdata.length > 6 && valid_device && internal === config_internal) {
+                            console.log("having internal correct " + type);
+                            this.data_point_provider.savePoint(serial, config_internal, data.sender, data.rawDataStr);
                         }
                         if (device_callback && device) {
                             device_callback(device);

@@ -261,13 +261,20 @@ class BLEPrimaryDeviceService extends safeBleno_1.PrimaryService {
                 new BLEAsyncDescriptionCharacteristic("0004", () => device.getConnectedState()),
                 new BLEAsyncDescriptionCharacteristic("0005", () => device.getImpactedState()),
                 new BLEAsyncDescriptionCharacteristic("0006", () => this.createSeenDeviceCallback()),
-                new BLEWriteCharacteristic("0007", "Update", (value) => this._editType(value))
+                new BLEWriteCharacteristic("0007", "Update", (value) => this._editType(value)),
+                new BLEAsyncDescriptionCharacteristic("0008", () => device.getAdditionnalInfo1()),
+                new BLEAsyncDescriptionCharacteristic("0009", () => device.getAdditionnalInfo2()),
             ]
         });
         this.device = device;
     }
     _editType(new_type) {
-        return device_management.setType(this.device, new_type).then(device => !!device);
+        return device_management.setType(this.device, new_type).then(device => {
+            if (device)
+                this.device = device;
+            console.warn("device is now ... ", device);
+            return !!device;
+        });
     }
     tryUpdateDevice(device) {
         if (!this.device && device) {

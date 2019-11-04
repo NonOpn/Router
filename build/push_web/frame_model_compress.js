@@ -76,6 +76,7 @@ class FrameModelCompress extends abstract_js_1.default {
         }
         return "00";
     }
+    //ffffff - ffffff0000000b - 01824a - 995a01
     getCompressedFrame(frame) {
         if (frame && frame.length > 14 + 20 + 8)
             return frame.substring(14 + 6, 14 + 20);

@@ -29,8 +29,12 @@ export default class AbstractDevice {
     getSyncInternalSerial(): string | undefined;
     getConnectedStateString(item: DataPointModel | undefined): string;
     getImpactedString(item: DataPointModel | undefined): string;
+    getAdditionnalInfo1String(item: DataPointModel | undefined): string;
+    getAdditionnalInfo2String(item: DataPointModel | undefined): string;
     getLPSFR(): any;
     getLatest(): Promise<DataPointModel | undefined>;
+    getAdditionnalInfo1(): Promise<string>;
+    getAdditionnalInfo2(): Promise<string>;
     getConnectedState(): Promise<string>;
     getImpactedState(): Promise<string>;
     getStandardFilter(): Filter;
