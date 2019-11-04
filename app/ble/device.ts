@@ -29,9 +29,9 @@ function stringTypeToInt(type: string) {
 
 function intTypeToString(type: number) {
     switch(type) {
-        case TYPE_COMPTAIR: "comptair";
-        case TYPE_ALERTAIRDC: "alertairdc";
-        case TYPE_ALERTAIRTS: "alertairts";
+        case TYPE_COMPTAIR: return "comptair";
+        case TYPE_ALERTAIRDC: return "alertairdc";
+        case TYPE_ALERTAIRTS: return "alertairts";
         default: return "paratonair";
     }
 }
