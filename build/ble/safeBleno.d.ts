@@ -1,4 +1,3 @@
-/// <reference types="node" />
 export interface SetServiceCallback {
     (err: any): any;
 }

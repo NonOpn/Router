@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const log_1 = require("../log");
 var bleno = null;
 try {
     bleno = require("bleno");
@@ -7,6 +8,7 @@ try {
 catch (e) {
     console.log(e);
     bleno = null;
+    log_1.Logger.error(e, "Erreur while importing ble");
 }
 class SafePrimaryService {
 }

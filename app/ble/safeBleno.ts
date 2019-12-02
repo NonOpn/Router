@@ -1,3 +1,4 @@
+import { Logger } from "../log";
 
 var bleno: any = null;
 try {
@@ -5,6 +6,7 @@ try {
 } catch (e) {
   console.log(e);
   bleno = null;
+  Logger.error(e, "Erreur while importing ble");
 }
 
 export interface SetServiceCallback {
