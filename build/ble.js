@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 const config_1 = __importDefault(require("./config/config"));
 const device_model_1 = __importDefault(require("./push_web/device_model"));
@@ -23,7 +23,7 @@ const RESULT_ATTR_NOT_LONG = 0x0b;
 const RESULT_INVALID_ATTRIBUTE_LENGTH = 0x0d;
 const RESULT_UNLIKELY_ERROR = 0x0e;
 var id = "Routair";
-if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) { //0xAABBCCDD
+if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) {
     id += config_1.default.identity.substr(0, 5 * 2);
 }
 var seenDevices = {
@@ -373,7 +373,7 @@ class BLE {
             }
             if (!this._refreshing_called_once || to_add.length > 0) {
                 this._refreshing_called_once = true;
-                this._services_uuid = this._services.map(i => i.uuid);
+                this._services_uuid = this._services.map(i => i.uuid).filter(u => u.indexOf("bee") >= 0);
                 safeBleno_1.startAdvertising(id, this._services_uuid);
                 if (this._started_advertising_ok) {
                     safeBleno_1.setServices(this._services, (err) => console.log('setServices: ' + (err ? 'error ' + err : 'success')));
@@ -382,6 +382,7 @@ class BLE {
         })
             .catch(err => {
             console.error(err);
+            this._services_uuid = this._services.map(i => i.uuid).filter(u => u.indexOf("bee") >= 0);
             safeBleno_1.startAdvertising(id, this._services_uuid);
         });
     }

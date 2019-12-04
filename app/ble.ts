@@ -484,8 +484,7 @@ export default class BLE {
       if(!this._refreshing_called_once || to_add.length > 0) {
         this._refreshing_called_once = true;
 
-        this._services_uuid = this._services.map(i => i.uuid);
-
+        this._services_uuid = this._services.map(i => i.uuid).filter(u => u.indexOf("bee") >= 0);
         startAdvertising(id, this._services_uuid);
   
         if(this._started_advertising_ok) {
@@ -495,6 +494,7 @@ export default class BLE {
     })
     .catch(err => {
       console.error(err);
+      this._services_uuid = this._services.map(i => i.uuid).filter(u => u.indexOf("bee") >= 0);
       startAdvertising(id, this._services_uuid);
     })
   }
