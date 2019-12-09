@@ -132,6 +132,8 @@ class BLEWriteCharacteristic extends Characteristic {
 
     if(onValueRead) this._onValueRead = onValueRead;
     else this._onValueRead = () => new Promise(r => r(false));
+
+    setInterval(() => tryFlush(), 1000);
   }
 
 
@@ -140,6 +142,7 @@ class BLEWriteCharacteristic extends Characteristic {
       console.log("setting " + data.toString());
       this._tmp = data.toString();
       if(!this._tmp) this._tmp = "";
+      callback(RESULT_SUCCESS);
 
       setTimeout(() => {
         const tmp = this._tmp;
@@ -151,17 +154,15 @@ class BLEWriteCharacteristic extends Characteristic {
     
         p.then(result => {
           console.log("write set ", result);
-          if(result) callback(RESULT_SUCCESS);
-          else callback(RESULT_UNLIKELY_ERROR);
         }).catch(err => {
           console.log(err);
-          callback(RESULT_UNLIKELY_ERROR);
         });
     
       }, 2000);
     } else {
       console.log("adding " + data.toString());
       this._tmp += data.toString();
+      callback(RESULT_SUCCESS);
     }
   };
 }
