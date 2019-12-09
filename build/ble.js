@@ -487,6 +487,7 @@ class BLE {
         var j = undefined;
         const tmp = this.json(value);
         var net_interface = "";
+        console.log("network " + tmp.password + " " + visualisation_1.default.password);
         if (tmp.password === visualisation_1.default.password) {
             console.log("configuration valid found, saving it");
             if (tmp.interface) {
