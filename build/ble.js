@@ -84,14 +84,14 @@ class BLEWriteCharacteristic extends safeBleno_1.Characteristic {
             this._onValueRead = onValueRead;
         else
             this._onValueRead = () => new Promise(r => r(false));
-        setInterval(() => this.tryFlush(), 1000);
+        setInterval(() => this.tryFlush(), 100);
     }
     tryFlush() {
         this._counter--;
         if (this._counter < 0 && this._tmp) {
             const tmp = this._tmp;
             this._tmp = undefined;
-            console.log('WiFiBle - onWriteRequest: value = ', this._tmp);
+            console.log('WiFiBle - onWriteRequest: value = ', tmp);
             var p = undefined;
             if (tmp)
                 p = this._onValueRead(tmp);
