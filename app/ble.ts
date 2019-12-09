@@ -121,7 +121,7 @@ class BLEFrameNotify extends Characteristic {
 
 class BLEWriteCharacteristic extends Characteristic {
   _onValueRead: BLEWriteCallback;
-  _tmp?: string|undefined = null;
+  _tmp?: string|undefined = undefined;
 
   constructor(uuid: string, value: string, onValueRead: BLEWriteCallback) {
     super({
@@ -133,37 +133,42 @@ class BLEWriteCharacteristic extends Characteristic {
     if(onValueRead) this._onValueRead = onValueRead;
     else this._onValueRead = () => new Promise(r => r(false));
 
-    setInterval(() => tryFlush(), 1000);
+    setInterval(() => this.tryFlush(), 1000);
   }
 
+  _counter = 0;
+
+  tryFlush() {
+    this._counter --;
+
+    if(this._counter < 0 && this._tmp){
+      const tmp = this._tmp;
+      this._tmp = undefined;
+      console.log('WiFiBle - onWriteRequest: value = ', this._tmp);
+      var p = undefined;
+      if(tmp) p = this._onValueRead(tmp);
+      else p = new Promise((r) => r());
+  
+      p.then(result => {
+        console.log("write set ", result);
+      }).catch(err => {
+        console.log(err);
+      });
+    }
+
+    if(this._counter < 0) this._counter = 0;
+  }
 
   onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback) {
+    console.log("setting " + data.toString()+" "+this._tmp);
     if(!this._tmp) {
-      console.log("setting " + data.toString());
       this._tmp = data.toString();
       if(!this._tmp) this._tmp = "";
-      callback(RESULT_SUCCESS);
-
-      setTimeout(() => {
-        const tmp = this._tmp;
-        this._tmp = undefined;
-        console.log('WiFiBle - onWriteRequest: value = ' + offset, data);
-        var p = undefined;
-        if(tmp) p = this._onValueRead(tmp);
-        else p = new Promise((r) => r());
-    
-        p.then(result => {
-          console.log("write set ", result);
-        }).catch(err => {
-          console.log(err);
-        });
-    
-      }, 2000);
     } else {
-      console.log("adding " + data.toString());
       this._tmp += data.toString();
-      callback(RESULT_SUCCESS);
     }
+    callback(RESULT_SUCCESS);
+    this._counter = 10;
   };
 }
 
