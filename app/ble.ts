@@ -620,7 +620,7 @@ export default class BLE {
     const tmp = this.json(value);
     var net_interface: string = "";
 
-    if(tmp.password === visualisation.password && tmp.ssid && tmp.passphrase) {
+    if(tmp.password === visualisation.password) {
       console.log("configuration valid found, saving it");
       if(tmp.interface) {
         if("eth0" == tmp.interface) net_interface = "eth0";
