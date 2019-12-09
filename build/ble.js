@@ -78,28 +78,41 @@ class BLEWriteCharacteristic extends safeBleno_1.Characteristic {
             uuid: uuid,
             properties: ['write'],
         });
+        this._tmp = null;
         if (onValueRead)
             this._onValueRead = onValueRead;
         else
             this._onValueRead = () => new Promise(r => r(false));
     }
     onWriteRequest(data, offset, withoutResponse, callback) {
-        console.log('WiFiBle - onWriteRequest: value = ', data);
-        var p = undefined;
-        if (data)
-            p = this._onValueRead(data.toString());
-        else
-            p = new Promise((r) => r());
-        p.then(result => {
-            console.log("write set ", result);
-            if (result)
-                callback(RESULT_SUCCESS);
-            else
-                callback(RESULT_UNLIKELY_ERROR);
-        }).catch(err => {
-            console.log(err);
-            callback(RESULT_UNLIKELY_ERROR);
-        });
+        if (!this._tmp) {
+            this._tmp = data.toString();
+            if (!this._tmp)
+                this._tmp = "";
+            setTimeout(() => {
+                const tmp = this._tmp;
+                this._tmp = undefined;
+                console.log('WiFiBle - onWriteRequest: value = ' + offset, data);
+                var p = undefined;
+                if (data)
+                    p = this._onValueRead(data.toString());
+                else
+                    p = new Promise((r) => r());
+                p.then(result => {
+                    console.log("write set ", result);
+                    if (result)
+                        callback(RESULT_SUCCESS);
+                    else
+                        callback(RESULT_UNLIKELY_ERROR);
+                }).catch(err => {
+                    console.log(err);
+                    callback(RESULT_UNLIKELY_ERROR);
+                });
+            }, 2000);
+        }
+        else {
+            this._tmp += data.toString();
+        }
     }
     ;
 }

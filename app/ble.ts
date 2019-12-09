@@ -121,6 +121,7 @@ class BLEFrameNotify extends Characteristic {
 
 class BLEWriteCharacteristic extends Characteristic {
   _onValueRead: BLEWriteCallback;
+  _tmp?: string|undefined = null;
 
   constructor(uuid: string, value: string, onValueRead: BLEWriteCallback) {
     super({
@@ -133,20 +134,33 @@ class BLEWriteCharacteristic extends Characteristic {
     else this._onValueRead = () => new Promise(r => r(false));
   }
 
-  onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback) {
-    console.log('WiFiBle - onWriteRequest: value = ', data);
-    var p = undefined;
-    if(data) p = this._onValueRead(data.toString());
-    else p = new Promise((r) => r());
 
-    p.then(result => {
-      console.log("write set ", result);
-      if(result) callback(RESULT_SUCCESS);
-      else callback(RESULT_UNLIKELY_ERROR);
-    }).catch(err => {
-      console.log(err);
-      callback(RESULT_UNLIKELY_ERROR);
-    });
+  onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback) {
+    if(!this._tmp) {
+      this._tmp = data.toString();
+      if(!this._tmp) this._tmp = "";
+
+      setTimeout(() => {
+        const tmp = this._tmp;
+        this._tmp = undefined;
+        console.log('WiFiBle - onWriteRequest: value = ' + offset, data);
+        var p = undefined;
+        if(data) p = this._onValueRead(data.toString());
+        else p = new Promise((r) => r());
+    
+        p.then(result => {
+          console.log("write set ", result);
+          if(result) callback(RESULT_SUCCESS);
+          else callback(RESULT_UNLIKELY_ERROR);
+        }).catch(err => {
+          console.log(err);
+          callback(RESULT_UNLIKELY_ERROR);
+        });
+    
+      }, 2000);
+    } else {
+      this._tmp += data.toString();
+    }
   };
 }
 
