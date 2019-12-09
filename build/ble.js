@@ -338,7 +338,7 @@ class BLE {
             this._system_service = new BLEPrimarySystemService("bee8");
             return;
         }
-        this._notify_frame = new BLEFrameNotify("0102", "Notify");
+        //this._notify_frame = new BLEFrameNotify("0102", "Notify");
         this._characteristics = [
             new BLEDescriptionCharacteristic("0001", config_1.default.identity),
             new BLEDescriptionCharacteristic("0002", config_1.default.version),
@@ -347,8 +347,8 @@ class BLE {
             new BLEAsyncDescriptionCharacteristic("0103", () => this._onDeviceSeenCall()),
             new BLEReadWriteLogCharacteristic("0104"),
             new BLEReadWriteLogCharacteristic("0105", true),
-            new BLEReadWriteLogCharacteristic("0106", true, false),
-            this._notify_frame
+            new BLEReadWriteLogCharacteristic("0106", true, false) //,
+            //this._notify_frame
         ];
         this._refreshing_called_once = false;
         this._ble_service = new BLEPrimaryService(this._characteristics);

@@ -442,7 +442,7 @@ export default class BLE {
       return;
     }
 
-    this._notify_frame = new BLEFrameNotify("0102", "Notify");
+    //this._notify_frame = new BLEFrameNotify("0102", "Notify");
 
     this._characteristics = [
       new BLEDescriptionCharacteristic("0001", config.identity),
@@ -452,8 +452,8 @@ export default class BLE {
       new BLEAsyncDescriptionCharacteristic("0103", () => this._onDeviceSeenCall()),
       new BLEReadWriteLogCharacteristic("0104"),
       new BLEReadWriteLogCharacteristic("0105", true),
-      new BLEReadWriteLogCharacteristic("0106", true, false),
-      this._notify_frame
+      new BLEReadWriteLogCharacteristic("0106", true, false) //,
+      //this._notify_frame
     ];
 
     this._refreshing_called_once = false;
