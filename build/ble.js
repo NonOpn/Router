@@ -86,6 +86,7 @@ class BLEWriteCharacteristic extends safeBleno_1.Characteristic {
     }
     onWriteRequest(data, offset, withoutResponse, callback) {
         if (!this._tmp) {
+            console.log("setting " + data.toString());
             this._tmp = data.toString();
             if (!this._tmp)
                 this._tmp = "";
@@ -94,8 +95,8 @@ class BLEWriteCharacteristic extends safeBleno_1.Characteristic {
                 this._tmp = undefined;
                 console.log('WiFiBle - onWriteRequest: value = ' + offset, data);
                 var p = undefined;
-                if (data)
-                    p = this._onValueRead(data.toString());
+                if (tmp)
+                    p = this._onValueRead(tmp);
                 else
                     p = new Promise((r) => r());
                 p.then(result => {
@@ -111,6 +112,7 @@ class BLEWriteCharacteristic extends safeBleno_1.Characteristic {
             }, 2000);
         }
         else {
+            console.log("adding " + data.toString());
             this._tmp += data.toString();
         }
     }
