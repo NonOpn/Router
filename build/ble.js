@@ -454,7 +454,7 @@ class BLE {
             return;
         }
         console.log("sending frame");
-        this._notify_frame.onFrame(frame);
+        this._notify_frame && this._notify_frame.onFrame(frame);
         device_management.onFrame(frame)
             .then((device) => {
             if (device) {
