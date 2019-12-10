@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-const VERSION = "1.13";//process.env.VERSION || "1.0";
+const VERSION = "1.14";//process.env.VERSION || "1.0";
 
 export interface Config {
   identity: string|undefined|null,

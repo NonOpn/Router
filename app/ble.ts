@@ -406,7 +406,7 @@ class BLEPrimaryDeviceService extends PrimaryService {
 
 export default class BLE {
 
-  _notify_frame: BLEFrameNotify;
+  _notify_frame?: BLEFrameNotify;
   _characteristics: any[]; //Characteristic
   _ble_service: BLEPrimaryService;
   _system_service: BLEPrimarySystemService;
@@ -584,7 +584,8 @@ export default class BLE {
     }
 
     console.log("sending frame");
-    this._notify_frame.onFrame(frame);
+    this._notify_frame && this._notify_frame.onFrame(frame);
+
     device_management.onFrame(frame)
     .then((device: AbstractDevice|undefined) => {
       if(device) {
