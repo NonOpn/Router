@@ -170,7 +170,7 @@ export default class DeviceManagement {
                             if(config_internal) config_internal = config_internal.substring(0, 6);
                         }
                         if(!type) type = "";
-                        console.log("having device := ", device);
+
                         var valid_device = false;
                         switch(type) {
                             case "paratonair":
