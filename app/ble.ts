@@ -376,7 +376,6 @@ class BLEPrimaryDeviceService extends PrimaryService {
   _editType(new_type?: string): Promise<boolean> {
     return device_management.setType(this.device, new_type).then(device => {
       if(device) this.device = device;
-      console.warn("device is now ... ", device);
       return !!device;
     });
   }
