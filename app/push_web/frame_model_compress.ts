@@ -24,6 +24,7 @@ pool.query("CREATE TABLE IF NOT EXISTS FramesCompress ("
 .then(() => pool.query("ALTER TABLE FramesCompress ADD INDEX `product_id` (`product_id`);", true))
 .then(() => pool.query("ALTER TABLE FramesCompress ADD INDEX `striken` (`striken`);", true))
 .then(() => pool.query("ALTER TABLE FramesCompress ADD INDEX `connected` (`connected`);", true))
+.then(() => pool.query("ALTER TABLE FramesCompress ADD INDEX `is_alert` (`is_alert`);", true))
 .then(() => console.log("finished"))
 .catch(err => console.log(err));
 
@@ -89,7 +90,7 @@ export default class FrameModelCompress extends Abstract {
   invalidateAlerts(product_id: number): Promise<boolean> {
     return new Promise((resolve, reject) => {
       console.log("set is_alert = null where id", product_id);
-      pool.queryParameters("UPDATE FramesCompress SET is_alert = NULL WHERE product_id = ?", [product_id])
+      pool.queryParameters("UPDATE FramesCompress SET is_alert = NULL WHERE product_id = ? AND is_alert IS NOT NULL", [product_id])
       .then(results => resolve(true))
       .catch(err => manageErrorCrash(err, reject));
     });
