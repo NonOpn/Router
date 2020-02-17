@@ -9,21 +9,24 @@ const alertairdc_1 = __importDefault(require("../snmp/alertairdc"));
 const data_point_1 = __importDefault(require("../database/data_point"));
 const comptair_1 = __importDefault(require("../snmp/comptair"));
 const alertairts_1 = __importDefault(require("../snmp/alertairts"));
+const frame_model_compress_1 = __importDefault(require("../push_web/frame_model_compress"));
 const model_devices = device_model_1.default.instance;
+const TYPE_UNASSIGNED = 0;
 const TYPE_PARATONAIR = 3;
 const TYPE_COMPTAIR = 1;
 const TYPE_ALERTAIRDC = 2;
 const TYPE_ALERTAIRTS = 4;
+const VALID_TYPES = ["comptair", "alertairdc", "paratonair", "alertairts"];
 function stringTypeToInt(type) {
     if (type == "comptair")
-        return 1;
+        return TYPE_COMPTAIR;
     if (type == "alertairdc")
-        return 2;
+        return TYPE_ALERTAIRDC;
     if (type == "paratonair")
-        return 3;
+        return TYPE_PARATONAIR;
     if (type == "alertairts")
-        return 4;
-    return 0;
+        return TYPE_ALERTAIRTS;
+    return TYPE_UNASSIGNED;
 }
 function intTypeToString(type) {
     switch (type) {
@@ -113,23 +116,31 @@ class DeviceManagement {
         return undefined;
     }
     setType(device, type) {
+        console.log("setType", { product_id: device.getId(), type });
         return device.getInternalSerial()
-            .then(internal_serial => {
-            console.log("setType " + internal_serial + " := " + type);
-            return device.setType(type).then(() => internal_serial);
-        })
-            .then(internal_serial => {
-            return model_devices.saveType(internal_serial, stringTypeToInt(type || "paratonair"))
-                .then(() => this.getDevice(internal_serial));
+            .then(serial => {
+            return device.getType()
+                .then(previous_type => {
+                console.log("setType > update ? ", { previous_type, type });
+                if (previous_type != type) {
+                    console.log("setType > update ? update to do");
+                    return frame_model_compress_1.default.instance.invalidateAlerts(device.getId())
+                        .then(() => device.setType(type).then(() => serial));
+                }
+                console.log("setType > update ? no update to do");
+                return device.setType(type).then(() => serial);
+            })
+                .then(serial => {
+                return model_devices.saveType(serial, stringTypeToInt(type || "paratonair"))
+                    .then(() => this.getDevice(serial));
+            });
         })
             .then(device => device)
             .catch(err => device);
     }
     getDevice(internal) {
-        console.log("getDevice", internal);
         return model_devices.getDeviceForInternalSerial(internal)
             .then(device => {
-            console.log("getDevice, first :=", device);
             if (device)
                 return device;
             return model_devices.saveDevice({ serial: "", internal_serial: internal, type: TYPE_PARATONAIR });
@@ -170,7 +181,6 @@ class DeviceManagement {
                                 valid_device = false;
                         }
                         if (rawdata.length > 6 && valid_device && internal === config_internal) {
-                            console.log("having internal correct " + type);
                             this.data_point_provider.savePoint(serial, config_internal, data.sender, data.rawDataStr);
                         }
                         if (device_callback && device) {

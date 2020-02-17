@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 const pool_1 = __importDefault(require("./pool"));
 const abstract_js_1 = __importDefault(require("../database/abstract.js"));
@@ -11,6 +11,7 @@ function create() {
         + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
         + "`serial` VARCHAR(20) NOT NULL,"
         + "`internal_serial` VARCHAR(20) NOT NULL,"
+        + "`type_set` TINYINT(1) DEFAULT 0,"
         + "`type` INTEGER,"
         + "KEY `internal_serial` (`internal_serial`)"
         + ")ENGINE=MyISAM;")
@@ -111,7 +112,7 @@ class DeviceModel extends abstract_js_1.default {
     }
     saveType(internal_serial, type) {
         return new Promise((resolve, reject) => {
-            pool.queryParameters("UPDATE Device SET type=? WHERE internal_serial=? ORDER BY id LIMIT 1", [type, internal_serial])
+            pool.queryParameters("UPDATE Device SET type_set=1, type=? WHERE internal_serial=? ORDER BY id LIMIT 1", [type, internal_serial])
                 .then(results => {
                 resolve(true);
             })

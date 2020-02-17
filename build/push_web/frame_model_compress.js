@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 const pool_1 = __importDefault(require("./pool"));
 const abstract_js_1 = __importDefault(require("../database/abstract.js"));
@@ -15,14 +15,17 @@ pool.query("CREATE TABLE IF NOT EXISTS FramesCompress ("
     + "`product_id` INTEGER,"
     + "`striken` TINYINT(1) DEFAULT 0,"
     + "`connected` TINYINT(1) DEFAULT 0,"
+    + "`is_alert` TINYINT(1) DEFAULT NULL,"
     + "KEY `timestamp` (`timestamp`)"
     + ")ENGINE=MyISAM;")
     .then(() => pool.query("ALTER TABLE FramesCompress ADD COLUMN `product_id` INTEGER", true))
     .then(() => pool.query("ALTER TABLE FramesCompress ADD COLUMN `striken` INTEGER", true))
     .then(() => pool.query("ALTER TABLE FramesCompress ADD COLUMN `connected` INTEGER", true))
+    .then(() => pool.query("ALTER TABLE FramesCompress ADD COLUMN `is_alert` TINYINT(1) DEFAULT NULL", true))
     .then(() => pool.query("ALTER TABLE FramesCompress ADD INDEX `product_id` (`product_id`);", true))
     .then(() => pool.query("ALTER TABLE FramesCompress ADD INDEX `striken` (`striken`);", true))
     .then(() => pool.query("ALTER TABLE FramesCompress ADD INDEX `connected` (`connected`);", true))
+    .then(() => pool.query("ALTER TABLE FramesCompress ADD INDEX `is_alert` (`is_alert`);", true))
     .then(() => console.log("finished"))
     .catch(err => console.log(err));
 const FRAME_MODEL = "Transaction";
@@ -66,6 +69,14 @@ class FrameModelCompress extends abstract_js_1.default {
         return new Promise((resolve, reject) => {
             pool.queryParameters("SELECT COUNT(*) FROM FramesCompress WHERE product_id = ? " + append + " ORDER BY timestamp LIMIT 100", [device.id, timestamp_in_past])
                 .then(results => resolve(results))
+                .catch(err => manageErrorCrash(err, reject));
+        });
+    }
+    invalidateAlerts(product_id) {
+        return new Promise((resolve, reject) => {
+            console.log("set is_alert = null where id", product_id);
+            pool.queryParameters("UPDATE FramesCompress SET is_alert = NULL WHERE product_id = ? AND is_alert IS NOT NULL", [product_id])
+                .then(results => resolve(true))
                 .catch(err => manageErrorCrash(err, reject));
         });
     }
