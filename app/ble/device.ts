@@ -8,26 +8,31 @@ import DataPoint, { DataPointModel } from "../database/data_point";
 import AbstractDevice from "../snmp/abstract";
 import Comptair from "../snmp/comptair";
 import AlertairTS from "../snmp/alertairts";
+import FrameModelCompress from "../push_web/frame_model_compress";
 
 const model_devices = DeviceModel.instance;
+const TYPE_UNASSIGNED = 0;
 const TYPE_PARATONAIR = 3;
 const TYPE_COMPTAIR = 1;
 const TYPE_ALERTAIRDC = 2;
 const TYPE_ALERTAIRTS = 4;
 
+export type TYPE = "comptair"|"alertairdc"|"paratonair"|"alertairts"
+const VALID_TYPES = ["comptair", "alertairdc", "paratonair", "alertairts"];
+
 export interface OnFrameCallback {
     (device: AbstractDevice|undefined): void;
 }
 
-function stringTypeToInt(type: string) {
-    if(type == "comptair") return 1;
-    if(type == "alertairdc") return 2;
-    if(type == "paratonair") return 3;
-    if(type == "alertairts") return 4;
-    return 0;
+function stringTypeToInt(type: TYPE): number {
+    if(type == "comptair") return TYPE_COMPTAIR;
+    if(type == "alertairdc") return TYPE_ALERTAIRDC;
+    if(type == "paratonair") return TYPE_PARATONAIR;
+    if(type == "alertairts") return TYPE_ALERTAIRTS;
+    return TYPE_UNASSIGNED;
 }
 
-function intTypeToString(type: number) {
+function intTypeToString(type: number): TYPE {
     switch(type) {
         case TYPE_COMPTAIR: return "comptair";
         case TYPE_ALERTAIRDC: return "alertairdc";
@@ -124,25 +129,33 @@ export default class DeviceManagement {
         return undefined;
     }
 
-    setType(device: AbstractDevice, type?: string): Promise<AbstractDevice|undefined> {
+    setType(device: AbstractDevice, type?: TYPE): Promise<AbstractDevice|undefined> {
+        console.log("setType", {product_id: device.getId(), type});
         return device.getInternalSerial()
-        .then(internal_serial => {
-            console.log("setType " + internal_serial+" := " + type);
-            return device.setType(type).then(() => internal_serial)
-        })
-        .then(internal_serial => {
-            return model_devices.saveType(internal_serial, stringTypeToInt(type || "paratonair"))
-            .then(() => this.getDevice(internal_serial))
+        .then(serial => {
+            return device.getType()
+            .then(previous_type => {
+                console.log("setType > update ? ", {previous_type, type});
+                if(previous_type != type) {
+                    console.log("setType > update ? update to do");
+                    return FrameModelCompress.instance.invalidateAlerts(device.getId())
+                    .then(() => device.setType(type).then(() => serial))
+                }
+                console.log("setType > update ? no update to do");
+                return device.setType(type).then(() => serial)
+            })
+            .then(serial => {
+                return model_devices.saveType(serial, stringTypeToInt(type || "paratonair"))
+                .then(() => this.getDevice(serial))
+            });
         })
         .then(device => device)
         .catch(err => device);
     }
 
     getDevice(internal: string): Promise<AbstractDevice|undefined> {
-        console.log("getDevice", internal);
         return model_devices.getDeviceForInternalSerial(internal)
         .then(device => {
-            console.log("getDevice, first :=", device);
             if(device) return device;
             return model_devices.saveDevice({ serial: "", internal_serial: internal, type: TYPE_PARATONAIR });
         })
@@ -184,7 +197,6 @@ export default class DeviceManagement {
                         }
     
                         if(rawdata.length > 6 && valid_device && internal === config_internal) {
-                            console.log("having internal correct " + type);
                             this.data_point_provider.savePoint(serial, config_internal, data.sender, data.rawDataStr);
                         }
 

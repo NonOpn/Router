@@ -3,7 +3,7 @@ import DeviceModel from "./push_web/device_model";
 import FrameModelCompress from "./push_web/frame_model_compress";
 import visualisation from "./config/visualisation";
 import Wifi from "./wifi/wifi.js";
-import DeviceManagement from "./ble/device";
+import DeviceManagement, { TYPE } from "./ble/device";
 import AbstractDevice from "./snmp/abstract";
 import NetworkInfo from "./network";
 import Diskspace from "./system";
@@ -373,7 +373,7 @@ class BLEPrimaryDeviceService extends PrimaryService {
     this.device = device;
   }
 
-  _editType(new_type?: string): Promise<boolean> {
+  _editType(new_type?: TYPE): Promise<boolean> {
     return device_management.setType(this.device, new_type).then(device => {
       if(device) this.device = device;
       return !!device;

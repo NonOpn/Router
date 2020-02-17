@@ -1,4 +1,3 @@
-import { Transaction } from './frame_model_compress';
 import { Device } from './device_model';
 import Pool from "./pool";
 import Abstract from "../database/abstract.js";
@@ -15,11 +14,13 @@ pool.query("CREATE TABLE IF NOT EXISTS FramesCompress ("
   + "`product_id` INTEGER,"
   + "`striken` TINYINT(1) DEFAULT 0,"
   + "`connected` TINYINT(1) DEFAULT 0,"
+  + "`is_alert` TINYINT(1) DEFAULT NULL,"
   + "KEY `timestamp` (`timestamp`)"
   + ")ENGINE=MyISAM;")
 .then(() => pool.query("ALTER TABLE FramesCompress ADD COLUMN `product_id` INTEGER", true))
 .then(() => pool.query("ALTER TABLE FramesCompress ADD COLUMN `striken` INTEGER", true))
 .then(() => pool.query("ALTER TABLE FramesCompress ADD COLUMN `connected` INTEGER", true))
+.then(() => pool.query("ALTER TABLE FramesCompress ADD COLUMN `is_alert` TINYINT(1) DEFAULT NULL", true))
 .then(() => pool.query("ALTER TABLE FramesCompress ADD INDEX `product_id` (`product_id`);", true))
 .then(() => pool.query("ALTER TABLE FramesCompress ADD INDEX `striken` (`striken`);", true))
 .then(() => pool.query("ALTER TABLE FramesCompress ADD INDEX `connected` (`connected`);", true))
@@ -81,6 +82,15 @@ export default class FrameModelCompress extends Abstract {
       pool.queryParameters("SELECT COUNT(*) FROM FramesCompress WHERE product_id = ? "+append+" ORDER BY timestamp LIMIT 100",
       [device.id, timestamp_in_past])
       .then(results => resolve(results))
+      .catch(err => manageErrorCrash(err, reject));
+    });
+  }
+
+  invalidateAlerts(product_id: number): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      console.log("set is_alert = null where id", product_id);
+      pool.queryParameters("UPDATE FramesCompress SET is_alert = NULL WHERE product_id = ?", [product_id])
+      .then(results => resolve(true))
       .catch(err => manageErrorCrash(err, reject));
     });
   }

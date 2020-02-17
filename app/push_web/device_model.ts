@@ -9,6 +9,7 @@ function create() {
     + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
     + "`serial` VARCHAR(20) NOT NULL,"
     + "`internal_serial` VARCHAR(20) NOT NULL,"
+    + "`type_set` TINYINT(1) DEFAULT 0,"
     + "`type` INTEGER,"
     + "KEY `internal_serial` (`internal_serial`)"
     + ")ENGINE=MyISAM;")
@@ -124,7 +125,7 @@ export default class DeviceModel extends Abstract {
 
   saveType(internal_serial: string, type: number) {
     return new Promise((resolve, reject) => {
-      pool.queryParameters("UPDATE Device SET type=? WHERE internal_serial=? ORDER BY id LIMIT 1", [type, internal_serial])
+      pool.queryParameters("UPDATE Device SET type_set=1, type=? WHERE internal_serial=? ORDER BY id LIMIT 1", [type, internal_serial])
       .then(results => {
         resolve(true);
       })
