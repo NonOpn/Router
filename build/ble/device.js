@@ -165,7 +165,7 @@ class DeviceManagement {
             .then(device => {
             if (device)
                 return device;
-            return model_devices.saveDevice({ serial: "", internal_serial: internal, type: TYPE_PARATONAIR });
+            return model_devices.saveDevice({ serial: "", internal_serial: internal, type: TYPE_UNASSIGNED });
         })
             .then(device => this._databaseDeviceToRealDevice(device));
     }
