@@ -16,27 +16,35 @@ class Comptair extends abstract_1.default {
             value: this.params.lpsfr.serial
         };
     }
-    getConnectedStateString(item) {
-        if (!item || !item.data)
-            return " ";
-        const buffer = new Buffer(item.data, "hex");
+    static isConnected(frame) {
+        if (!frame || frame.length == 0)
+            return false;
+        const buffer = new Buffer(frame, "hex");
         if (buffer.length >= 16) {
             const disconnect = (buffer[9] & 2) === 2;
             if (disconnect)
-                return "disconnect";
+                return false;
         }
-        return "connected";
+        return true;
+    }
+    static isStriken(frame) {
+        if (!frame || frame.length == 0)
+            return false;
+        const buffer = new Buffer(frame, "hex");
+        if (buffer.length >= 16) {
+            const striken = (buffer[9] & 1) === 0;
+            if (striken)
+                return true;
+        }
+        return false;
+    }
+    getConnectedStateString(item) {
+        const connected = item ? Comptair.isConnected(item.data) : false;
+        return connected ? "connected" : "disconnect";
     }
     getImpactedString(item) {
-        if (!item || !item.data)
-            return " ";
-        const buffer = new Buffer(item.data, "hex");
-        if (buffer.length >= 16) {
-            const disconnect = (buffer[9] & 1) === 0;
-            if (disconnect)
-                return "striken";
-        }
-        return "normal";
+        const connected = item ? Comptair.isStriken(item.data) : false;
+        return connected ? "striken" : "normal";
     }
     asMib() {
         return [

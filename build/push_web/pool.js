@@ -14,10 +14,10 @@ class Pool {
         this.mysqladmin = new systemctl_1.MysqlAdmin();
         this.pool = mysql_1.default.createPool({
             connectionLimit: 20,
-            host: mysql_js_1.default.host,
-            user: mysql_js_1.default.user,
-            password: mysql_js_1.default.password,
-            database: mysql_js_1.default.database,
+            host: mysql_js_1.default.host || "",
+            user: mysql_js_1.default.user || "",
+            password: mysql_js_1.default.password || "",
+            database: mysql_js_1.default.database || "",
             debug: false
         });
     }

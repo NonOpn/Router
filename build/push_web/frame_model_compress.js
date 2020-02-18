@@ -135,6 +135,13 @@ class FrameModelCompress extends abstract_js_1.default {
                 .catch(err => manageErrorCrash(err, reject));
         });
     }
+    getFrameIsAlert(index, limit) {
+        return new Promise((resolve, reject) => {
+            pool.queryParameters("SELECT * FROM FramesCompress WHERE id >= ? AND is_alert = 1 ORDER BY id LIMIT ?", [index, limit])
+                .then(results => results && results.length > 0 ? resolve(results) : resolve(undefined))
+                .catch(err => manageErrorCrash(err, reject));
+        });
+    }
     start() {
         if (!this._syncing) {
             console.log("start migrating...");

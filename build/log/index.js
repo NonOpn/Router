@@ -32,5 +32,6 @@ class _Logger {
         });
     }
 }
+exports._Logger = _Logger;
 exports.Logger = new _Logger;
 //# sourceMappingURL=index.js.map

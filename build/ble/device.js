@@ -16,7 +16,7 @@ const TYPE_PARATONAIR = 3;
 const TYPE_COMPTAIR = 1;
 const TYPE_ALERTAIRDC = 2;
 const TYPE_ALERTAIRTS = 4;
-const VALID_TYPES = ["comptair", "alertairdc", "paratonair", "alertairts"];
+const VALID_TYPES = ["comptair", "alertairdc", "paratonair", "alertairts", "unassigned"];
 function stringTypeToInt(type) {
     if (type == "comptair")
         return TYPE_COMPTAIR;
@@ -33,7 +33,8 @@ function intTypeToString(type) {
         case TYPE_COMPTAIR: return "comptair";
         case TYPE_ALERTAIRDC: return "alertairdc";
         case TYPE_ALERTAIRTS: return "alertairts";
-        default: return "paratonair";
+        case TYPE_PARATONAIR: return "paratonair";
+        default: return "unassigned";
     }
 }
 class DeviceManagement {
@@ -45,6 +46,9 @@ class DeviceManagement {
         return this.data_point_provider.getPoint(index);
     }
     */
+    stringToType(type) {
+        return VALID_TYPES.find(t => type == t) || "unassigned";
+    }
     onFrame(data) {
         return new Promise((resolve, reject) => {
             if (data && data.sender) {
@@ -65,6 +69,22 @@ class DeviceManagement {
                 array.push(d); });
             return array;
         });
+    }
+    isAlert(type, frame) {
+        if (!frame)
+            return false;
+        switch (stringTypeToInt(type)) {
+            case TYPE_PARATONAIR:
+                return paratonair_1.default.isStriken(frame) || !paratonair_1.default.isConnected(frame);
+            case TYPE_ALERTAIRDC:
+                return alertairdc_1.default.isCircuitDisconnect(frame) || !alertairdc_1.default.isConnected(frame);
+            case TYPE_ALERTAIRTS:
+                return alertairts_1.default.isAlert(frame) || !alertairts_1.default.isConnected(frame);
+            case TYPE_COMPTAIR:
+                return comptair_1.default.isStriken(frame) || !comptair_1.default.isConnected(frame);
+            default:
+                return false;
+        }
     }
     _databaseDeviceToRealDevice(device) {
         if (device) {
@@ -139,6 +159,8 @@ class DeviceManagement {
             .catch(err => device);
     }
     getDevice(internal) {
+        if (internal == "ffffff")
+            return Promise.resolve(undefined);
         return model_devices.getDeviceForInternalSerial(internal)
             .then(device => {
             if (device)

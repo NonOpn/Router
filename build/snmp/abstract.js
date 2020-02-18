@@ -22,9 +22,7 @@ class AbstractDevice {
     }
     getId() {
         const lpsfr = this.getLPSFR();
-        if (lpsfr && lpsfr.id)
-            return lpsfr.id;
-        return 0;
+        return lpsfr && lpsfr.id ? lpsfr.id : 0;
     }
     getUUID() {
         var uuid = this.getId().toString(16);

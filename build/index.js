@@ -15,6 +15,7 @@ const systemctl_1 = require("./systemctl");
 const index_js_1 = require("./log/index.js");
 const index_js_2 = __importDefault(require("./system/index.js"));
 const reporter_js_1 = __importDefault(require("./log/reporter.js"));
+const frame_manager_alert_js_1 = __importDefault(require("./frame_manager_alert.js"));
 const wifi = wifi_js_1.default.instance;
 const errors = errors_1.default.instance;
 const RESTART_DELAY = 180000; //restart the program after 180 000 ms
@@ -95,6 +96,7 @@ class MainEntryPoint {
                     var discovery_service = new discovery_1.default();
                     var ble = new ble_1.default();
                     var ssh = new systemctl_1.SSH();
+                    var frame_manager_alert = new frame_manager_alert_js_1.default();
                     //test successfull, since working, will reintroduce it in the future
                     //expect around october
                     /*
@@ -128,6 +130,7 @@ class MainEntryPoint {
                     enocean.register(server);
                     discovery_service.bind();
                     ble.start();
+                    frame_manager_alert.start();
                     enocean.on("usb-open", (port) => {
                         console.log("device opened and ready");
                         server.emit("usb-open");

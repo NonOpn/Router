@@ -17,6 +17,7 @@ class Systemctl {
         });
     }
 }
+exports.Systemctl = Systemctl;
 class MySQL {
     constructor() {
         this.status = () => this.systemctl.exec("status", "mysql");

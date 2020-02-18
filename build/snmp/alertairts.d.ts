@@ -15,6 +15,8 @@ export declare enum Detection {
 export default class AlertairTS extends AbstractDevice {
     constructor(params: any);
     getStandardFilter(): Filter;
+    static isConnected(frame: string): boolean;
+    static isAlert(frame: string): boolean;
     getConnectedStateString(item: DataPointModel | undefined): string;
     getImpactedString(item: DataPointModel | undefined): string;
     getAdditionnalInfo1String(item: DataPointModel | undefined): string;

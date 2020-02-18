@@ -14,14 +14,17 @@ pool.query("CREATE TABLE IF NOT EXISTS Frames ("
     + "`product_id` INTEGER,"
     + "`striken` TINYINT(1) DEFAULT 0,"
     + "`connected` TINYINT(1) DEFAULT 0,"
+    + "`is_alert` TINYINT(1) DEFAULT NULL,"
     + "KEY `timestamp` (`timestamp`)"
     + ")ENGINE=MyISAM;")
     .then(() => pool.query("ALTER TABLE Frames ADD COLUMN `product_id` INTEGER", true))
     .then(() => pool.query("ALTER TABLE Frames ADD COLUMN `striken` INTEGER", true))
     .then(() => pool.query("ALTER TABLE Frames ADD COLUMN `connected` INTEGER", true))
+    .then(() => pool.query("ALTER TABLE Frames ADD COLUMN `is_alert` TINYINT(1) DEFAULT NULL", true))
     .then(() => pool.query("ALTER TABLE Frames ADD INDEX `product_id` (`product_id`);", true))
     .then(() => pool.query("ALTER TABLE Frames ADD INDEX `striken` (`striken`);", true))
     .then(() => pool.query("ALTER TABLE Frames ADD INDEX `connected` (`connected`);", true))
+    .then(() => pool.query("ALTER TABLE Frames ADD INDEX `is_alert` (`is_alert`);", true))
     .then(() => console.log("finished"))
     .catch(err => console.log(err));
 const FRAME_MODEL = "Transaction";
@@ -35,7 +38,9 @@ function txToJson(tx) {
     return {
         frame: tx.frame,
         timestamp: tx.timestamp,
-        sent: tx.sent
+        sent: tx.sent,
+        is_alert: !!tx.is_alert,
+        product_id: tx.product_id
     };
 }
 function txToArrayForInsert(tx) {
@@ -90,12 +95,12 @@ class FrameModel extends abstract_js_1.default {
         return frame;
     }
     getInternalSerial(frame) {
-        return frame.substring(14 + 0, 14 + 6);
+        return frame.substring(14 + 0, 14 + 6).toLowerCase();
     }
     getContactair(frame) {
         //ffffffffffff0000000b01824a995a01
         if (frame.length > 14 + 20 + 8)
-            return frame.substring(14 + 20, 14 + 20 + 8);
+            return frame.substring(14 + 20, 14 + 20 + 8).toLowerCase();
         return "";
     }
     getMinFrame() {
@@ -121,6 +126,20 @@ class FrameModel extends abstract_js_1.default {
                 console.log("getMaxFrame", result);
                 resolve(index);
             })
+                .catch(err => manageErrorCrash(err, reject));
+        });
+    }
+    setDevice(index, product_id, is_alert) {
+        if (is_alert == undefined) {
+            return new Promise((resolve, reject) => {
+                pool.queryParameters("UPDATE Frames SET product_id = ? WHERE id = ? LIMIT 1", [product_id, index])
+                    .then(results => results && results.length > 0 ? resolve(true) : resolve(false))
+                    .catch(err => manageErrorCrash(err, reject));
+            });
+        }
+        return new Promise((resolve, reject) => {
+            pool.queryParameters("UPDATE Frames SET product_id = ?, is_alert = ? WHERE id = ? LIMIT 1", [product_id, !!is_alert, index])
+                .then(results => results && results.length > 0 ? resolve(true) : resolve(false))
                 .catch(err => manageErrorCrash(err, reject));
         });
     }

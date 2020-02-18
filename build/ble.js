@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 }
 Object.defineProperty(exports, "__esModule", { value: true });
+const BLESyncCharacteristic_1 = __importDefault(require("./ble/BLESyncCharacteristic"));
 const config_1 = __importDefault(require("./config/config"));
 const device_model_1 = __importDefault(require("./push_web/device_model"));
 const frame_model_compress_1 = __importDefault(require("./push_web/frame_model_compress"));
@@ -17,11 +18,7 @@ const wifi = wifi_js_1.default.instance;
 const network = network_1.default.instance;
 const diskspace = system_1.default.instance;
 const devices = device_model_1.default.instance;
-const RESULT_SUCCESS = 0x00;
-const RESULT_INVALID_OFFSET = 0x07;
-const RESULT_ATTR_NOT_LONG = 0x0b;
-const RESULT_INVALID_ATTRIBUTE_LENGTH = 0x0d;
-const RESULT_UNLIKELY_ERROR = 0x0e;
+const BLEConstants_1 = require("./ble/BLEConstants");
 var id = "Routair";
 if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) {
     id += config_1.default.identity.substr(0, 5 * 2);
@@ -39,7 +36,7 @@ class BLEDescriptionCharacteristic extends safeBleno_1.Characteristic {
         });
         this._value = Buffer.from(value, "utf-8");
     }
-    onReadRequest(offset, cb) { cb(RESULT_SUCCESS, this._value); }
+    onReadRequest(offset, cb) { cb(BLEConstants_1.RESULT_SUCCESS, this._value); }
 }
 class BLEAsyncDescriptionCharacteristic extends safeBleno_1.Characteristic {
     constructor(uuid, callback) {
@@ -51,7 +48,7 @@ class BLEAsyncDescriptionCharacteristic extends safeBleno_1.Characteristic {
     }
     onReadRequest(offset, cb) {
         this._callback()
-            .then(value => cb(RESULT_SUCCESS, Buffer.from(value, "utf-8")));
+            .then(value => cb(BLEConstants_1.RESULT_SUCCESS, Buffer.from(value, "utf-8")));
     }
 }
 class BLEFrameNotify extends safeBleno_1.Characteristic {
@@ -116,119 +113,8 @@ class BLEWriteCharacteristic extends safeBleno_1.Characteristic {
         else {
             this._tmp += data.toString();
         }
-        callback(RESULT_SUCCESS);
+        callback(BLEConstants_1.RESULT_SUCCESS);
         this._counter = 10;
-    }
-    ;
-}
-class BLEReadWriteLogCharacteristic extends safeBleno_1.Characteristic {
-    constructor(uuid, compress = false, use_write = true) {
-        super({
-            uuid: uuid,
-            properties: use_write ? ['write', 'read'] : ['read']
-        });
-        this._log_id = 0;
-        this._compress = compress;
-        this._last = Buffer.from("");
-    }
-    onReadRequest(offset, cb) {
-        if (offset > 0 && offset < this._last.length) {
-            const sub = this._last.subarray(offset);
-            cb(RESULT_SUCCESS, sub);
-            return;
-        }
-        console.log(offset);
-        const index = this._log_id;
-        console.log("get log ", index);
-        var result = {
-            index: index,
-            max: 0,
-            txs: []
-        };
-        var to_fetch = 1;
-        frame_model_compress_1.default.instance.getMaxFrame()
-            .then(maximum => {
-            result.max = maximum;
-            if (this._log_id > maximum) {
-                this._log_id = maximum + 1; //prevent looping
-            }
-            return frame_model_compress_1.default.instance.getMinFrame();
-        })
-            .then(minimum => {
-            //check the minimum index to fetch values from
-            if (minimum > this._log_id)
-                this._log_id = minimum;
-            return minimum > index ? minimum : index;
-        })
-            .then(value => {
-            //get at least 1..4 transactions
-            to_fetch = result.max - value;
-            if (to_fetch > 7)
-                to_fetch = 7;
-            if (to_fetch < 1)
-                to_fetch = 1;
-            this._log_id += to_fetch;
-            return value;
-        })
-            .then(value => frame_model_compress_1.default.instance.getFrame(value, to_fetch))
-            .then(transactions => {
-            console.log("new index", this._log_id + " " + result.index);
-            if (transactions) {
-                transactions.forEach((transaction) => {
-                    result.index = transaction.id;
-                    if (!this._compress) {
-                        const arr = {
-                            i: transaction.id,
-                            f: frame_model_compress_1.default.instance.getCompressedFrame(transaction.frame),
-                            t: transaction.timestamp,
-                            s: frame_model_compress_1.default.instance.getInternalSerial(transaction.frame),
-                            c: frame_model_compress_1.default.instance.getContactair(transaction.frame)
-                        };
-                        result.txs.push(arr);
-                    }
-                    else {
-                        const arr = transaction.id + "," +
-                            frame_model_compress_1.default.instance.getCompressedFrame(transaction.frame) + "," +
-                            transaction.timestamp + "," +
-                            frame_model_compress_1.default.instance.getInternalSerial(transaction.frame) + "," +
-                            frame_model_compress_1.default.instance.getContactair(transaction.frame) + ",";
-                        result.txs.push(arr);
-                    }
-                });
-            }
-            if (this._log_id > result.max + 1) {
-                this._log_id = result.max + 1;
-            }
-            var output = JSON.stringify(result);
-            if (this._compress) {
-                output = result.index + "," + result.max + "," + result.txs.concat();
-            }
-            this._last = Buffer.from(output, "utf-8");
-            cb(RESULT_SUCCESS, this._last);
-        })
-            .catch(err => {
-            console.error(err);
-            cb(RESULT_UNLIKELY_ERROR, Buffer.from("", "utf-8"));
-        });
-    }
-    onWriteRequest(data, offset, withoutResponse, callback) {
-        console.log("offset := " + offset);
-        console.log(data.toString());
-        var config = data.toString();
-        var configuration = {};
-        try {
-            configuration = JSON.parse(config);
-        }
-        catch (e) {
-            configuration = {};
-        }
-        if (configuration && configuration.index) {
-            this._log_id = configuration.index;
-            callback(RESULT_SUCCESS);
-        }
-        else {
-            callback(RESULT_UNLIKELY_ERROR);
-        }
     }
     ;
 }
@@ -287,7 +173,8 @@ class BLEPrimaryDeviceService extends safeBleno_1.PrimaryService {
         this.device = device;
     }
     _editType(new_type) {
-        return device_management.setType(this.device, new_type).then(device => {
+        const type = device_1.default.instance.stringToType(new_type || "");
+        return device_management.setType(this.device, type).then(device => {
             if (device)
                 this.device = device;
             return !!device;
@@ -313,6 +200,34 @@ class BLEPrimaryDeviceService extends safeBleno_1.PrimaryService {
     createSeenDeviceCallback() {
         return this.device.getInternalSerial()
             .then(internal_serial => !!seenDevices.devices[internal_serial] ? "true" : "false");
+    }
+}
+class BLEReadWriteLogCharacteristic extends BLESyncCharacteristic_1.default {
+    constructor(uuid, compress = false, use_write = true) {
+        super(uuid, compress, use_write);
+    }
+    getMaxFrame() {
+        return frame_model_compress_1.default.instance.getMaxFrame();
+    }
+    getMinFrame() {
+        return frame_model_compress_1.default.instance.getMinFrame();
+    }
+    getFrame(value, to_fetch) {
+        return frame_model_compress_1.default.instance.getFrame(value, to_fetch);
+    }
+}
+class BLEReadWriteLogIsAlertCharacteristic extends BLESyncCharacteristic_1.default {
+    constructor(uuid, compress = false, use_write = true) {
+        super(uuid, compress, use_write);
+    }
+    getMaxFrame() {
+        return frame_model_compress_1.default.instance.getMaxFrame();
+    }
+    getMinFrame() {
+        return frame_model_compress_1.default.instance.getMinFrame();
+    }
+    getFrame(value, to_fetch) {
+        return frame_model_compress_1.default.instance.getFrameIsAlert(value, to_fetch);
     }
 }
 class BLE {
@@ -346,7 +261,8 @@ class BLE {
             new BLEAsyncDescriptionCharacteristic("0103", () => this._onDeviceSeenCall()),
             new BLEReadWriteLogCharacteristic("0104"),
             new BLEReadWriteLogCharacteristic("0105", true),
-            new BLEReadWriteLogCharacteristic("0106", true, false) //,
+            new BLEReadWriteLogCharacteristic("0106", true, false),
+            new BLEReadWriteLogIsAlertCharacteristic("0107", true, true)
             //this._notify_frame
         ];
         this._refreshing_called_once = false;

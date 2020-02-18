@@ -5,6 +5,8 @@ export interface Transaction {
     frame: string;
     timestamp: number;
     sent: number;
+    is_alert?: boolean;
+    product_id?: number | null | undefined;
 }
 export default class FrameModel extends Abstract {
     static instance: FrameModel;
@@ -18,6 +20,7 @@ export default class FrameModel extends Abstract {
     getContactair(frame: string): string;
     getMinFrame(): Promise<number>;
     getMaxFrame(): Promise<number>;
+    setDevice(index: number, product_id: number, is_alert?: boolean): Promise<boolean>;
     getFrame(index: number, limit: number): Promise<Transaction[] | undefined>;
     beforeForDevice(device: Device, timestamp: number): Promise<Transaction[]>;
     before(timestamp: number): Promise<Transaction[]>;

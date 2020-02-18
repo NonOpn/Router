@@ -19,6 +19,7 @@ export default class FrameModelCompress extends Abstract {
     getMinFrame(): Promise<number>;
     getMaxFrame(): Promise<number>;
     getFrame(index: number, limit: number): Promise<Transaction[] | undefined>;
+    getFrameIsAlert(index: number, limit: number): Promise<Transaction[] | undefined>;
     _contactair_cache: never[];
     _syncing: boolean;
     _temp_syncing: any[];
