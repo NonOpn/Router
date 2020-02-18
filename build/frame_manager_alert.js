@@ -40,7 +40,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
             }
             const serials = [];
             const contactairs = [];
-            const serial_to_contactair = [];
+            const serial_to_contactair = new Map();
             const mapping_internal_serials = [];
             const mapping_contactairs = [];
             internal_serials.forEach(pre_holder => {
@@ -54,8 +54,8 @@ class FrameManagerAlert extends events_1.EventEmitter {
                     //TODO when being in the past, don't check for modification from earlier... add this into the first loop? the one using latest elements
                     //or store into the device update ?
                     //updating the mapping internal_serial -> contactair to check for modification
-                    if (!serial_to_contactair[internal_serial])
-                        serial_to_contactair[internal_serial] = contactair;
+                    if (!serial_to_contactair.has(internal_serial))
+                        serial_to_contactair.set(internal_serial, contactair);
                 }
                 else {
                     if (!mapping_contactairs[contactair]) {
@@ -65,6 +65,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
                     mapping_contactairs[contactair].data.push({ id, frame });
                 }
             });
+            console.log("this round, mapping of ", serial_to_contactair);
             Promise.all(contactairs.map(contactair => {
                 return device_js_1.default.instance.getDeviceForContactair(contactair)
                     .then(device => {
@@ -86,8 +87,8 @@ class FrameManagerAlert extends events_1.EventEmitter {
                                 serials.push(internal_serial);
                                 console.log(`UPDATE_ALERTS contactair ${contactair} to internal_serial ${internal_serial} found`);
                                 //updating the mapping internal_serial -> contactair to check for modification
-                                if (!serial_to_contactair[internal_serial])
-                                    serial_to_contactair[internal_serial] = contactair;
+                                if (!serial_to_contactair.has(internal_serial))
+                                    serial_to_contactair.set(internal_serial, contactair);
                             }
                             id_frames.forEach(id_frame => mapping_internal_serials[internal_serial].data.push(id_frame));
                         }
@@ -96,7 +97,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
                         .then(() => true);
                 });
             }))
-                .then(() => Promise.all(serials.map((serial) => device_js_1.default.instance.getDevice(serial, serial_to_contactair[serial])
+                .then(() => Promise.all(serials.map((serial) => device_js_1.default.instance.getDevice(serial, serial_to_contactair.get(serial))
                 .then(device => ({ device, serial })))))
                 .then(devices => devices.filter(d => d.device))
                 .then(devices => {

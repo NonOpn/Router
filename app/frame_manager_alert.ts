@@ -72,7 +72,7 @@ export default class FrameManagerAlert extends EventEmitter {
 			const serials: string[] = [];
 			const contactairs: string[] = [];
 
-			const serial_to_contactair: string[] = [];
+			const serial_to_contactair: Map<string, string> = new Map();
 			
 			const mapping_internal_serials: MappingHolder[] = [];
 			const mapping_contactairs: MappingHolder[] = [];
@@ -90,7 +90,7 @@ export default class FrameManagerAlert extends EventEmitter {
 					//or store into the device update ?
 
 					//updating the mapping internal_serial -> contactair to check for modification
-					if(!serial_to_contactair[internal_serial]) serial_to_contactair[internal_serial] = contactair;
+					if(!serial_to_contactair.has(internal_serial)) serial_to_contactair.set(internal_serial,  contactair);
 				} else {
 					if(!mapping_contactairs[contactair]) {
 						mapping_contactairs[contactair] = { contactair, internal_serial: "", data: []};
@@ -99,6 +99,8 @@ export default class FrameManagerAlert extends EventEmitter {
 					mapping_contactairs[contactair].data.push({id, frame});
 				}
 			});
+
+			console.log("this round, mapping of ", serial_to_contactair)
 
 			Promise.all(contactairs.map(contactair => {
 				return DeviceManagement.instance.getDeviceForContactair(contactair)
@@ -119,7 +121,7 @@ export default class FrameManagerAlert extends EventEmitter {
 								console.log(`UPDATE_ALERTS contactair ${contactair} to internal_serial ${internal_serial} found`);
 
 								//updating the mapping internal_serial -> contactair to check for modification
-								if(!serial_to_contactair[internal_serial]) serial_to_contactair[internal_serial] = contactair;
+								if(!serial_to_contactair.has(internal_serial)) serial_to_contactair.set(internal_serial, contactair);
 							}
 							id_frames.forEach(id_frame => mapping_internal_serials[internal_serial].data.push(id_frame));
 						}
@@ -128,7 +130,7 @@ export default class FrameManagerAlert extends EventEmitter {
 					.then(() => true);
 				});
 			}))
-			.then(() => Promise.all( serials.map( (serial) => DeviceManagement.instance.getDevice(serial, serial_to_contactair[serial])
+			.then(() => Promise.all( serials.map( (serial) => DeviceManagement.instance.getDevice(serial, serial_to_contactair.get(serial))
 				.then( device => ({device, serial}) )
 			)))
 			.then(devices => devices.filter(d => d.device))
