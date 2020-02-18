@@ -1,1 +1,0 @@
-{"version":3,"file":"visualisation.js","sourceRoot":"","sources":["../../app/config/visualisation.ts"],"names":[],"mappings":";;AAAA,OAAO,CAAC,QAAQ,CAAC,CAAC,MAAM,EAAE,CAAC;AAM1B,CAAC;AAEF,MAAM,MAAM,GAAwB;IAClC,KAAK,EAAG,OAAO,CAAC,GAAG,CAAC,mBAAmB;IACvC,QAAQ,EAAG,OAAO,CAAC,GAAG,CAAC,sBAAsB;IAC7C,IAAI,EAAG,OAAO,CAAC,GAAG,CAAC,kBAAkB;CACtC,CAAC;AAEF,kBAAe,MAAM,CAAC"}

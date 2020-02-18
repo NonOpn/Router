@@ -7,10 +7,19 @@ import push_web_config from "./config/push_web";
 import FrameModelCompress from "./push_web/frame_model_compress.js";
 import { Logger } from "./log/index.js";
 import DeviceManagement from "./ble/device.js";
+import DeviceModel, { Device } from "./push_web/device_model.js";
 
 const errors = Errors.instance;
 
 const VERSION = 8;
+
+interface TransactionSimple {
+	internal_serial: string,
+	contactair: string,
+	frame: string,
+	id: number,
+	product_id?: number
+}
 
 interface IdFrame {
 	frame: string,
@@ -46,27 +55,47 @@ export default class FrameManagerAlert extends EventEmitter {
 		setTimeout(() => this.checkNextTransactions(), 1);
 	}
 
-	private getDeviceForInternalOrContactair(internal_serial: string, contactair: string): Promise<Device|undefined> {
-
+	private deviceForContactair(devices: Device[], contactair: string): Device|undefined {
+		return devices.find(d => d.last_contactair == contactair);
 	}
 
-	private setDevicesForInvalidProductsOrAlerts(frames: Transaction[]): Promise<any> {
-		const isProductButNeedAlertOrNot = (f: Transaction) => f && f.product_id && (undefined == f.is_alert || null == f.is_alert);
-		const hasNotProduct = (f: Transaction) => f && !f.product_id;
+	private deviceForInternal(devices: Device[], internal_serial: string): Device|undefined {
+		return devices.find(d => d.internal_serial == internal_serial);
+	}
+	
+	private isProductButNeedAlertOrNot = (f: Transaction) => f && f.product_id && (undefined == f.is_alert || null == f.is_alert);
+	private hasNotProduct = (f: Transaction) => !this.hasProduct(f);
+	private hasProduct = (f: TransactionSimple) => f && !!f.product_id;
 
-		return new Promise((resolve, reject) => {
-			const internal_serials = frames.filter(f => isProductButNeedAlertOrNot(f) || hasNotProduct(f)).map(f => ({
-				internal_serial: FrameModel.instance.getInternalSerial(f.frame),
-				contactair: FrameModel.instance.getContactair(f.frame),
-				frame: f.frame,
-				id: f.id || 0
-			}));
 
+	private tryUpdateDevicesForContactairs(devices: Device[], internal_serials:TransactionSimple[]): Promise<boolean> {
+		const to_update = internal_serials.filter(item => {
+			if(this.hasProduct(item)) return false;
+			const device = this.deviceForInternal(devices, item.internal_serial);
+			return device?.last_contactair != item.contactair;
+		})
+
+		console.log("tryUpdateDevicesForContactairs", {to_update});
+
+		return Promise.all(to_update.map(({contactair, internal_serial}) => DeviceModel.instance.setContactairForDevice(contactair, internal_serial)))
+		.then(() => true);
+	}
+
+	private setDevicesForInvalidProductsOrAlerts(devices: Device[], frames: Transaction[]): Promise<any> {
+
+		const internal_serials :TransactionSimple[] = frames.filter(f => this.isProductButNeedAlertOrNot(f) || this.hasNotProduct(f)).map(f => ({
+			internal_serial: FrameModel.instance.getInternalSerial(f.frame),
+			contactair: FrameModel.instance.getContactair(f.frame),
+			frame: f.frame,
+			id: f.id || 0,
+			product_id: f.product_id || undefined
+		}));
+
+		return this.tryUpdateDevicesForContactairs(devices, internal_serials).then(() => {
 			console.log("managing for frames ", internal_serials.filter(i => i.internal_serial != "ffffff").map(i => i.internal_serial+" / " + i.contactair));
 
 			if(internal_serials.length == 0) {
-				resolve(true);
-				return;
+				return Promise.resolve(true);
 			}
 
 			const serials: string[] = [];
@@ -102,7 +131,7 @@ export default class FrameManagerAlert extends EventEmitter {
 
 			console.log("this round, mapping of ", serial_to_contactair)
 
-			Promise.all(contactairs.map(contactair => {
+			return Promise.all(contactairs.map(contactair => {
 				return DeviceManagement.instance.getDeviceForContactair(contactair)
 				.then(device => {
 					console.log(`found device for ${contactair} ?`, !!device);
@@ -151,12 +180,11 @@ export default class FrameManagerAlert extends EventEmitter {
 				});
 				return Promise.all(promises)
 			})
-			.then(() => resolve(true))
-			.catch(err => reject(err));
+			.then(() => Promise.resolve(true));
 		});
 	}
 
-	private manageFrame(from: number, until: number): Promise<number> {
+	private manageFrame(devices: Device[], from: number, until: number): Promise<number> {
 		return FrameModel.instance.getFrame(from, until)
 		.then(frames => {
 			frames = frames || [];
@@ -170,27 +198,30 @@ export default class FrameManagerAlert extends EventEmitter {
 				return t1.id > t2.id ? t1 : t2;
 			}, frames[0]);
 
-			return this.setDevicesForInvalidProductsOrAlerts(frames)
+			return this.setDevicesForInvalidProductsOrAlerts(devices, frames)
 			.then(() => (next.id || -1) + 1);
 		});
 	}
 
 	private checkNextTransactions() {
-		FrameModel.instance.getMaxFrame()
-		.then(maximum => {
-			if(maximum > 0) return this.manageFrame(Math.max(1, maximum - 50), 50).then(() => true).catch(() => true);
-			return Promise.resolve(true);
-		})
-		.then(() => this.manageFrame(this._current_index, 200))
-		.then(new_index => {
-			if(new_index == -1) {
-				console.log("no frame to manage at all... we reset the loop...");
-				this._current_index = -1;
-				return new Promise(resolve => setTimeout(() => resolve(true), 50000));
-			}
+		DeviceModel.instance.list()
+		.then(devices => {
+			return FrameModel.instance.getMaxFrame()
+			.then(maximum => {
+				if(maximum > 0) return this.manageFrame(devices, Math.max(1, maximum - 50), 50).then(() => true).catch(() => true);
+				return Promise.resolve(true);
+			})
+			.then(() => this.manageFrame(devices, this._current_index, 200))
+			.then(new_index => {
+				if(new_index == -1) {
+					console.log("no frame to manage at all... we reset the loop...");
+					this._current_index = -1;
+					return new Promise(resolve => setTimeout(() => resolve(true), 50000));
+				}
 
-			this._current_index = new_index;
-			return true;
+				this._current_index = new_index;
+				return true;
+			})
 		})
 		.then(() => setTimeout(() => this.checkNextTransactions(), 500))
 		.catch(err => {
