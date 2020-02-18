@@ -100,7 +100,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
             this._current_index = new_index;
             return true;
         })
-            .then(() => setTimeout(() => this.checkNextTransactions(), 200))
+            .then(() => setTimeout(() => this.checkNextTransactions(), 5000))
             .catch(err => {
             console.error("error", err);
             setTimeout(() => this.checkNextTransactions(), 5000);
