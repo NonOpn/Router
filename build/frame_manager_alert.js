@@ -39,12 +39,19 @@ class FrameManagerAlert extends events_1.EventEmitter {
             const device = this.deviceForInternal(devices, item.internal_serial);
             return device && device.last_contactair != item.contactair;
         });
-        console.log("tryUpdateDevicesForContactairs ", internal_serials.filter(i => i.internal_serial != "ffffff").map(i => i.internal_serial + " / " + i.contactair + " " + i.id));
+        console.log("tryUpdateDevicesForContactairs " + internal_serials.length, internal_serials.filter(i => i.internal_serial != "ffffff").map(i => i.internal_serial + " / " + i.contactair + " " + i.id));
         console.log("tryUpdateDevicesForContactairs", { to_update });
         return Promise.all(to_update.map(({ contactair, internal_serial, id }) => device_model_js_1.default.instance.setContactairForDevice(contactair, internal_serial, id)))
             .then(() => true);
     }
     setDevicesForInvalidProductsOrAlerts(devices, frames) {
+        const internal_serials_for_update = frames.filter(f => this.isProductButNeedAlertOrNot(f) || this.hasNotProduct(f)).map(f => ({
+            internal_serial: frame_model_1.default.instance.getInternalSerial(f.frame),
+            contactair: frame_model_1.default.instance.getContactair(f.frame),
+            frame: f.frame,
+            id: f.id || 0,
+            product_id: f.product_id || undefined
+        }));
         const internal_serials = frames.filter(f => this.isProductButNeedAlertOrNot(f) || this.hasNotProduct(f)).map(f => ({
             internal_serial: frame_model_1.default.instance.getInternalSerial(f.frame),
             contactair: frame_model_1.default.instance.getContactair(f.frame),

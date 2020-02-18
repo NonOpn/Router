@@ -77,7 +77,7 @@ export default class FrameManagerAlert extends EventEmitter {
 			return device && device.last_contactair != item.contactair;
 		})
 
-		console.log("tryUpdateDevicesForContactairs ", internal_serials.filter(i => i.internal_serial != "ffffff").map(i => i.internal_serial+" / " + i.contactair+ " " + i.id));
+		console.log("tryUpdateDevicesForContactairs " + internal_serials.length, internal_serials.filter(i => i.internal_serial != "ffffff").map(i => i.internal_serial+" / " + i.contactair+ " " + i.id));
 		console.log("tryUpdateDevicesForContactairs", {to_update});
 
 		return Promise.all(to_update.map(({contactair, internal_serial, id}) => DeviceModel.instance.setContactairForDevice(contactair, internal_serial, id)))
@@ -85,6 +85,14 @@ export default class FrameManagerAlert extends EventEmitter {
 	}
 
 	private setDevicesForInvalidProductsOrAlerts(devices: Device[], frames: Transaction[]): Promise<any> {
+
+		const internal_serials_for_update :TransactionSimple[] = frames.filter(f => this.isProductButNeedAlertOrNot(f) || this.hasNotProduct(f)).map(f => ({
+			internal_serial: FrameModel.instance.getInternalSerial(f.frame),
+			contactair: FrameModel.instance.getContactair(f.frame),
+			frame: f.frame,
+			id: f.id || 0,
+			product_id: f.product_id || undefined
+		}));
 
 		const internal_serials :TransactionSimple[] = frames.filter(f => this.isProductButNeedAlertOrNot(f) || this.hasNotProduct(f)).map(f => ({
 			internal_serial: FrameModel.instance.getInternalSerial(f.frame),
