@@ -218,7 +218,7 @@ export default class FrameManagerAlert extends EventEmitter {
 				if(maximum > 0) return this.manageFrame(devices, Math.max(1, maximum - 50), 50, true).then(() => true).catch(() => true);
 				return Promise.resolve(true);
 			})
-			.then(() => this.manageFrame(devices, this._current_index, 200, false))
+			.then(() => this.manageFrame(devices, this._current_index, 200, true))
 			.then(new_index => {
 				if(new_index == -1) {
 					console.log("no frame to manage at all... we reset the loop...");
