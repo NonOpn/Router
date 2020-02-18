@@ -45,7 +45,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
             .then(() => true);
     }
     setDevicesForInvalidProductsOrAlerts(devices, frames) {
-        const internal_serials_for_update = frames.filter(f => this.isProductButNeedAlertOrNot(f) || this.hasNotProduct(f)).map(f => ({
+        const internal_serials_for_update = frames.map(f => ({
             internal_serial: frame_model_1.default.instance.getInternalSerial(f.frame),
             contactair: frame_model_1.default.instance.getContactair(f.frame),
             frame: f.frame,
@@ -59,7 +59,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
             id: f.id || 0,
             product_id: f.product_id || undefined
         }));
-        return this.tryUpdateDevicesForContactairs(devices, internal_serials).then(() => {
+        return this.tryUpdateDevicesForContactairs(devices, internal_serials_for_update).then(() => {
             console.log("managing for frames ", internal_serials.filter(i => i.internal_serial != "ffffff").map(i => i.internal_serial + " / " + i.contactair));
             if (internal_serials.length == 0) {
                 return Promise.resolve(true);
