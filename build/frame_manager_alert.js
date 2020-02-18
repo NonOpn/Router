@@ -71,15 +71,12 @@ class FrameManagerAlert extends events_1.EventEmitter {
                 .catch(err => reject(err));
         });
     }
-    checkNextTransactions() {
-        frame_model_1.default.instance.getFrame(this._current_index, 200)
+    manageFrame(from, until) {
+        return frame_model_1.default.instance.getFrame(from, until)
             .then(frames => {
             frames = frames || [];
-            if (frames.length == 0) {
-                console.log("no frame to manage at all... we reset the loop...");
-                this._current_index = -1;
-                return Promise.resolve(true);
-            }
+            if (frames.length == 0)
+                return Promise.resolve(-1);
             var next = frames.reduce((t1, t2) => {
                 if (!t1.id)
                     return t2;
@@ -89,10 +86,28 @@ class FrameManagerAlert extends events_1.EventEmitter {
             }, frames[0]);
             return this.setDevicesForInvalidProductsOrAlerts(frames)
                 .then(done => {
-                this._current_index = next.id || -1;
-                console.log("new_index is now _current_index:=" + this._current_index);
+                var new_index = (next.id || -1) + 1;
                 return done;
             });
+        });
+    }
+    checkNextTransactions() {
+        frame_model_1.default.instance.getMaxFrame()
+            .then(maximum => {
+            if (maximum > 0)
+                return this.manageFrame(Math.max(1, maximum - 50), 50).then(() => true).catch(() => true);
+            return Promise.resolve(true);
+        })
+            .then(() => this.manageFrame(this._current_index, 200))
+            .then(new_index => {
+            if (new_index == -1) {
+                console.log("no frame to manage at all... we reset the loop...");
+                this._current_index = -1;
+                return new Promise(resolve => setTimeout(() => resolve(true), 5000));
+            }
+            this._current_index = new_index;
+            console.log("new_index is now _current_index:=" + this._current_index);
+            return true;
         })
             .then(done => {
             console.log("batch ?", done);

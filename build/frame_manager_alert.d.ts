@@ -6,5 +6,6 @@ export default class FrameManagerAlert extends EventEmitter {
     constructor();
     start(): void;
     private setDevicesForInvalidProductsOrAlerts(frames);
+    private manageFrame(from, until);
     private checkNextTransactions();
 }
