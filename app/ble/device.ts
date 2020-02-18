@@ -187,7 +187,7 @@ export default class DeviceManagement {
         return model_devices.getDeviceForInternalSerial(internal)
         .then(device => {
             if(device) {
-                if(current_contactair && current_contactair != device.last_contactair) {
+                if(current_contactair && current_contactair != device.last_contactair && current_contactair != "ffffff") {
                     console.log("updating contactair !");
                     return model_devices.setContactairForDevice(current_contactair, device.internal_serial);
                 }
