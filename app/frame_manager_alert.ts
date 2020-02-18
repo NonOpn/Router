@@ -77,6 +77,7 @@ export default class FrameManagerAlert extends EventEmitter {
 			return device && device.last_contactair != item.contactair;
 		})
 
+		console.log("tryUpdateDevicesForContactairs ", internal_serials.filter(i => i.internal_serial != "ffffff").map(i => i.internal_serial+" / " + i.contactair+ " " + i.id));
 		console.log("tryUpdateDevicesForContactairs", {to_update});
 
 		return Promise.all(to_update.map(({contactair, internal_serial, id}) => DeviceModel.instance.setContactairForDevice(contactair, internal_serial, id)))
