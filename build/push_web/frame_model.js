@@ -99,8 +99,13 @@ class FrameModel extends abstract_js_1.default {
     }
     getContactair(frame) {
         //ffffffffffff0000000b01824a995a01
+        var begin = 14 + 20, end = begin + 8;
+        if (frame.length == 48) {
+            begin -= 12, end -= 12;
+            return frame.substring(begin, end).toLowerCase();
+        }
         if (frame.length > 14 + 20 + 8)
-            return frame.substring(14 + 20, 14 + 20 + 8).toLowerCase();
+            return frame.substring(begin, end).toLowerCase();
         return "";
     }
     getMinFrame() {
