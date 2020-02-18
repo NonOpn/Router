@@ -17,8 +17,8 @@ const TYPE_COMPTAIR = 1;
 const TYPE_ALERTAIRDC = 2;
 const TYPE_ALERTAIRTS = 4;
 
-export type TYPE = "comptair"|"alertairdc"|"paratonair"|"alertairts"
-const VALID_TYPES = ["comptair", "alertairdc", "paratonair", "alertairts"];
+export type TYPE = "comptair"|"alertairdc"|"paratonair"|"alertairts"|"unassigned"
+const VALID_TYPES: TYPE[] = ["comptair", "alertairdc", "paratonair", "alertairts", "unassigned"];
 
 export interface OnFrameCallback {
     (device: AbstractDevice|undefined): void;
@@ -37,7 +37,8 @@ function intTypeToString(type: number): TYPE {
         case TYPE_COMPTAIR: return "comptair";
         case TYPE_ALERTAIRDC: return "alertairdc";
         case TYPE_ALERTAIRTS: return "alertairts";
-        default: return "paratonair";
+        case TYPE_PARATONAIR: return "paratonair";
+        default: return "unassigned";
     }
 }
 
@@ -56,6 +57,10 @@ export default class DeviceManagement {
     }
     */
 
+    stringToType(type: string): TYPE {
+        return VALID_TYPES.find(t => type == t) || "unassigned";
+    }
+ 
     onFrame(data: any): Promise<AbstractDevice|undefined> {
         return new Promise((resolve, reject) => {
             if(data && data.sender) {
@@ -76,6 +81,22 @@ export default class DeviceManagement {
             devices.forEach(d => { if(undefined != d) array.push(d) });
             return array;
         });
+    }
+
+    isAlert(type: TYPE, frame: string): boolean {
+        if(!frame) return false;
+        switch(stringTypeToInt(type)) {
+            case TYPE_PARATONAIR:
+                return Paratonair.isStriken(frame) || !Paratonair.isConnected(frame);
+            case TYPE_ALERTAIRDC:
+                return AlertairDC.isCircuitDisconnect(frame) || !AlertairDC.isConnected(frame);
+            case TYPE_ALERTAIRTS:
+                return AlertairTS.isAlert(frame) || !AlertairTS.isConnected(frame);
+            case TYPE_COMPTAIR:
+                return Comptair.isStriken(frame) || !Comptair.isConnected(frame);
+            default:
+                return false;
+        }
     }
 
     _databaseDeviceToRealDevice(device: Device|undefined): AbstractDevice|undefined {
@@ -154,6 +175,7 @@ export default class DeviceManagement {
     }
 
     getDevice(internal: string): Promise<AbstractDevice|undefined> {
+        if(internal == "ffffff") return Promise.resolve(undefined);
         return model_devices.getDeviceForInternalSerial(internal)
         .then(device => {
             if(device) return device;

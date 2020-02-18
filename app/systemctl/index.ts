@@ -1,6 +1,6 @@
 const { spawn } = require('child_process');
 
-class Systemctl {
+export class Systemctl {
 
     exec(action: string, service: string): Promise<string> {
         return new Promise((resolve, reject) => {

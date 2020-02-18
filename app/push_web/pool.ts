@@ -20,10 +20,10 @@ export default class Pool {
     this.mysqladmin = new MysqlAdmin();
     this.pool = mysql.createPool({
       connectionLimit: 20,
-      host     : config.host,
-      user     : config.user,
-      password : config.password,
-      database : config.database,
+      host     : config.host || "",
+      user     : config.user || "",
+      password : config.password || "",
+      database : config.database || "",
       debug: false
     });
   }

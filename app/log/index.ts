@@ -3,7 +3,7 @@ import config from "../config/config";
 
 const identity = config.identity ||  "unknown";
 
-class _Logger {
+export class _Logger {
     _post(tag: string, data: any) {
         const json = {};
         data && Object.keys(data).forEach(d => json[d] = data[d]);

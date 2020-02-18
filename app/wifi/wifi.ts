@@ -32,7 +32,7 @@ export interface HostAPConfiguration {
   wpa_passphrase: string;
 }
 
-interface Callback {
+export interface Callback {
   (err: ExecException|null|string, stdout?: string, stderr?: string): void;
 }
 
