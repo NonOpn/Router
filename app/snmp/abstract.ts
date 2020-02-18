@@ -1,7 +1,7 @@
 import { DataPointModel } from '../database/data_point';
 import DataPoint from "../database/data_point";
 import snmp from "snmpjs";
-import { Device } from '../push_web/device_model';
+import { TYPE } from '../ble/device';
 
 export interface Filter {
   key: string,

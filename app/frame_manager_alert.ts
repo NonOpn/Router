@@ -18,8 +18,14 @@ interface IdFrame {
 }
 
 interface MappingHolder {
+	contactair: string,
 	internal_serial: string,
 	data: IdFrame[]
+}
+
+interface SerialContactair {
+	internal_serial: string,
+	contactair: string
 }
 
 export default class FrameManagerAlert extends EventEmitter {
@@ -40,6 +46,10 @@ export default class FrameManagerAlert extends EventEmitter {
 		setTimeout(() => this.checkNextTransactions(), 1);
 	}
 
+	private getDeviceForInternalOrContactair(internal_serial: string, contactair: string): Promise<Device|undefined> {
+
+	}
+
 	private setDevicesForInvalidProductsOrAlerts(frames: Transaction[]): Promise<any> {
 		const isProductButNeedAlertOrNot = (f: Transaction) => f && f.product_id && (undefined == f.is_alert || null == f.is_alert);
 		const hasNotProduct = (f: Transaction) => f && !f.product_id;
@@ -47,6 +57,7 @@ export default class FrameManagerAlert extends EventEmitter {
 		return new Promise((resolve, reject) => {
 			const internal_serials = frames.filter(f => isProductButNeedAlertOrNot(f) || hasNotProduct(f)).map(f => ({
 				internal_serial: FrameModel.instance.getInternalSerial(f.frame),
+				contactair: FrameModel.instance.getContactair(f.frame),
 				frame: f.frame,
 				id: f.id || 0
 			}));
@@ -57,24 +68,72 @@ export default class FrameManagerAlert extends EventEmitter {
 			}
 
 			const serials: string[] = [];
-			const mapping: MappingHolder[] = [];
-			internal_serials.forEach(pre_holder => {
-				const { id, internal_serial, frame } = pre_holder;
-				if(!mapping[internal_serial]) {
-					mapping[internal_serial] = { internal_serial, data: []};
-					serials.push(internal_serial);
-				}
+			const contactairs: string[] = [];
 
-				mapping[internal_serial].data.push({id, frame});
+			const serial_to_contactair: string[] = [];
+			
+			const mapping_internal_serials: MappingHolder[] = [];
+			const mapping_contactairs: MappingHolder[] = [];
+			internal_serials.forEach(pre_holder => {
+				const { id, internal_serial, frame, contactair } = pre_holder;
+
+				if(internal_serial != "ffffff") {
+					if(!mapping_internal_serials[internal_serial]) {
+						mapping_internal_serials[internal_serial] = { contactair, internal_serial, data: []};
+						serials.push(internal_serial);
+					}
+					mapping_internal_serials[internal_serial].data.push({id, frame});
+
+					//TODO when being in the past, don't check for modification from earlier... add this into the first loop? the one using latest elements
+					//or store into the device update ?
+
+					//updating the mapping internal_serial -> contactair to check for modification
+					if(!serial_to_contactair[internal_serial]) serial_to_contactair[internal_serial] = contactair;
+				} else {
+					if(!mapping_contactairs[contactair]) {
+						mapping_contactairs[contactair] = { contactair, internal_serial: "", data: []};
+						contactairs.push(contactair);
+					}
+					mapping_contactairs[contactair].data.push({id, frame});
+				}
 			});
 
-			Promise.all( serials.map( serial => DeviceManagement.instance.getDevice(serial).then( device => ({device, serial}) ) ) )
+			Promise.all(contactairs.map(contactair => {
+				return DeviceManagement.instance.getDeviceForContactair(contactair)
+				.then(device => {
+					if(!device) return Promise.resolve(false);
+					
+					return device.getInternalSerial()
+					.then(internal_serial => {
+						if(internal_serial == "ffffff") { console.log("invalid serial found"); return false };
+
+						const mapping_contactair: MappingHolder = mapping_contactairs[contactair];
+						if(mapping_contactair) {
+							const id_frames: IdFrame[] = mapping_contactair.data;
+							if(!mapping_internal_serials[internal_serial]) {
+								mapping_internal_serials[internal_serial] = { contactair, internal_serial, data: []};
+								serials.push(internal_serial);
+								console.log(`UPDATE_ALERTS contactair ${contactair} to internal_serial ${internal_serial} found`);
+
+								//updating the mapping internal_serial -> contactair to check for modification
+								if(!serial_to_contactair[internal_serial]) serial_to_contactair[internal_serial] = contactair;
+							}
+							id_frames.forEach(id_frame => mapping_internal_serials[internal_serial].data.push(id_frame));
+						}
+						return true;
+					})
+					.then(() => true);
+				});
+			}))
+			.then(() => Promise.all( serials.map( (serial) => DeviceManagement.instance.getDevice(serial, serial_to_contactair[serial])
+				.then( device => ({device, serial}) )
+			)))
 			.then(devices => devices.filter(d => d.device))
 			.then(devices => {
 				const promises: Promise<boolean>[] = [];
 				devices.forEach(tuple => {
 					const { device, serial } = tuple;
-					const holder: MappingHolder = mapping[serial];
+					const holder: MappingHolder = mapping_internal_serials[serial];
 
 					device && holder.data.forEach((data, index) => {
 						const { id, frame } = data;

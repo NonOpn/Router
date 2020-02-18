@@ -174,12 +174,26 @@ export default class DeviceManagement {
         .catch(err => device);
     }
 
-    getDevice(internal: string): Promise<AbstractDevice|undefined> {
+    getDeviceForContactair(contactair: string): Promise<AbstractDevice|undefined> {
+        return model_devices.getDeviceForContactair(contactair)
+        .then(device => {
+            if(device) return this._databaseDeviceToRealDevice(device);
+            return undefined;
+        });
+    }
+
+    getDevice(internal: string, current_contactair?: string): Promise<AbstractDevice|undefined> {
         if(internal == "ffffff") return Promise.resolve(undefined);
         return model_devices.getDeviceForInternalSerial(internal)
         .then(device => {
-            if(device) return device;
-            return model_devices.saveDevice({ serial: "", internal_serial: internal, type: TYPE_UNASSIGNED });
+            if(device) {
+                if(current_contactair && current_contactair != device.last_contactair) {
+                    console.log("updating contactair !");
+                    return model_devices.setContactairForDevice(current_contactair, device.internal_serial);
+                }
+                return Promise.resolve(device);
+            }
+            return model_devices.saveDevice({ serial: "", internal_serial: internal, last_contactair: current_contactair, type: TYPE_UNASSIGNED });
         })
         .then(device => this._databaseDeviceToRealDevice(device));
     }

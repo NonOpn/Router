@@ -15,6 +15,7 @@ export default class DeviceManagement {
     isAlert(type: TYPE, frame: string): boolean;
     _databaseDeviceToRealDevice(device: Device | undefined): AbstractDevice | undefined;
     setType(device: AbstractDevice, type?: TYPE): Promise<AbstractDevice | undefined>;
-    getDevice(internal: string): Promise<AbstractDevice | undefined>;
+    getDeviceForContactair(contactair: string): Promise<AbstractDevice | undefined>;
+    getDevice(internal: string, current_contactair?: string): Promise<AbstractDevice | undefined>;
     applyData(data: any, device_callback?: OnFrameCallback | undefined): void;
 }

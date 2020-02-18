@@ -9,10 +9,12 @@ function create() {
     + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
     + "`serial` VARCHAR(20) NOT NULL,"
     + "`internal_serial` VARCHAR(20) NOT NULL,"
+    + "`last_contactair` VARCHAR(20),"
     + "`type_set` TINYINT(1) DEFAULT 0,"
     + "`type` INTEGER,"
     + "KEY `internal_serial` (`internal_serial`)"
     + ")ENGINE=MyISAM;")
+    .then(() => pool.query("ALTER TABLE Device ADD COLUMN `last_contactair` VARCHAR(20)", true))
   .then(results => {
     console.log("device_model done");
   });
@@ -27,7 +29,7 @@ pool.query("REPAIR TABLE Device")
 const MODEL = "Device";
 
 function createInsertRows(): string {
-  var columns = ["serial","internal_serial", "type"]
+  var columns = ["serial","internal_serial", "type", "last_contactair"]
   columns = columns.map(col=> "`"+col+"`");
   return "INSERT INTO Device ("+columns.join(",")+") VALUES ? ";
 }
@@ -39,6 +41,7 @@ export interface Device {
   serial: string;
   internal_serial: string;
   type: number;
+  last_contactair?: string;
 }
 
 function ToJson(device: Device): Device {
@@ -46,7 +49,8 @@ function ToJson(device: Device): Device {
     id: device.id,
     serial: device.serial,
     internal_serial: device.internal_serial,
-    type: device.type
+    type: device.type,
+    last_contactair: device.last_contactair
   }
 }
 
@@ -54,7 +58,8 @@ function ToArrayForInsert(device: Device): any[] {
   return [
     device.serial,
     device.internal_serial,
-    device.type
+    device.type,
+    device.last_contactair
   ]
 }
 
@@ -93,6 +98,19 @@ export default class DeviceModel extends Abstract {
     .then(devices => devices.map(device => ToJson(device)));
   }
 
+  setContactairForDevice(last_contactair: string, internal_serial: string): Promise<Device|undefined> {
+    if(!last_contactair) last_contactair = "";
+    if(!internal_serial) internal_serial = "";
+    return new Promise((resolve, reject) => {
+      pool.queryParameters("UPDATE Device SET last_contactair = ? WHERE internal_serial=? ORDER BY id LIMIT 1", [last_contactair, internal_serial])
+      .then(() => this.getDeviceForInternalSerial(internal_serial))
+      .catch(error => {
+        manageErrorCrash(error, () => console.log("crashed in getDeviceForInternalSerial()"));
+        resolve(undefined);
+      });
+    });
+  }
+
   getDeviceForInternalSerial(internal_serial: string): Promise<Device|undefined> {
     if(!internal_serial) internal_serial = "";
     return new Promise((resolve, reject) => {
@@ -112,6 +130,21 @@ export default class DeviceModel extends Abstract {
     if(!serial) serial = "";
     return new Promise((resolve, reject) => {
       pool.queryParameters("SELECT * FROM Device WHERE serial=? ORDER BY id LIMIT 1", [serial])
+      .then(results => {
+        if(!results || results.length == 0) resolve(undefined);
+        else resolve(ToJson(results[0]));
+      })
+      .catch(error => {
+        manageErrorCrash(error, () => console.log("crashed in getDeviceForSerial()"));
+        resolve(undefined);
+      });
+    });
+  }
+
+  getDeviceForContactair(contactair: string): Promise<Device|undefined> {
+    if(!contactair) contactair = "";
+    return new Promise((resolve, reject) => {
+      pool.queryParameters("SELECT * FROM Device WHERE last_contactair=? ORDER BY id LIMIT 1", [contactair])
       .then(results => {
         if(!results || results.length == 0) resolve(undefined);
         else resolve(ToJson(results[0]));
