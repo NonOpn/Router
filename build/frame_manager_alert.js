@@ -124,6 +124,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
         return frame_model_1.default.instance.getFrame(from, until)
             .then(frames => {
             frames = frames || [];
+            console.log("frame found ? " + from + " " + until, frames.length);
             if (frames.length == 0)
                 return Promise.resolve(-1);
             var next = frames.reduce((t1, t2) => {
