@@ -72,7 +72,7 @@ export default class FrameManagerAlert extends EventEmitter {
 		const to_update = internal_serials.filter(item => {
 			if(this.hasProduct(item)) return false;
 			const device = this.deviceForInternal(devices, item.internal_serial);
-			return device?.last_contactair != item.contactair;
+			return device && device.last_contactair != item.contactair;
 		})
 
 		console.log("tryUpdateDevicesForContactairs", {to_update});
