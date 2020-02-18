@@ -72,9 +72,11 @@ export default class FrameManagerAlert extends EventEmitter {
 		devices.forEach(device => device && device.last_contactair == "ffffff" && (device.last_contactair = undefined));
 
 		const to_update = internal_serials.filter(item => {
+			if(item.internal_serial == "ffffff") return false;
+
 			const device = this.deviceForInternal(devices, item.internal_serial);
-			if(this.hasProduct(item) && (!device || device.last_contactair)) return false;
-			if(item.internal_serial != "ffffff") return false;
+
+			if(this.hasProduct(item) && device && "ffffff" != device.last_contactair && device.last_contactair) return false;
 			return device && device.last_contactair != item.contactair;
 		})
 
