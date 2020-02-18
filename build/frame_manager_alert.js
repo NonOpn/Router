@@ -96,7 +96,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
         })
             .then(done => {
             console.log("batch ?", done);
-            setTimeout(() => this.checkNextTransactions(), 5000);
+            setTimeout(() => this.checkNextTransactions(), 200);
         })
             .catch(err => {
             console.error("error", err);

@@ -123,7 +123,7 @@ export default class FrameManagerAlert extends EventEmitter {
 		})
 		.then(done => {
 			console.log("batch ?", done);
-			setTimeout(() => this.checkNextTransactions(), 5000);
+			setTimeout(() => this.checkNextTransactions(), 200);
 		})
 		.catch(err => {
 			console.error("error", err);
