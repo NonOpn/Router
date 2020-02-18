@@ -15,25 +15,34 @@ export default class Comptair extends AbstractDevice {
     };
   }
 
-
-  getConnectedStateString(item: DataPointModel|undefined): string {
-    if(!item || !item.data) return " ";
-    const buffer = new Buffer(item.data, "hex");
+  static isConnected(frame: string) {
+    if(!frame || frame.length == 0) return false;
+    const buffer = new Buffer(frame, "hex");
     if(buffer.length >= 16) {
       const disconnect = (buffer[9] & 2) === 2;
-      if(disconnect) return "disconnect";
+      if(disconnect) return false;
     }
-    return "connected";
+    return true;
+  }
+
+  static isStriken(frame: string) {
+    if(!frame || frame.length == 0) return false;
+    const buffer = new Buffer(frame, "hex");
+    if(buffer.length >= 16) {
+      const striken = (buffer[9] & 1) === 0;
+      if(striken) return true;
+    }
+    return false;
+  }
+
+  getConnectedStateString(item: DataPointModel|undefined): string {
+    const connected = item ? Comptair.isConnected(item.data) : false;
+    return connected ? "connected" : "disconnect";
   }
 
   getImpactedString(item: DataPointModel|undefined): string {
-    if(!item || !item.data) return " ";
-    const buffer = new Buffer(item.data, "hex");
-    if(buffer.length >= 16) {
-      const disconnect = (buffer[9] & 1) === 0;
-      if(disconnect) return "striken";
-    }
-    return "normal";
+    const connected = item ? Comptair.isStriken(item.data) : false;
+    return connected ? "striken" : "normal";
   }
 
   asMib(): OID[] {

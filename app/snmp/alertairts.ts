@@ -28,25 +28,49 @@ export default class AlertairTS extends AbstractDevice {
     };
   }
 
-
-  getConnectedStateString(item: DataPointModel|undefined): string {
-    if(!item || !item.data) return " ";
-    const buffer = new Buffer(item.data, "hex");
+  static isConnected(frame: string) {
+    if(!frame || frame.length == 0) return false;
+    const buffer = new Buffer(frame, "hex");
     if(buffer.length >= 16) {
       const disconnect = (buffer[9] & 2) === 2;
-      if(disconnect) return "disconnect";
+      if(disconnect) return false;
     }
-    return "connected";
+    return true;
+  }
+
+  static isAlert(frame: string): boolean {
+    const buffer = new Buffer(frame, "hex");
+    if(buffer.length >= 16) {
+      var detection: number = (buffer[5] >> 4);
+      switch(detection) {
+          case Detection.ARRIVAL:
+          case Detection.DEPARTING:
+          case Detection.STABLE_STORM:
+          case Detection.CLOSE_STRIKE:
+          case Detection.APPROACHING:
+          case Detection.FAR:
+            return true;
+          case Detection.NOISE:
+          case Detection.DISTURBING:
+          case Detection.CALIBRATION_OK:
+          case 0:
+          default:
+            return false;
+      }
+    }
+    return false;
+  }
+
+  getConnectedStateString(item: DataPointModel|undefined): string {
+    const connected = item ? AlertairTS.isConnected(item.data) : false;
+    return connected ? "connected" : "disconnect";
   }
 
   getImpactedString(item: DataPointModel|undefined): string {
-    if(!item || !item.data) return " ";
-    const buffer = new Buffer(item.data, "hex");
-    if(buffer.length >= 16) {
-      const alert = (buffer[9] & 1) === 0;
-      if(alert) return "alert";
-    }
-    return "safe";
+    if(!item || !item.data) return "safe";
+    if(item.data.indexOf("ffffff") == 0) return "alert";
+    const alert = AlertairTS.isAlert(item.data);
+    return alert ? "alert" : "safe";
   }
 
   getAdditionnalInfo1String(item: DataPointModel|undefined): string {

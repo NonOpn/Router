@@ -1,6 +1,7 @@
 import { DataPointModel } from '../database/data_point';
 import DataPoint from "../database/data_point";
 import snmp from "snmpjs";
+import { Device } from '../push_web/device_model';
 
 export interface Filter {
   key: string,
@@ -40,8 +41,7 @@ export default class AbstractDevice {
 
   getId(): number {
     const lpsfr = this.getLPSFR();
-    if(lpsfr && lpsfr.id) return lpsfr.id;
-    return 0;
+    return lpsfr && lpsfr.id ? lpsfr.id : 0;
   }
 
   getUUID(): string {
