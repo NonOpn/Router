@@ -13,6 +13,7 @@ export default class DeviceModel extends Abstract {
     getModelName(): string;
     list(): Promise<Device[]>;
     listDevice(): Promise<Device[]>;
+    cleanContactair(): Promise<boolean>;
     unsetContactair(last_contactair: string, frame_id: number): Promise<boolean>;
     setContactairForDevice(last_contactair: string, internal_serial: string, frame_id: number): Promise<Device | undefined>;
     getDeviceForInternalSerial(internal_serial: string): Promise<Device | undefined>;

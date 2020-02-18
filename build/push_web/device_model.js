@@ -84,6 +84,14 @@ class DeviceModel extends abstract_js_1.default {
         return this.list()
             .then(devices => devices.map(device => ToJson(device)));
     }
+    cleanContactair() {
+        return pool.query("UPDATE Device AS D1 LEFT JOIN Device AS D2 ON D1.last_contactair = D2.last_contactair SET D1.last_contactair_index = 0, D1.last_contactair = NULL WHERE D1.last_contactair_index < D2.last_contactair_index")
+            .then(() => true)
+            .catch(error => {
+            manageErrorCrash(error, () => console.log("crashed in getDeviceForInternalSerial()"));
+            return false;
+        });
+    }
     unsetContactair(last_contactair, frame_id) {
         if (!last_contactair)
             last_contactair = "";
