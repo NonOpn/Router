@@ -110,7 +110,6 @@ class FrameModel extends abstract_js_1.default {
                 var index = 0;
                 if (result && result.length > 0)
                     index = result[0].m;
-                console.log("getMinFrame", result);
                 resolve(index);
             })
                 .catch(err => manageErrorCrash(err, reject));
@@ -123,7 +122,6 @@ class FrameModel extends abstract_js_1.default {
                 var index = 0;
                 if (result && result.length > 0)
                     index = result[0].m;
-                console.log("getMaxFrame", result);
                 resolve(index);
             })
                 .catch(err => manageErrorCrash(err, reject));

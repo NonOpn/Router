@@ -132,7 +132,6 @@ export default class FrameModel extends Abstract {
       .then(result => {
         var index = 0;
         if(result && result.length > 0) index = result[0].m;
-        console.log("getMinFrame", result);
         resolve(index);
       })
       .catch(err => manageErrorCrash(err, reject));
@@ -145,7 +144,6 @@ export default class FrameModel extends Abstract {
       .then(result => {
         var index = 0;
         if(result && result.length > 0) index = result[0].m;
-        console.log("getMaxFrame", result);
         resolve(index);
       })
       .catch(err => manageErrorCrash(err, reject));
