@@ -69,9 +69,10 @@ export default class FrameManagerAlert extends EventEmitter {
 
 
 	private tryUpdateDevicesForContactairs(devices: Device[], internal_serials:TransactionSimple[]): Promise<boolean> {
+		devices.forEach(device => device && device.last_contactair == "ffffff" && (device.last_contactair = undefined));
+
 		const to_update = internal_serials.filter(item => {
 			const device = this.deviceForInternal(devices, item.internal_serial);
-			console.log("to_update ? ", {device, item});
 			if(this.hasProduct(item) && (!device || device.last_contactair)) return false;
 			if(item.internal_serial != "ffffff") return false;
 			return device && device.last_contactair != item.contactair;
