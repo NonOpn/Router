@@ -9,7 +9,7 @@ import { Logger } from "./log/index.js";
 
 const errors = Errors.instance;
 
-const VERSION = 8;
+const VERSION = 9;
 
 function _post(json: any) {
 	console.log("posting json");

@@ -11,7 +11,7 @@ const frame_model_1 = __importDefault(require("./push_web/frame_model"));
 const push_web_1 = __importDefault(require("./config/push_web"));
 const frame_model_compress_js_1 = __importDefault(require("./push_web/frame_model_compress.js"));
 const errors = errors_1.default.instance;
-const VERSION = 8;
+const VERSION = 9;
 function _post(json) {
     console.log("posting json");
     return new Promise((resolve, reject) => {
