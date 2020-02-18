@@ -61,12 +61,14 @@ class FrameManagerAlert extends events_1.EventEmitter {
                         mapping_contactairs[contactair] = { contactair, internal_serial: "", data: [] };
                         contactairs.push(contactair);
                     }
+                    console.log("invalid device found, saving for now...", contactair);
                     mapping_contactairs[contactair].data.push({ id, frame });
                 }
             });
             Promise.all(contactairs.map(contactair => {
                 return device_js_1.default.instance.getDeviceForContactair(contactair)
                     .then(device => {
+                    console.log(`found device for ${contactair} ?`, !!device);
                     if (!device)
                         return Promise.resolve(false);
                     return device.getInternalSerial()
