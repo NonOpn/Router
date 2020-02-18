@@ -12,6 +12,7 @@ function create() {
         + "`serial` VARCHAR(20) NOT NULL,"
         + "`internal_serial` VARCHAR(20) NOT NULL,"
         + "`last_contactair` VARCHAR(20),"
+        + "`last_contactair_index` INTEGER DEFAULT 0,"
         + "`type_set` TINYINT(1) DEFAULT 0,"
         + "`type` INTEGER,"
         + "KEY `internal_serial` (`internal_serial`)"
@@ -29,7 +30,7 @@ pool.query("REPAIR TABLE Device")
 });
 const MODEL = "Device";
 function createInsertRows() {
-    var columns = ["serial", "internal_serial", "type", "last_contactair"];
+    var columns = ["serial", "internal_serial", "type", "last_contactair", "last_contactair_index"];
     columns = columns.map(col => "`" + col + "`");
     return "INSERT INTO Device (" + columns.join(",") + ") VALUES ? ";
 }
@@ -40,7 +41,8 @@ function ToJson(device) {
         serial: device.serial,
         internal_serial: device.internal_serial,
         type: device.type,
-        last_contactair: device.last_contactair
+        last_contactair: device.last_contactair,
+        last_contactair_index: device.last_contactair_index || 0
     };
 }
 function ToArrayForInsert(device) {
@@ -48,7 +50,8 @@ function ToArrayForInsert(device) {
         device.serial,
         device.internal_serial,
         device.type,
-        device.last_contactair
+        device.last_contactair,
+        device.last_contactair_index || 0
     ];
 }
 function manageErrorCrash(error, reject) {
@@ -80,24 +83,24 @@ class DeviceModel extends abstract_js_1.default {
         return this.list()
             .then(devices => devices.map(device => ToJson(device)));
     }
-    unsetContactair(last_contactair) {
+    unsetContactair(last_contactair, frame_id) {
         if (!last_contactair)
             last_contactair = "";
-        return pool.queryParameters("UPDATE Device SET last_contactair = NULL WHERE last_contactair=? ORDER BY id LIMIT 1", [last_contactair])
+        return pool.queryParameters("UPDATE Device SET last_contactair_index = 0, last_contactair = NULL WHERE last_contactair=? AND last_contactair_index < ? ORDER BY id LIMIT 1", [last_contactair, frame_id])
             .then(() => true)
             .catch(error => {
             manageErrorCrash(error, () => console.log("crashed in getDeviceForInternalSerial()"));
             return false;
         });
     }
-    setContactairForDevice(last_contactair, internal_serial) {
+    setContactairForDevice(last_contactair, internal_serial, frame_id) {
         if (!last_contactair)
             last_contactair = "";
         if (!internal_serial)
             internal_serial = "";
         return new Promise((resolve, reject) => {
-            this.unsetContactair(last_contactair)
-                .then(() => pool.queryParameters("UPDATE Device SET last_contactair = ? WHERE internal_serial=? ORDER BY id LIMIT 1", [last_contactair, internal_serial]))
+            this.unsetContactair(last_contactair, frame_id)
+                .then(() => pool.queryParameters("UPDATE Device SET last_contactair_index = ?, last_contactair = ? WHERE internal_serial=? AND last_contactair_index < ? ORDER BY id LIMIT 1", [frame_id, last_contactair, internal_serial, frame_id]))
                 .then(() => this.getDeviceForInternalSerial(internal_serial))
                 .then(device => resolve(device))
                 .catch(error => {

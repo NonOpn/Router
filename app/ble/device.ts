@@ -187,10 +187,11 @@ export default class DeviceManagement {
         return model_devices.getDeviceForInternalSerial(internal)
         .then(device => {
             if(device) {
-                if(current_contactair && current_contactair != device.last_contactair && current_contactair != "ffffff") {
+                //TODO add getDevice parameters to update with frame id BUT right now not necessary
+                /*if(current_contactair && current_contactair != device.last_contactair && current_contactair != "ffffff") {
                     console.log("updating contactair !");
                     return model_devices.setContactairForDevice(current_contactair, device.internal_serial);
-                }
+                }*/
                 return Promise.resolve(device);
             }
             return model_devices.saveDevice({ serial: "", internal_serial: internal, last_contactair: current_contactair, type: TYPE_UNASSIGNED });
