@@ -16,7 +16,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
         this._started = false;
         this._current_index = 0;
         this.isProductButNeedAlertOrNot = (f) => f && f.product_id && (undefined == f.is_alert || null == f.is_alert);
-        this.hasNotProduct = (f) => !this.hasProduct(f);
+        this.hasNotProduct = (f) => f && !f.product_id;
         this.hasProduct = (f) => f && !!f.product_id;
     }
     start() {

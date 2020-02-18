@@ -64,7 +64,7 @@ export default class FrameManagerAlert extends EventEmitter {
 	}
 	
 	private isProductButNeedAlertOrNot = (f: Transaction) => f && f.product_id && (undefined == f.is_alert || null == f.is_alert);
-	private hasNotProduct = (f: Transaction) => !this.hasProduct(f);
+	private hasNotProduct = (f: Transaction) => f && !f.product_id;
 	private hasProduct = (f: TransactionSimple) => f && !!f.product_id;
 
 
