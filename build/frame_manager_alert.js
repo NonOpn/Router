@@ -33,6 +33,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
                 frame: f.frame,
                 id: f.id || 0
             }));
+            console.log("managing for frames ", internal_serials.map(i => i.internal_serial + " / " + i.contactair));
             if (internal_serials.length == 0) {
                 resolve(true);
                 return;
