@@ -22,6 +22,7 @@ export default class FrameModel extends Abstract {
     getMaxFrame(): Promise<number>;
     setDevice(index: number, product_id: number, is_alert?: boolean): Promise<boolean>;
     getFrame(index: number, limit: number): Promise<Transaction[] | undefined>;
+    getFrameIsAlert(index: number, limit: number): Promise<Transaction[] | undefined>;
     beforeForDevice(device: Device, timestamp: number): Promise<Transaction[]>;
     before(timestamp: number): Promise<Transaction[]>;
     getUnsent(): Promise<Transaction[]>;

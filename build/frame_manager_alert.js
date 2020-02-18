@@ -40,7 +40,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
             internal_serials.forEach(pre_holder => {
                 const { id, internal_serial, frame } = pre_holder;
                 if (!mapping[internal_serial]) {
-                    mapping[internal_serial] = { internal_serial, ids: [], frame: [] };
+                    mapping[internal_serial] = { internal_serial, data: [] };
                     serials.push(internal_serial);
                 }
                 mapping[internal_serial].data.push({ id, frame });
@@ -76,6 +76,8 @@ class FrameManagerAlert extends events_1.EventEmitter {
             .then(frames => {
             frames = frames || [];
             if (frames.length == 0) {
+                console.log("no frame to manage at all... we reset the loop...");
+                this._current_index = -1;
                 return Promise.resolve(true);
             }
             var next = frames.reduce((t1, t2) => {

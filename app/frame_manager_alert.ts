@@ -62,7 +62,7 @@ export default class FrameManagerAlert extends EventEmitter {
 			internal_serials.forEach(pre_holder => {
 				const { id, internal_serial, frame } = pre_holder;
 				if(!mapping[internal_serial]) {
-					mapping[internal_serial] = { internal_serial, ids: [], frame: []};
+					mapping[internal_serial] = { internal_serial, data: []};
 					serials.push(internal_serial);
 				}
 

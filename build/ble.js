@@ -19,6 +19,7 @@ const network = network_1.default.instance;
 const diskspace = system_1.default.instance;
 const devices = device_model_1.default.instance;
 const BLEConstants_1 = require("./ble/BLEConstants");
+const frame_model_1 = __importDefault(require("./push_web/frame_model"));
 var id = "Routair";
 if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) {
     id += config_1.default.identity.substr(0, 5 * 2);
@@ -221,13 +222,13 @@ class BLEReadWriteLogIsAlertCharacteristic extends BLESyncCharacteristic_1.defau
         super(uuid, compress, use_write);
     }
     getMaxFrame() {
-        return frame_model_compress_1.default.instance.getMaxFrame();
+        return frame_model_1.default.instance.getMaxFrame();
     }
     getMinFrame() {
-        return frame_model_compress_1.default.instance.getMinFrame();
+        return frame_model_1.default.instance.getMinFrame();
     }
     getFrame(value, to_fetch) {
-        return frame_model_compress_1.default.instance.getFrameIsAlert(value, to_fetch);
+        return frame_model_1.default.instance.getFrameIsAlert(value, to_fetch);
     }
 }
 class BLE {
