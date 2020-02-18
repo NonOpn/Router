@@ -33,7 +33,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
                 frame: f.frame,
                 id: f.id || 0
             }));
-            console.log("managing for frames ", internal_serials.map(i => i.internal_serial + " / " + i.contactair));
+            console.log("managing for frames ", internal_serials.filter(i => i.internal_serial != "ffffff").map(i => i.internal_serial + " / " + i.contactair));
             if (internal_serials.length == 0) {
                 resolve(true);
                 return;
@@ -62,7 +62,6 @@ class FrameManagerAlert extends events_1.EventEmitter {
                         mapping_contactairs[contactair] = { contactair, internal_serial: "", data: [] };
                         contactairs.push(contactair);
                     }
-                    console.log("invalid device found, saving for now...", contactair);
                     mapping_contactairs[contactair].data.push({ id, frame });
                 }
             });
@@ -155,7 +154,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
             this._current_index = new_index;
             return true;
         })
-            .then(() => setTimeout(() => this.checkNextTransactions(), 5000))
+            .then(() => setTimeout(() => this.checkNextTransactions(), 500))
             .catch(err => {
             console.error("error", err);
             setTimeout(() => this.checkNextTransactions(), 5000);
