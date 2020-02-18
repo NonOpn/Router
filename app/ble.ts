@@ -1,3 +1,4 @@
+import BLESyncCharacteristic, { Result, BLEResultCallback } from './ble/BLESyncCharacteristic';
 import config from "./config/config";
 import DeviceModel from "./push_web/device_model";
 import FrameModelCompress from "./push_web/frame_model_compress";
@@ -15,11 +16,14 @@ const network: NetworkInfo = NetworkInfo.instance;
 const diskspace: Diskspace = Diskspace.instance;
 const devices = DeviceModel.instance;
 
-const RESULT_SUCCESS = 0x00;
-const RESULT_INVALID_OFFSET = 0x07;
-const RESULT_ATTR_NOT_LONG = 0x0b;
-const RESULT_INVALID_ATTRIBUTE_LENGTH = 0x0d;
-const RESULT_UNLIKELY_ERROR = 0x0e;
+import {
+  RESULT_SUCCESS,
+  RESULT_INVALID_OFFSET,
+  RESULT_ATTR_NOT_LONG,
+  RESULT_INVALID_ATTRIBUTE_LENGTH,
+  RESULT_UNLIKELY_ERROR
+} from "./ble/BLEConstants";
+import FrameModel, { Transaction } from './push_web/frame_model';
 
 
 var id = "Routair";
@@ -39,10 +43,6 @@ var seenDevices: SeenDevices = {
 
 interface MethodPromise {
   (): Promise<any>;
-}
-
-interface BLEResultCallback {
-  (result: number): void;
 }
 
 interface NetworkConfiguration {
@@ -172,144 +172,6 @@ class BLEWriteCharacteristic extends Characteristic {
   };
 }
 
-interface Compressed {
-  i: number,
-  f: string, //compressed frame
-  t: number, //timestamp
-  s: string, //internal serial
-  c: string //contactair
-}
-
-interface Result {
-  index: number,
-  max: number,
-  txs: Compressed[]
-}
-
-class BLEReadWriteLogCharacteristic extends Characteristic {
-  _log_id:number = 0;
-  _last: Buffer;
-  _compress: boolean;
-
-  constructor(uuid: string, compress:boolean = false, use_write: boolean = true) {
-    super({
-      uuid: uuid,
-      properties: use_write ? [ 'write', 'read' ] : ['read']
-    });
-
-    this._compress = compress;
-    this._last = Buffer.from("");
-  }
-
-  onReadRequest(offset: number, cb: BLECallback) {
-    if(offset > 0 && offset < this._last.length) {
-      const sub = this._last.subarray(offset);
-      cb(RESULT_SUCCESS, sub);
-      return;
-    }
-
-    console.log(offset);
-    const index = this._log_id;
-    console.log("get log ", index);
-
-    var result: Result = {
-      index: index,
-      max: 0,
-      txs: []
-    };
-    var to_fetch = 1;
-
-    FrameModelCompress.instance.getMaxFrame()
-    .then(maximum => {
-      result.max = maximum;
-
-      if(this._log_id > maximum) {
-        this._log_id = maximum+1; //prevent looping
-      }
-
-      return FrameModelCompress.instance.getMinFrame();
-    })
-    .then(minimum => {
-      //check the minimum index to fetch values from
-      if(minimum > this._log_id) this._log_id = minimum;
-      return minimum > index ? minimum : index
-    })
-    .then(value => {
-      //get at least 1..4 transactions
-      to_fetch = result.max - value;
-      if(to_fetch > 7) to_fetch = 7;
-      if(to_fetch < 1) to_fetch = 1;
-
-      this._log_id += to_fetch;
-
-      return value;
-    })
-    .then(value => FrameModelCompress.instance.getFrame(value, to_fetch))
-    .then(transactions => {
-
-      console.log("new index", this._log_id+" "+result.index);
-
-      if(transactions) {
-        transactions.forEach((transaction:any) => {
-          result.index = transaction.id;
-
-          if(!this._compress) {
-            const arr = {
-              i: transaction.id,
-              f: FrameModelCompress.instance.getCompressedFrame(transaction.frame),
-              t: transaction.timestamp,
-              s: FrameModelCompress.instance.getInternalSerial(transaction.frame),
-              c: FrameModelCompress.instance.getContactair(transaction.frame)
-            };
-            result.txs.push(arr);
-          } else {
-            const arr:any = 
-              transaction.id+","+
-              FrameModelCompress.instance.getCompressedFrame(transaction.frame)+","+
-              transaction.timestamp+","+
-              FrameModelCompress.instance.getInternalSerial(transaction.frame)+","+
-              FrameModelCompress.instance.getContactair(transaction.frame)+",";
-            result.txs.push(arr);
-          }
-        })
-      }
-
-      if(this._log_id > result.max + 1) {
-        this._log_id = result.max + 1;
-      }
-      var output = JSON.stringify(result);
-      if(this._compress) {
-        output = result.index+","+result.max+","+result.txs.concat();
-      }
-      this._last = Buffer.from(output, "utf-8");
-      cb(RESULT_SUCCESS, this._last);
-    })
-    .catch(err => {
-      console.error(err);
-      cb(RESULT_UNLIKELY_ERROR, Buffer.from("", "utf-8"));
-    })
-  }
-
-  onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback) {
-    console.log("offset := " + offset);
-    console.log(data.toString());
-    var config: string = data.toString();
-    var configuration: any = {};
-    try {
-      configuration = JSON.parse(config);
-    } catch(e) {
-      configuration = {};
-    }
-
-    if(configuration && configuration.index) {
-      this._log_id = configuration.index;
-      callback(RESULT_SUCCESS);
-    } else {
-      callback(RESULT_UNLIKELY_ERROR);
-    }
-  };
-}
-
 class BLEPrimaryService extends PrimaryService {
 
   constructor(characteristics: any[]) {
@@ -373,8 +235,9 @@ class BLEPrimaryDeviceService extends PrimaryService {
     this.device = device;
   }
 
-  _editType(new_type?: TYPE): Promise<boolean> {
-    return device_management.setType(this.device, new_type).then(device => {
+  _editType(new_type?: string): Promise<boolean> {
+    const type = DeviceManagement.instance.stringToType(new_type || "");
+    return device_management.setType(this.device, type).then(device => {
       if(device) this.device = device;
       return !!device;
     });
@@ -403,16 +266,52 @@ class BLEPrimaryDeviceService extends PrimaryService {
   }
 }
 
+class BLEReadWriteLogCharacteristic extends BLESyncCharacteristic {
+  constructor(uuid: string, compress:boolean = false, use_write: boolean = true) {
+    super(uuid, compress, use_write);
+  }
+
+  public getMaxFrame(): Promise<number> {
+    return FrameModelCompress.instance.getMaxFrame();
+  }
+
+  public getMinFrame(): Promise<number> {
+    return FrameModelCompress.instance.getMinFrame();
+  }
+
+  public getFrame(value: number, to_fetch: number): Promise<Transaction[]|undefined> {
+    return FrameModelCompress.instance.getFrame(value, to_fetch);
+  }
+}
+
+class BLEReadWriteLogIsAlertCharacteristic extends BLESyncCharacteristic {
+  constructor(uuid: string, compress:boolean = false, use_write: boolean = true) {
+    super(uuid, compress, use_write);
+  }
+
+  public getMaxFrame(): Promise<number> {
+    return FrameModel.instance.getMaxFrame();
+  }
+
+  public getMinFrame(): Promise<number> {
+    return FrameModel.instance.getMinFrame();
+  }
+
+  public getFrame(value: number, to_fetch: number): Promise<Transaction[]|undefined> {
+    return FrameModel.instance.getFrameIsAlert(value, to_fetch);
+  }
+}
+
 export default class BLE {
 
-  _notify_frame?: BLEFrameNotify;
-  _characteristics: any[]; //Characteristic
-  _ble_service: BLEPrimaryService;
-  _system_service: BLEPrimarySystemService;
-  _eth0_service: BLEPrimaryNetworkService;
-  _wlan0_service: BLEPrimaryNetworkService;
-  _services: any[];
-  _services_uuid: string[];
+  private _notify_frame?: BLEFrameNotify;
+  private _characteristics: any[]; //Characteristic
+  private _ble_service: BLEPrimaryService;
+  private _system_service: BLEPrimarySystemService;
+  private _eth0_service: BLEPrimaryNetworkService;
+  private _wlan0_service: BLEPrimaryNetworkService;
+  private _services: any[];
+  private _services_uuid: string[];
 
   _refreshing_called_once: boolean = false;
   _started_advertising: boolean = false;
@@ -451,7 +350,8 @@ export default class BLE {
       new BLEAsyncDescriptionCharacteristic("0103", () => this._onDeviceSeenCall()),
       new BLEReadWriteLogCharacteristic("0104"),
       new BLEReadWriteLogCharacteristic("0105", true),
-      new BLEReadWriteLogCharacteristic("0106", true, false) //,
+      new BLEReadWriteLogCharacteristic("0106", true, false),
+      new BLEReadWriteLogIsAlertCharacteristic("0107", true, true)
       //this._notify_frame
     ];
 
