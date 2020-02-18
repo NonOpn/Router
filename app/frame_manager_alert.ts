@@ -111,11 +111,8 @@ export default class FrameManagerAlert extends EventEmitter {
 			}, frames[0]);
 
 			return this.setDevicesForInvalidProductsOrAlerts(frames)
-			.then(done => {
-				var new_index = (next.id || -1) + 1;
-				return done;
-			});
-		})
+			.then(() => (next.id || -1) + 1);
+		});
 	}
 
 	private checkNextTransactions() {

@@ -85,10 +85,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
                 return t1.id > t2.id ? t1 : t2;
             }, frames[0]);
             return this.setDevicesForInvalidProductsOrAlerts(frames)
-                .then(done => {
-                var new_index = (next.id || -1) + 1;
-                return done;
-            });
+                .then(() => (next.id || -1) + 1);
         });
     }
     checkNextTransactions() {
