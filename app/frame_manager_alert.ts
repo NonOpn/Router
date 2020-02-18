@@ -52,7 +52,6 @@ export default class FrameManagerAlert extends EventEmitter {
 			}));
 
 			if(internal_serials.length == 0) {
-				console.log("this batch has no device to update", frames);
 				resolve(true);
 				return;
 			}
@@ -72,7 +71,6 @@ export default class FrameManagerAlert extends EventEmitter {
 			Promise.all( serials.map( serial => DeviceManagement.instance.getDevice(serial).then( device => ({device, serial}) ) ) )
 			.then(devices => devices.filter(d => d.device))
 			.then(devices => {
-				console.log("having devices " + devices.filter(d => d.device).length);
 				const promises: Promise<boolean>[] = [];
 				devices.forEach(tuple => {
 					const { device, serial } = tuple;
@@ -89,10 +87,7 @@ export default class FrameManagerAlert extends EventEmitter {
 				});
 				return Promise.all(promises)
 			})
-			.then(() => {
-				console.log("batch done to set device information");
-				resolve(true);
-			})
+			.then(() => resolve(true))
 			.catch(err => reject(err));
 		});
 	}
@@ -126,17 +121,13 @@ export default class FrameManagerAlert extends EventEmitter {
 			if(new_index == -1) {
 				console.log("no frame to manage at all... we reset the loop...");
 				this._current_index = -1;
-				return new Promise(resolve => setTimeout(() => resolve(true), 5000));
+				return new Promise(resolve => setTimeout(() => resolve(true), 50000));
 			}
 
 			this._current_index = new_index;
-			console.log("new_index is now _current_index:=" + this._current_index);
 			return true;
 		})
-		.then(done => {
-			console.log("batch ?", done);
-			setTimeout(() => this.checkNextTransactions(), 200);
-		})
+		.then(() => setTimeout(() => this.checkNextTransactions(), 200))
 		.catch(err => {
 			console.error("error", err);
 			setTimeout(() => this.checkNextTransactions(), 5000);
