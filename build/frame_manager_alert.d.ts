@@ -10,8 +10,8 @@ export default class FrameManagerAlert extends EventEmitter {
     private isProductButNeedAlertOrNot;
     private hasNotProduct;
     private hasProduct;
-    private tryUpdateDevicesForContactairs(devices, internal_serials);
-    private setDevicesForInvalidProductsOrAlerts(devices, frames);
-    private manageFrame(devices, from, until);
+    private tryUpdateDevicesForContactairs(update_devices, devices, internal_serials);
+    private setDevicesForInvalidProductsOrAlerts(devices, frames, update_devices);
+    private manageFrame(devices, from, until, update_devices);
     private checkNextTransactions();
 }

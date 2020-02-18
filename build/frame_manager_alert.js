@@ -31,7 +31,9 @@ class FrameManagerAlert extends events_1.EventEmitter {
     deviceForInternal(devices, internal_serial) {
         return devices.find(d => d.internal_serial == internal_serial);
     }
-    tryUpdateDevicesForContactairs(devices, internal_serials) {
+    tryUpdateDevicesForContactairs(update_devices, devices, internal_serials) {
+        if (!update_devices)
+            return Promise.resolve(true);
         devices.forEach(device => device && device.last_contactair == "ffffff" && (device.last_contactair = undefined));
         const to_update = internal_serials.filter(item => {
             if (item.internal_serial == "ffffff")
@@ -45,7 +47,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
         return Promise.all(to_update.map(({ contactair, internal_serial }) => device_model_js_1.default.instance.setContactairForDevice(contactair, internal_serial)))
             .then(() => true);
     }
-    setDevicesForInvalidProductsOrAlerts(devices, frames) {
+    setDevicesForInvalidProductsOrAlerts(devices, frames, update_devices) {
         const internal_serials = frames.filter(f => this.isProductButNeedAlertOrNot(f) || this.hasNotProduct(f)).map(f => ({
             internal_serial: frame_model_1.default.instance.getInternalSerial(f.frame),
             contactair: frame_model_1.default.instance.getContactair(f.frame),
@@ -53,7 +55,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
             id: f.id || 0,
             product_id: f.product_id || undefined
         }));
-        return this.tryUpdateDevicesForContactairs(devices, internal_serials).then(() => {
+        return this.tryUpdateDevicesForContactairs(update_devices, devices, internal_serials).then(() => {
             console.log("managing for frames ", internal_serials.filter(i => i.internal_serial != "ffffff").map(i => i.internal_serial + " / " + i.contactair));
             if (internal_serials.length == 0) {
                 return Promise.resolve(true);
@@ -139,7 +141,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
                 .then(() => Promise.resolve(true));
         });
     }
-    manageFrame(devices, from, until) {
+    manageFrame(devices, from, until, update_devices) {
         return frame_model_1.default.instance.getFrame(from, until)
             .then(frames => {
             frames = frames || [];
@@ -153,7 +155,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
                     return t1;
                 return t1.id > t2.id ? t1 : t2;
             }, frames[0]);
-            return this.setDevicesForInvalidProductsOrAlerts(devices, frames)
+            return this.setDevicesForInvalidProductsOrAlerts(devices, frames, update_devices)
                 .then(() => (next.id || -1) + 1);
         });
     }
@@ -163,10 +165,10 @@ class FrameManagerAlert extends events_1.EventEmitter {
             return frame_model_1.default.instance.getMaxFrame()
                 .then(maximum => {
                 if (maximum > 0)
-                    return this.manageFrame(devices, Math.max(1, maximum - 50), 50).then(() => true).catch(() => true);
+                    return this.manageFrame(devices, Math.max(1, maximum - 50), 50, true).then(() => true).catch(() => true);
                 return Promise.resolve(true);
             })
-                .then(() => this.manageFrame(devices, this._current_index, 200))
+                .then(() => this.manageFrame(devices, this._current_index, 200, false))
                 .then(new_index => {
                 if (new_index == -1) {
                     console.log("no frame to manage at all... we reset the loop...");

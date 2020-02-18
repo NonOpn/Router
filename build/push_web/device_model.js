@@ -80,14 +80,26 @@ class DeviceModel extends abstract_js_1.default {
         return this.list()
             .then(devices => devices.map(device => ToJson(device)));
     }
+    unsetContactair(last_contactair) {
+        if (!last_contactair)
+            last_contactair = "";
+        return pool.queryParameters("UPDATE Device SET last_contactair = NULL WHERE last_contactair=? ORDER BY id LIMIT 1", [last_contactair])
+            .then(() => true)
+            .catch(error => {
+            manageErrorCrash(error, () => console.log("crashed in getDeviceForInternalSerial()"));
+            return false;
+        });
+    }
     setContactairForDevice(last_contactair, internal_serial) {
         if (!last_contactair)
             last_contactair = "";
         if (!internal_serial)
             internal_serial = "";
         return new Promise((resolve, reject) => {
-            pool.queryParameters("UPDATE Device SET last_contactair = ? WHERE internal_serial=? ORDER BY id LIMIT 1", [last_contactair, internal_serial])
+            this.unsetContactair(last_contactair)
+                .then(() => pool.queryParameters("UPDATE Device SET last_contactair = ? WHERE internal_serial=? ORDER BY id LIMIT 1", [last_contactair, internal_serial]))
                 .then(() => this.getDeviceForInternalSerial(internal_serial))
+                .then(device => resolve(device))
                 .catch(error => {
                 manageErrorCrash(error, () => console.log("crashed in getDeviceForInternalSerial()"));
                 resolve(undefined);
