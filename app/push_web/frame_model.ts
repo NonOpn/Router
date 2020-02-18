@@ -13,14 +13,17 @@ pool.query("CREATE TABLE IF NOT EXISTS Frames ("
   + "`product_id` INTEGER,"
   + "`striken` TINYINT(1) DEFAULT 0,"
   + "`connected` TINYINT(1) DEFAULT 0,"
+  + "`is_alert` TINYINT(1) DEFAULT NULL,"
   + "KEY `timestamp` (`timestamp`)"
   + ")ENGINE=MyISAM;")
 .then(() => pool.query("ALTER TABLE Frames ADD COLUMN `product_id` INTEGER", true))
 .then(() => pool.query("ALTER TABLE Frames ADD COLUMN `striken` INTEGER", true))
 .then(() => pool.query("ALTER TABLE Frames ADD COLUMN `connected` INTEGER", true))
+.then(() => pool.query("ALTER TABLE Frames ADD COLUMN `is_alert` TINYINT(1) DEFAULT NULL", true))
 .then(() => pool.query("ALTER TABLE Frames ADD INDEX `product_id` (`product_id`);", true))
 .then(() => pool.query("ALTER TABLE Frames ADD INDEX `striken` (`striken`);", true))
 .then(() => pool.query("ALTER TABLE Frames ADD INDEX `connected` (`connected`);", true))
+.then(() => pool.query("ALTER TABLE Frames ADD INDEX `is_alert` (`is_alert`);", true))
 .then(() => console.log("finished"))
 .catch(err => console.log(err));
 
@@ -39,13 +42,17 @@ export interface Transaction {
   frame: string;
   timestamp: number;
   sent: number; //0/1
+  is_alert?: boolean;
+  product_id?: number|null|undefined;
 }
 
 function txToJson(tx: Transaction): Transaction{
   return {
     frame: tx.frame,
     timestamp: tx.timestamp,
-    sent: tx.sent
+    sent: tx.sent,
+    is_alert: !!tx.is_alert,
+    product_id: tx.product_id
   }
 }
 
@@ -109,13 +116,13 @@ export default class FrameModel extends Abstract {
   }
 
   getInternalSerial(frame: string) {
-    return frame.substring(14+0, 14+6);
+    return frame.substring(14+0, 14+6).toLowerCase();
   }
 
   getContactair(frame: string) {
     //ffffffffffff0000000b01824a995a01
     if(frame.length > 14+20+8)
-      return frame.substring(14+20, 14+20+8)
+      return frame.substring(14+20, 14+20+8).toLowerCase()
     return "";
   }
 
@@ -145,9 +152,32 @@ export default class FrameModel extends Abstract {
     })
   }
 
+  setDevice(index: number, product_id: number, is_alert?: boolean): Promise<boolean> {
+    if(is_alert == undefined) {
+      return new Promise((resolve, reject) => {
+        pool.queryParameters("UPDATE Frames SET product_id = ? WHERE id = ? LIMIT 1", [product_id, index])
+        .then(results => results && results.length > 0 ? resolve(true) : resolve(false))
+        .catch(err => manageErrorCrash(err, reject));
+      });
+    }
+    return new Promise((resolve, reject) => {
+      pool.queryParameters("UPDATE Frames SET product_id = ?, is_alert = ? WHERE id = ? LIMIT 1", [product_id, !!is_alert, index])
+      .then(results => results && results.length > 0 ? resolve(true) : resolve(false))
+      .catch(err => manageErrorCrash(err, reject));
+    });
+}
+
   getFrame(index: number, limit: number): Promise<Transaction[]|undefined> {
     return new Promise((resolve, reject) => {
       pool.queryParameters("SELECT * FROM Frames WHERE id >= ? ORDER BY id LIMIT ?", [index, limit])
+      .then(results => results && results.length > 0 ? resolve(results) : resolve(undefined))
+      .catch(err => manageErrorCrash(err, reject));
+    });
+  }
+
+  getFrameIsAlert(index: number, limit: number): Promise<Transaction[]|undefined> {
+    return new Promise((resolve, reject) => {
+      pool.queryParameters("SELECT * FROM Frames WHERE id >= ? AND is_alert = 1 ORDER BY id LIMIT ?", [index, limit])
       .then(results => results && results.length > 0 ? resolve(results) : resolve(undefined))
       .catch(err => manageErrorCrash(err, reject));
     });
@@ -207,5 +237,7 @@ export default class FrameModel extends Abstract {
       .catch(err => manageErrorCrash(err, reject));
     });
   }
+
+
 
 }

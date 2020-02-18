@@ -10,6 +10,7 @@ import { SSH } from "./systemctl";
 import { Logger } from "./log/index.js";
 import Diskspace from "./system/index.js";
 import Reporter from "./log/reporter.js";
+import FrameManagerAlert from "./frame_manager_alert.js";
 
 const wifi = Wifi.instance;
 const errors = Errors.instance;
@@ -104,6 +105,7 @@ export default class MainEntryPoint {
           var discovery_service = new DiscoveryService();
           var ble = new BLE();
           var ssh = new SSH();
+          var frame_manager_alert = new FrameManagerAlert();
 
 
           //test successfull, since working, will reintroduce it in the future
@@ -142,6 +144,7 @@ export default class MainEntryPoint {
           enocean.register(server);
           discovery_service.bind();
           ble.start();
+          frame_manager_alert.start();
     
           enocean.on("usb-open", (port: any) => {
             console.log("device opened and ready");
