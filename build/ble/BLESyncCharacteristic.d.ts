@@ -20,6 +20,7 @@ export default class BLESyncCharacteristic extends Characteristic {
     _last: Buffer;
     _compress: boolean;
     constructor(uuid: string, compress?: boolean, use_write?: boolean);
+    numberToFetch(): number;
     getMaxFrame(): Promise<number>;
     getMinFrame(): Promise<number>;
     getFrame(value: number, to_fetch: number): Promise<Transaction[] | undefined>;

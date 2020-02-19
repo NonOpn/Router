@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const pool_1 = __importDefault(require("./pool"));
 const abstract_js_1 = __importDefault(require("../database/abstract.js"));
+const frame_model_1 = __importDefault(require("./frame_model"));
 const pool = pool_1.default.instance;
 pool.query("CREATE TABLE IF NOT EXISTS FramesCompress ("
     + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
@@ -89,18 +90,14 @@ class FrameModelCompress extends abstract_js_1.default {
     }
     //ffffff - ffffff0000000b - 01824a - 995a01
     getCompressedFrame(frame) {
-        if (frame && frame.length > 14 + 20 + 8)
-            return frame.substring(14 + 6, 14 + 20);
-        return frame;
+        return frame_model_1.default.instance.getCompressedFrame(frame);
     }
     getInternalSerial(frame) {
-        return frame.substring(14 + 0, 14 + 6);
+        return frame_model_1.default.instance.getInternalSerial(frame);
     }
     getContactair(frame) {
         //ffffffffffff0000000b01824a995a01
-        if (frame.length > 14 + 20 + 8)
-            return frame.substring(14 + 20, 14 + 20 + 8);
-        return "";
+        return frame_model_1.default.instance.getContactair(frame);
     }
     getMinFrame() {
         return new Promise((resolve, reject) => {

@@ -43,6 +43,10 @@ export default class BLESyncCharacteristic extends Characteristic {
     this._last = Buffer.from("");
   }
 
+  public numberToFetch(): number {
+    return 7;
+  }
+
   public getMaxFrame(): Promise<number> {
     return Promise.resolve(-1);
   }
@@ -64,21 +68,18 @@ export default class BLESyncCharacteristic extends Characteristic {
 
     console.log(offset);
     const index = this._log_id;
-    console.log("get log ", index);
+    console.log("get log ", {index});
 
-    var result: Result = {
-      index: index,
-      max: 0,
-      txs: []
-    };
+    var result: Result = { index, max: 0, txs: [] };
     var to_fetch = 1;
+    var TO_FETCH_MAXIMUM = this.numberToFetch();
 
     this.getMaxFrame()
     .then(maximum => {
       result.max = maximum;
 
       if(this._log_id > maximum) {
-        this._log_id = maximum+1; //prevent looping
+        this._log_id = maximum + 1; //prevent looping
       }
 
       return this.getMinFrame();
@@ -91,7 +92,7 @@ export default class BLESyncCharacteristic extends Characteristic {
     .then(value => {
       //get at least 1..4 transactions
       to_fetch = result.max - value;
-      if(to_fetch > 7) to_fetch = 7;
+      if(to_fetch > TO_FETCH_MAXIMUM) to_fetch = TO_FETCH_MAXIMUM;
       if(to_fetch < 1) to_fetch = 1;
 
       this._log_id += to_fetch;
@@ -101,7 +102,7 @@ export default class BLESyncCharacteristic extends Characteristic {
     .then(value => this.getFrame(value, to_fetch))
     .then(transactions => {
 
-      console.log("new index", this._log_id+" "+result.index);
+      console.log("new index", { log_id:this._log_id, index: result.index});
 
       if(transactions) {
         transactions.forEach((transaction:any) => {

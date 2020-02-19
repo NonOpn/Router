@@ -300,6 +300,10 @@ class BLEReadWriteLogIsAlertCharacteristic extends BLESyncCharacteristic {
   public getFrame(value: number, to_fetch: number): Promise<Transaction[]|undefined> {
     return FrameModel.instance.getFrameIsAlert(value, to_fetch);
   }
+
+  public numberToFetch(): number {
+    return 5;
+  }
 }
 
 export default class BLE {
