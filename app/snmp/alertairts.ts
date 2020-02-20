@@ -31,7 +31,7 @@ export default class AlertairTS extends AbstractDevice {
   static isConnected(frame: string) {
     if(!frame || frame.length == 0) return false;
     const buffer = new Buffer(frame, "hex");
-    if(buffer.length >= 16) {
+    if(buffer.length >= 10) {
       const disconnect = (buffer[9] & 2) === 2;
       if(disconnect) return false;
     }
@@ -40,7 +40,7 @@ export default class AlertairTS extends AbstractDevice {
 
   static isAlert(frame: string): boolean {
     const buffer = new Buffer(frame, "hex");
-    if(buffer.length >= 16) {
+    if(buffer.length >= 6) {
       var detection: number = (buffer[5] >> 4);
       switch(detection) {
           case Detection.ARRIVAL:

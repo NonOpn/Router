@@ -33,7 +33,7 @@ class AlertairTS extends abstract_1.default {
         if (!frame || frame.length == 0)
             return false;
         const buffer = new Buffer(frame, "hex");
-        if (buffer.length >= 16) {
+        if (buffer.length >= 10) {
             const disconnect = (buffer[9] & 2) === 2;
             if (disconnect)
                 return false;
@@ -42,7 +42,7 @@ class AlertairTS extends abstract_1.default {
     }
     static isAlert(frame) {
         const buffer = new Buffer(frame, "hex");
-        if (buffer.length >= 16) {
+        if (buffer.length >= 6) {
             var detection = (buffer[5] >> 4);
             switch (detection) {
                 case Detection.ARRIVAL:
