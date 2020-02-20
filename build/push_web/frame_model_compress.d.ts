@@ -13,6 +13,7 @@ export default class FrameModelCompress extends Abstract {
     hasData(device: Device, timestamp_in_past: number): Promise<any[]>;
     invalidateAlerts(product_id: number): Promise<boolean>;
     getRelevantByte(frame: string): string;
+    getFrameWithoutHeader(frame: string): string;
     getCompressedFrame(frame: string): string;
     getInternalSerial(frame: string): string;
     getContactair(frame: string): string;

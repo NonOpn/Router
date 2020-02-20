@@ -104,6 +104,13 @@ export default class FrameModelCompress extends Abstract {
     }
     return "00";
   }
+
+  getFrameWithoutHeader(frame: string) {
+    if(frame && frame.length > 14+20+8)
+      return frame.substring(14, 14 + 20 + 8);
+    return frame;
+  }
+
   //ffffff - ffffff0000000b - 01824a - 995a01
   getCompressedFrame(frame: string) {
     return FrameModel.instance.getCompressedFrame(frame);

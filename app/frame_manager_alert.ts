@@ -205,7 +205,7 @@ export default class FrameManagerAlert extends EventEmitter {
 									
 						promises.push(() => device.getType().then(rawType => {
 
-							const compressed = FrameModelCompress.instance.getCompressedFrame(frame);
+							const compressed = FrameModelCompress.instance.getFrameWithoutHeader(frame);
 							console.log("frame      " + frame);
 							console.log("compressed " + compressed);
 							const type = DeviceManagement.instance.stringToType(rawType);
