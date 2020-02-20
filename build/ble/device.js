@@ -86,18 +86,18 @@ class DeviceManagement {
                 return false;
         }
     }
-    isAlert(type, frame) {
-        if (!frame)
+    isAlert(type, compressed_frame) {
+        if (!compressed_frame)
             return false;
         switch (stringTypeToInt(type)) {
             case TYPE_PARATONAIR:
-                return paratonair_1.default.isStriken(frame);
+                return paratonair_1.default.isStriken(compressed_frame);
             case TYPE_ALERTAIRDC:
-                return alertairdc_1.default.isCircuitDisconnect(frame);
+                return alertairdc_1.default.isCircuitDisconnect(compressed_frame);
             case TYPE_ALERTAIRTS:
-                return alertairts_1.default.isAlert(frame);
+                return alertairts_1.default.isAlert(compressed_frame);
             case TYPE_COMPTAIR:
-                return comptair_1.default.isStriken(frame);
+                return comptair_1.default.isStriken(compressed_frame);
             default:
                 return false;
         }

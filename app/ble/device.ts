@@ -99,17 +99,17 @@ export default class DeviceManagement {
         }
     }
 
-    isAlert(type: TYPE, frame: string): boolean {
-        if(!frame) return false;
+    isAlert(type: TYPE, compressed_frame: string): boolean {
+        if(!compressed_frame) return false;
         switch(stringTypeToInt(type)) {
             case TYPE_PARATONAIR:
-                return Paratonair.isStriken(frame);
+                return Paratonair.isStriken(compressed_frame);
             case TYPE_ALERTAIRDC:
-                return AlertairDC.isCircuitDisconnect(frame);
+                return AlertairDC.isCircuitDisconnect(compressed_frame);
             case TYPE_ALERTAIRTS:
-                return AlertairTS.isAlert(frame);
+                return AlertairTS.isAlert(compressed_frame);
             case TYPE_COMPTAIR:
-                return Comptair.isStriken(frame);
+                return Comptair.isStriken(compressed_frame);
             default:
                 return false;
         }

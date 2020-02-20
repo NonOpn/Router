@@ -156,6 +156,8 @@ class FrameManagerAlert extends events_1.EventEmitter {
                         const { id, frame } = data;
                         promises.push(() => device.getType().then(rawType => {
                             const compressed = frame_model_compress_js_1.default.instance.getCompressedFrame(frame);
+                            console.log("frame      " + frame);
+                            console.log("compressed " + compressed);
                             const type = device_js_1.default.instance.stringToType(rawType);
                             const is_alert = device_js_1.default.instance.isAlert(type, compressed);
                             const is_disconnected = device_js_1.default.instance.isDisconnected(type, compressed);
