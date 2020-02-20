@@ -56,7 +56,6 @@ class AlertairTS extends abstract_1.default {
                     return true;
                 case Detection.NOISE:
                 case Detection.DISTURBING:
-                    return true;
                 case Detection.CALIBRATION_OK:
                 case 0:
                 default:
