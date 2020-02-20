@@ -19,7 +19,10 @@ function serialize(promises) {
                 resolve(true);
             }
             else {
-                const done = () => callback(index + 1);
+                const done = () => {
+                    console.log("calling next ", index + 1);
+                    callback(index + 1);
+                };
                 promises[index].then(() => done()).catch(err => done());
             }
         };
