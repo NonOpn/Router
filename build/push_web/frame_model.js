@@ -141,7 +141,7 @@ class FrameModel extends abstract_js_1.default {
             console.log(`UPDATE setting ${product_id} :: ${index} :: is_alert:=${is_alert} :: is_alert_disconnect:=${is_alert_disconnect}`);
             if (is_alert) {
                 //it's an alert, already much more important than disconnected
-                pool.queryParameters("UPDATE Frames SET product_id = ?, is_alert = ? WHERE id = ? LIMIT 1", [product_id, !!is_alert, index])
+                pool.queryParameters("UPDATE Frames SET product_id = ?, is_alert = ?, is_alert_disconnected = ? WHERE id = ? LIMIT 1", [product_id, !!is_alert, !!is_alert_disconnect, index])
                     .then(results => results && results.length > 0 ? resolve(true) : resolve(false))
                     .catch(err => manageErrorCrash(err, reject));
             }
@@ -154,7 +154,7 @@ class FrameModel extends abstract_js_1.default {
                             .then(results => results && results.length > 0 ? resolve(true) : resolve(false));
                     }
                     //if disconnected, we set the disconnected but it's not an alert
-                    return pool.queryParameters("UPDATE Frames SET product_id = ?, is_alert_disconnect = ?, is_alert = ? WHERE id = ? LIMIT 1", [product_id, true, false, index])
+                    return pool.queryParameters("UPDATE Frames SET product_id = ?, is_alert_disconnected = ?, is_alert = ? WHERE id = ? LIMIT 1", [product_id, true, false, index])
                         .then(results => results && results.length > 0 ? resolve(true) : resolve(false));
                 })
                     .catch(err => manageErrorCrash(err, reject));
