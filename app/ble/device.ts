@@ -83,17 +83,33 @@ export default class DeviceManagement {
         });
     }
 
+    isDisconnected(type: TYPE, frame: string): boolean {
+        if(!frame) return false;
+        switch(stringTypeToInt(type)) {
+            case TYPE_PARATONAIR:
+                return !Paratonair.isConnected(frame);
+            case TYPE_ALERTAIRDC:
+                return !AlertairDC.isConnected(frame);
+            case TYPE_ALERTAIRTS:
+                return !AlertairTS.isConnected(frame);
+            case TYPE_COMPTAIR:
+                return !Comptair.isConnected(frame);
+            default:
+                return false;
+        }
+    }
+
     isAlert(type: TYPE, frame: string): boolean {
         if(!frame) return false;
         switch(stringTypeToInt(type)) {
             case TYPE_PARATONAIR:
-                return Paratonair.isStriken(frame) || !Paratonair.isConnected(frame);
+                return Paratonair.isStriken(frame);
             case TYPE_ALERTAIRDC:
-                return AlertairDC.isCircuitDisconnect(frame) || !AlertairDC.isConnected(frame);
+                return AlertairDC.isCircuitDisconnect(frame);
             case TYPE_ALERTAIRTS:
-                return AlertairTS.isAlert(frame) || !AlertairTS.isConnected(frame);
+                return AlertairTS.isAlert(frame);
             case TYPE_COMPTAIR:
-                return Comptair.isStriken(frame) || !Comptair.isConnected(frame);
+                return Comptair.isStriken(frame);
             default:
                 return false;
         }

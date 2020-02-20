@@ -231,7 +231,7 @@ class BLEReadWriteLogIsAlertCharacteristic extends BLESyncCharacteristic_1.defau
         return frame_model_1.default.instance.getFrameIsAlert(value, to_fetch);
     }
     numberToFetch() {
-        return 1;
+        return 5;
     }
 }
 class BLE {

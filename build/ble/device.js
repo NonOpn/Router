@@ -70,18 +70,34 @@ class DeviceManagement {
             return array;
         });
     }
+    isDisconnected(type, frame) {
+        if (!frame)
+            return false;
+        switch (stringTypeToInt(type)) {
+            case TYPE_PARATONAIR:
+                return !paratonair_1.default.isConnected(frame);
+            case TYPE_ALERTAIRDC:
+                return !alertairdc_1.default.isConnected(frame);
+            case TYPE_ALERTAIRTS:
+                return !alertairts_1.default.isConnected(frame);
+            case TYPE_COMPTAIR:
+                return !comptair_1.default.isConnected(frame);
+            default:
+                return false;
+        }
+    }
     isAlert(type, frame) {
         if (!frame)
             return false;
         switch (stringTypeToInt(type)) {
             case TYPE_PARATONAIR:
-                return paratonair_1.default.isStriken(frame) || !paratonair_1.default.isConnected(frame);
+                return paratonair_1.default.isStriken(frame);
             case TYPE_ALERTAIRDC:
-                return alertairdc_1.default.isCircuitDisconnect(frame) || !alertairdc_1.default.isConnected(frame);
+                return alertairdc_1.default.isCircuitDisconnect(frame);
             case TYPE_ALERTAIRTS:
-                return alertairts_1.default.isAlert(frame) || !alertairts_1.default.isConnected(frame);
+                return alertairts_1.default.isAlert(frame);
             case TYPE_COMPTAIR:
-                return comptair_1.default.isStriken(frame) || !comptair_1.default.isConnected(frame);
+                return comptair_1.default.isStriken(frame);
             default:
                 return false;
         }

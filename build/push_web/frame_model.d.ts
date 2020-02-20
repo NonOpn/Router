@@ -6,6 +6,7 @@ export interface Transaction {
     timestamp: number;
     sent: number;
     is_alert?: boolean;
+    is_alert_disconnected?: boolean;
     product_id?: number | null | undefined;
 }
 export default class FrameModel extends Abstract {
@@ -20,9 +21,10 @@ export default class FrameModel extends Abstract {
     getContactair(frame: string): string;
     getMinFrame(): Promise<number>;
     getMaxFrame(): Promise<number>;
-    setDevice(index: number, product_id: number, is_alert?: boolean): Promise<boolean>;
+    setDevice(index: number, product_id: number, is_alert?: boolean, is_alert_disconnect?: boolean): Promise<boolean>;
     getFrame(index: number, limit: number): Promise<Transaction[] | undefined>;
     getFrameIsAlert(index: number, limit: number): Promise<Transaction[] | undefined>;
+    isLastDisconnectedState(product_id: number, before_index: number): Promise<boolean>;
     beforeForDevice(device: Device, timestamp: number): Promise<Transaction[]>;
     before(timestamp: number): Promise<Transaction[]>;
     getUnsent(): Promise<Transaction[]>;

@@ -37,6 +37,21 @@ interface SerialContactair {
 	contactair: string
 }
 
+function serialize(promises: Promise<boolean>[]): Promise<boolean> {
+	return new Promise((resolve, reject) => {
+		var index = 0;
+		const callback = (index: number) => {
+			if(index >= promises.length) {
+				resolve(true);
+			} else {
+				const done = () => callback(index+1);
+				promises[index].then(() => done()).catch(err => done());
+			}
+		}
+		callback(index);
+	});
+}
+
 export default class FrameManagerAlert extends EventEmitter {
 	static instance: FrameManagerAlert = new FrameManagerAlert();
 
@@ -183,14 +198,16 @@ export default class FrameManagerAlert extends EventEmitter {
 
 					device && holder.data.forEach((data, index) => {
 						const { id, frame } = data;
+									
 						promises.push(device.getType().then(rawType => {
 							const type = DeviceManagement.instance.stringToType(rawType);
 							const is_alert = DeviceManagement.instance.isAlert(type, frame);
-							return FrameModel.instance.setDevice(id, device.getId(), is_alert);
+							const is_disconnected = DeviceManagement.instance.isDisconnected(type, frame);
+							return FrameModel.instance.setDevice(id, device.getId(), is_alert, is_disconnected);
 						}))
 					});
 				});
-				return Promise.all(promises)
+				return serialize(promises)
 			})
 			.then(() => Promise.resolve(true));
 		});

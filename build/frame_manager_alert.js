@@ -10,6 +10,21 @@ const device_js_1 = __importDefault(require("./ble/device.js"));
 const device_model_js_1 = __importDefault(require("./push_web/device_model.js"));
 const errors = errors_1.default.instance;
 const VERSION = 8;
+function serialize(promises) {
+    return new Promise((resolve, reject) => {
+        var index = 0;
+        const callback = (index) => {
+            if (index >= promises.length) {
+                resolve(true);
+            }
+            else {
+                const done = () => callback(index + 1);
+                promises[index].then(() => done()).catch(err => done());
+            }
+        };
+        callback(index);
+    });
+}
 class FrameManagerAlert extends events_1.EventEmitter {
     constructor() {
         super();
@@ -137,11 +152,12 @@ class FrameManagerAlert extends events_1.EventEmitter {
                         promises.push(device.getType().then(rawType => {
                             const type = device_js_1.default.instance.stringToType(rawType);
                             const is_alert = device_js_1.default.instance.isAlert(type, frame);
-                            return frame_model_1.default.instance.setDevice(id, device.getId(), is_alert);
+                            const is_disconnected = device_js_1.default.instance.isDisconnected(type, frame);
+                            return frame_model_1.default.instance.setDevice(id, device.getId(), is_alert, is_disconnected);
                         }));
                     });
                 });
-                return Promise.all(promises);
+                return serialize(promises);
             })
                 .then(() => Promise.resolve(true));
         });

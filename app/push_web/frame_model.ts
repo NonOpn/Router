@@ -14,16 +14,19 @@ pool.query("CREATE TABLE IF NOT EXISTS Frames ("
   + "`striken` TINYINT(1) DEFAULT 0,"
   + "`connected` TINYINT(1) DEFAULT 0,"
   + "`is_alert` TINYINT(1) DEFAULT NULL,"
+  + "`is_alert_disconnected` TINYINT(1) DEFAULT NULL,"
   + "KEY `timestamp` (`timestamp`)"
   + ")ENGINE=MyISAM;")
 .then(() => pool.query("ALTER TABLE Frames ADD COLUMN `product_id` INTEGER", true))
 .then(() => pool.query("ALTER TABLE Frames ADD COLUMN `striken` INTEGER", true))
 .then(() => pool.query("ALTER TABLE Frames ADD COLUMN `connected` INTEGER", true))
 .then(() => pool.query("ALTER TABLE Frames ADD COLUMN `is_alert` TINYINT(1) DEFAULT NULL", true))
+.then(() => pool.query("ALTER TABLE Frames ADD COLUMN `is_alert_disconnected` TINYINT(1) DEFAULT NULL", true))
 .then(() => pool.query("ALTER TABLE Frames ADD INDEX `product_id` (`product_id`);", true))
 .then(() => pool.query("ALTER TABLE Frames ADD INDEX `striken` (`striken`);", true))
 .then(() => pool.query("ALTER TABLE Frames ADD INDEX `connected` (`connected`);", true))
 .then(() => pool.query("ALTER TABLE Frames ADD INDEX `is_alert` (`is_alert`);", true))
+.then(() => pool.query("ALTER TABLE Frames ADD INDEX `is_alert_disconnected` (`is_alert_disconnect`);", true))
 .then(() => console.log("finished"))
 .catch(err => console.log(err));
 
@@ -43,6 +46,7 @@ export interface Transaction {
   timestamp: number;
   sent: number; //0/1
   is_alert?: boolean;
+  is_alert_disconnected?: boolean;
   product_id?: number|null|undefined;
 }
 
@@ -52,6 +56,7 @@ function txToJson(tx: Transaction): Transaction{
     timestamp: tx.timestamp,
     sent: tx.sent,
     is_alert: !!tx.is_alert,
+    is_alert_disconnected: !!tx.is_alert_disconnected,
     product_id: tx.product_id
   }
 }
@@ -155,20 +160,30 @@ export default class FrameModel extends Abstract {
     })
   }
 
-  setDevice(index: number, product_id: number, is_alert?: boolean): Promise<boolean> {
-    if(is_alert == undefined) {
-      return new Promise((resolve, reject) => {
-        pool.queryParameters("UPDATE Frames SET product_id = ? WHERE id = ? LIMIT 1", [product_id, index])
+  setDevice(index: number, product_id: number, is_alert?: boolean, is_alert_disconnect?:boolean): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      console.log(`UPDATE setting ${product_id} :: ${index} :: is_alert:=${is_alert} :: is_alert_disconnect:=${is_alert_disconnect}`);
+      if(is_alert) {
+        //it's an alert, already much more important than disconnected
+        pool.queryParameters("UPDATE Frames SET product_id = ?, is_alert = ? WHERE id = ? LIMIT 1", [product_id, !!is_alert, index])
         .then(results => results && results.length > 0 ? resolve(true) : resolve(false))
         .catch(err => manageErrorCrash(err, reject));
-      });
-    }
-    return new Promise((resolve, reject) => {
-      pool.queryParameters("UPDATE Frames SET product_id = ?, is_alert = ? WHERE id = ? LIMIT 1", [product_id, !!is_alert, index])
-      .then(results => results && results.length > 0 ? resolve(true) : resolve(false))
-      .catch(err => manageErrorCrash(err, reject));
+      } else if(is_alert_disconnect) {
+        this.isLastDisconnectedState(product_id, index)
+        .then(is_disconnected => {
+          if(!is_disconnected) {
+            //it's then an alert and disconnected
+            return pool.queryParameters("UPDATE Frames SET product_id = ?, is_alert_disconnected = ?, is_alert = ? WHERE id = ? LIMIT 1", [product_id, true, true, index])
+            .then(results => results && results.length > 0 ? resolve(true) : resolve(false));
+          }
+          //if disconnected, we set the disconnected but it's not an alert
+          return pool.queryParameters("UPDATE Frames SET product_id = ?, is_alert_disconnect = ?, is_alert = ? WHERE id = ? LIMIT 1", [product_id, true, false, index])
+          .then(results => results && results.length > 0 ? resolve(true) : resolve(false));
+      })
+        .catch(err => manageErrorCrash(err, reject));
+      }
     });
-}
+  }
 
   getFrame(index: number, limit: number): Promise<Transaction[]|undefined> {
     return new Promise((resolve, reject) => {
@@ -184,6 +199,13 @@ export default class FrameModel extends Abstract {
       .then(results => results && results.length > 0 ? resolve(results) : resolve(undefined))
       .catch(err => manageErrorCrash(err, reject));
     });
+  }
+
+  isLastDisconnectedState(product_id: number, before_index: number): Promise<boolean> {
+    return pool.queryParameters("SELECT * FROM Frames WHERE product_id = ? AND id < ? ORDER BY id DESC LIMIT 1", [product_id, before_index])
+    .then(results => results && results.length > 0 ? results[0] as Transaction: undefined)
+    .then(transaction => !!(transaction && transaction.is_alert_disconnected))
+    .catch(err => false);
   }
 
   beforeForDevice(device: Device, timestamp: number): Promise<Transaction[]> {

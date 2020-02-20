@@ -12,6 +12,7 @@ export default class DeviceManagement {
     stringToType(type: string): TYPE;
     onFrame(data: any): Promise<AbstractDevice | undefined>;
     list(): Promise<AbstractDevice[]>;
+    isDisconnected(type: TYPE, frame: string): boolean;
     isAlert(type: TYPE, frame: string): boolean;
     _databaseDeviceToRealDevice(device: Device | undefined): AbstractDevice | undefined;
     setType(device: AbstractDevice, type?: TYPE): Promise<AbstractDevice | undefined>;
