@@ -159,6 +159,11 @@ class FrameModel extends abstract_js_1.default {
                 })
                     .catch(err => manageErrorCrash(err, reject));
             }
+            else {
+                pool.queryParameters("UPDATE Frames SET product_id = ?, is_alert_disconnected = ?, is_alert = ? WHERE id = ? LIMIT 1", [product_id, false, false, index])
+                    .then(results => results && results.length > 0 ? resolve(true) : resolve(false))
+                    .catch(err => manageErrorCrash(err, reject));
+            }
         });
     }
     getFrame(index, limit) {
