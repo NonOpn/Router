@@ -40,7 +40,7 @@ export default class AlertairTS extends AbstractDevice {
 
   static isAlert(frame: string): boolean {
     const buffer = new Buffer(frame, "hex");
-    if(buffer.length >= 6) {
+    if(buffer.length >= 6 && this.isConnected(frame)) {
       var detection: number = (buffer[5] >> 4);
       console.log("frame >> " + frame+" // " + frame[10]+frame[11]);
       console.log("ALERTAIR TS", "detection ??? " + detection);
