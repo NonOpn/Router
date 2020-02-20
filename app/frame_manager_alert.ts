@@ -37,7 +37,7 @@ interface SerialContactair {
 	contactair: string
 }
 
-function serialize(promises: Promise<boolean>[]): Promise<boolean> {
+function serialize(promises: ( () => Promise<boolean>)[]): Promise<boolean> {
 	return new Promise((resolve, reject) => {
 		var index = 0;
 		const callback = (index: number) => {
@@ -49,7 +49,7 @@ function serialize(promises: Promise<boolean>[]): Promise<boolean> {
 					console.log("calling next ", index+1);
 					callback(index+1);
 				};
-				promises[index].then(() => done()).catch(err => done());
+				(promises[index])().then(() => done()).catch(err => done());
 			}
 		}
 		callback(index);
@@ -195,7 +195,7 @@ export default class FrameManagerAlert extends EventEmitter {
 			)))
 			.then(devices => devices.filter(d => d.device))
 			.then(devices => {
-				const promises: Promise<boolean>[] = [];
+				const promises: (() => Promise<boolean>)[] = [];
 				devices.forEach(tuple => {
 					const { device, serial } = tuple;
 					const holder: MappingHolder = mapping_internal_serials[serial];
@@ -203,7 +203,7 @@ export default class FrameManagerAlert extends EventEmitter {
 					device && holder.data.forEach((data, index) => {
 						const { id, frame } = data;
 									
-						promises.push(device.getType().then(rawType => {
+						promises.push(() => device.getType().then(rawType => {
 							const type = DeviceManagement.instance.stringToType(rawType);
 							const is_alert = DeviceManagement.instance.isAlert(type, frame);
 							const is_disconnected = DeviceManagement.instance.isDisconnected(type, frame);

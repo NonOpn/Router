@@ -23,7 +23,7 @@ function serialize(promises) {
                     console.log("calling next ", index + 1);
                     callback(index + 1);
                 };
-                promises[index].then(() => done()).catch(err => done());
+                (promises[index])().then(() => done()).catch(err => done());
             }
         };
         callback(index);
@@ -153,7 +153,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
                     const holder = mapping_internal_serials[serial];
                     device && holder.data.forEach((data, index) => {
                         const { id, frame } = data;
-                        promises.push(device.getType().then(rawType => {
+                        promises.push(() => device.getType().then(rawType => {
                             const type = device_js_1.default.instance.stringToType(rawType);
                             const is_alert = device_js_1.default.instance.isAlert(type, frame);
                             const is_disconnected = device_js_1.default.instance.isDisconnected(type, frame);
