@@ -15,6 +15,7 @@ function serialize(promises) {
         var index = 0;
         const callback = (index) => {
             if (index >= promises.length) {
+                console.log("DONE");
                 resolve(true);
             }
             else {

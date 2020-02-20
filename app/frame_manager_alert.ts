@@ -42,6 +42,7 @@ function serialize(promises: Promise<boolean>[]): Promise<boolean> {
 		var index = 0;
 		const callback = (index: number) => {
 			if(index >= promises.length) {
+				console.log("DONE");
 				resolve(true);
 			} else {
 				const done = () => callback(index+1);
