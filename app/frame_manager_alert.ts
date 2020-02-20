@@ -204,9 +204,11 @@ export default class FrameManagerAlert extends EventEmitter {
 						const { id, frame } = data;
 									
 						promises.push(() => device.getType().then(rawType => {
+
+							const compressed = FrameModelCompress.instance.getCompressedFrame(frame);
 							const type = DeviceManagement.instance.stringToType(rawType);
-							const is_alert = DeviceManagement.instance.isAlert(type, frame);
-							const is_disconnected = DeviceManagement.instance.isDisconnected(type, frame);
+							const is_alert = DeviceManagement.instance.isAlert(type, compressed);
+							const is_disconnected = DeviceManagement.instance.isDisconnected(type, compressed);
 							return FrameModel.instance.setDevice(id, device.getId(), is_alert, is_disconnected);
 						}))
 					});

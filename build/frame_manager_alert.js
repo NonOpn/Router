@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
 const errors_1 = __importDefault(require("./errors"));
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
+const frame_model_compress_js_1 = __importDefault(require("./push_web/frame_model_compress.js"));
 const device_js_1 = __importDefault(require("./ble/device.js"));
 const device_model_js_1 = __importDefault(require("./push_web/device_model.js"));
 const errors = errors_1.default.instance;
@@ -154,9 +155,10 @@ class FrameManagerAlert extends events_1.EventEmitter {
                     device && holder.data.forEach((data, index) => {
                         const { id, frame } = data;
                         promises.push(() => device.getType().then(rawType => {
+                            const compressed = frame_model_compress_js_1.default.instance.getCompressedFrame(frame);
                             const type = device_js_1.default.instance.stringToType(rawType);
-                            const is_alert = device_js_1.default.instance.isAlert(type, frame);
-                            const is_disconnected = device_js_1.default.instance.isDisconnected(type, frame);
+                            const is_alert = device_js_1.default.instance.isAlert(type, compressed);
+                            const is_disconnected = device_js_1.default.instance.isDisconnected(type, compressed);
                             return frame_model_1.default.instance.setDevice(id, device.getId(), is_alert, is_disconnected);
                         }));
                     });
