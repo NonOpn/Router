@@ -44,6 +44,7 @@ class AlertairTS extends abstract_1.default {
         const buffer = new Buffer(frame, "hex");
         if (buffer.length >= 6) {
             var detection = (buffer[5] >> 4);
+            console.log("ALERTAIR TS", "detection ??? " + detection);
             switch (detection) {
                 case Detection.ARRIVAL:
                 case Detection.DEPARTING:
