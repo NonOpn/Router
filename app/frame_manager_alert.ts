@@ -42,11 +42,9 @@ function serialize(promises: ( () => Promise<boolean>)[]): Promise<boolean> {
 		var index = 0;
 		const callback = (index: number) => {
 			if(index >= promises.length) {
-				console.log("DONE");
 				resolve(true);
 			} else {
 				const done = () => {
-					console.log("calling next ", index+1);
 					callback(index+1);
 				};
 				(promises[index])().then(() => done()).catch(err => done());
@@ -96,9 +94,6 @@ export default class FrameManagerAlert extends EventEmitter {
 			return device && device.last_contactair != item.contactair;
 		})
 
-		console.log("tryUpdateDevicesForContactairs " + internal_serials.length, internal_serials.filter(i => i.internal_serial != "ffffff").map(i => i.internal_serial+" / " + i.contactair+ " " + i.id));
-		console.log("tryUpdateDevicesForContactairs", {to_update});
-
 		return Promise.all(to_update.map(({contactair, internal_serial, id}) => DeviceModel.instance.setContactairForDevice(contactair, internal_serial, id)))
 		.then(() => DeviceModel.instance.cleanContactair())
 		.then(() => true);
@@ -123,8 +118,6 @@ export default class FrameManagerAlert extends EventEmitter {
 		}));
 
 		return this.tryUpdateDevicesForContactairs(devices, internal_serials_for_update).then(() => {
-			console.log("managing for frames ", internal_serials.filter(i => i.internal_serial != "ffffff").map(i => i.internal_serial+" / " + i.contactair));
-
 			if(internal_serials.length == 0) {
 				return Promise.resolve(true);
 			}
@@ -160,12 +153,9 @@ export default class FrameManagerAlert extends EventEmitter {
 				}
 			});
 
-			console.log("this round, mapping of ", serial_to_contactair)
-
 			return Promise.all(contactairs.map(contactair => {
 				return DeviceManagement.instance.getDeviceForContactair(contactair)
 				.then(device => {
-					console.log(`found device for ${contactair} ?`, !!device);
 					if(!device) return Promise.resolve(false);
 					
 					return device.getInternalSerial()
@@ -178,7 +168,6 @@ export default class FrameManagerAlert extends EventEmitter {
 							if(!mapping_internal_serials[internal_serial]) {
 								mapping_internal_serials[internal_serial] = { contactair, internal_serial, data: []};
 								serials.push(internal_serial);
-								console.log(`UPDATE_ALERTS contactair ${contactair} to internal_serial ${internal_serial} found`);
 
 								//updating the mapping internal_serial -> contactair to check for modification
 								if(!serial_to_contactair.has(internal_serial)) serial_to_contactair.set(internal_serial, contactair);
@@ -225,7 +214,6 @@ export default class FrameManagerAlert extends EventEmitter {
 		return FrameModel.instance.getFrame(from, until)
 		.then(frames => {
 			frames = frames || [];
-			console.log("frame found ? " + from + " " + until, frames.length);
 
 			if(frames.length == 0) return Promise.resolve(-1);
 

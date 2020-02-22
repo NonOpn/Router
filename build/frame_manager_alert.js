@@ -16,12 +16,10 @@ function serialize(promises) {
         var index = 0;
         const callback = (index) => {
             if (index >= promises.length) {
-                console.log("DONE");
                 resolve(true);
             }
             else {
                 const done = () => {
-                    console.log("calling next ", index + 1);
                     callback(index + 1);
                 };
                 (promises[index])().then(() => done()).catch(err => done());
@@ -59,8 +57,6 @@ class FrameManagerAlert extends events_1.EventEmitter {
             const device = this.deviceForInternal(devices, item.internal_serial);
             return device && device.last_contactair != item.contactair;
         });
-        console.log("tryUpdateDevicesForContactairs " + internal_serials.length, internal_serials.filter(i => i.internal_serial != "ffffff").map(i => i.internal_serial + " / " + i.contactair + " " + i.id));
-        console.log("tryUpdateDevicesForContactairs", { to_update });
         return Promise.all(to_update.map(({ contactair, internal_serial, id }) => device_model_js_1.default.instance.setContactairForDevice(contactair, internal_serial, id)))
             .then(() => device_model_js_1.default.instance.cleanContactair())
             .then(() => true);
@@ -81,7 +77,6 @@ class FrameManagerAlert extends events_1.EventEmitter {
             product_id: f.product_id || undefined
         }));
         return this.tryUpdateDevicesForContactairs(devices, internal_serials_for_update).then(() => {
-            console.log("managing for frames ", internal_serials.filter(i => i.internal_serial != "ffffff").map(i => i.internal_serial + " / " + i.contactair));
             if (internal_serials.length == 0) {
                 return Promise.resolve(true);
             }
@@ -112,11 +107,9 @@ class FrameManagerAlert extends events_1.EventEmitter {
                     mapping_contactairs[contactair].data.push({ id, frame });
                 }
             });
-            console.log("this round, mapping of ", serial_to_contactair);
             return Promise.all(contactairs.map(contactair => {
                 return device_js_1.default.instance.getDeviceForContactair(contactair)
                     .then(device => {
-                    console.log(`found device for ${contactair} ?`, !!device);
                     if (!device)
                         return Promise.resolve(false);
                     return device.getInternalSerial()
@@ -132,7 +125,6 @@ class FrameManagerAlert extends events_1.EventEmitter {
                             if (!mapping_internal_serials[internal_serial]) {
                                 mapping_internal_serials[internal_serial] = { contactair, internal_serial, data: [] };
                                 serials.push(internal_serial);
-                                console.log(`UPDATE_ALERTS contactair ${contactair} to internal_serial ${internal_serial} found`);
                                 //updating the mapping internal_serial -> contactair to check for modification
                                 if (!serial_to_contactair.has(internal_serial))
                                     serial_to_contactair.set(internal_serial, contactair);
@@ -174,7 +166,6 @@ class FrameManagerAlert extends events_1.EventEmitter {
         return frame_model_1.default.instance.getFrame(from, until)
             .then(frames => {
             frames = frames || [];
-            console.log("frame found ? " + from + " " + until, frames.length);
             if (frames.length == 0)
                 return Promise.resolve(-1);
             var next = frames.reduce((t1, t2) => {

@@ -153,13 +153,10 @@ export default class EnoceanLoader extends EventEmitter {
 
           if(resolved != undefined) {
             output.data = resolved;
-            output.rawDataStr = data.raw;
-            output.rawFrameStr = data.rawByte;
-          }else{
-            output.rawDataStr = data.raw;
-            output.rawFrameStr = data.rawByte;
           }
 
+          output.rawDataStr = data.raw;
+          output.rawFrameStr = data.rawByte;
           console.log(output);
 
           //log the input enocean for the given device
