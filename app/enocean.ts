@@ -134,14 +134,14 @@ export default class EnoceanLoader extends EventEmitter {
         if(isFrameToSend(rorg)) {
           //var rawFrame = new Buffer(data.rawByte, "hex");
           //var rawData = new Buffer(data.raw, "hex");
-          var resolved = undefined;
-          enocean.eepResolvers.forEach((func: any) => {
+          var resolved = enocean.eepResolvers.find((func: any) => {
             try{
               var ret = func(eep, data.raw);
-              if(ret != undefined) resolved = ret;
+              if(ret != undefined) return ret;
             }catch(e) {
               console.log(e);
             }
+            return undefined;
           });
 
           var output: any = {
@@ -153,6 +153,8 @@ export default class EnoceanLoader extends EventEmitter {
 
           if(resolved != undefined) {
             output.data = resolved;
+            output.rawDataStr = data.raw;
+            output.rawFrameStr = data.rawByte;
           }else{
             output.rawDataStr = data.raw;
             output.rawFrameStr = data.rawByte;

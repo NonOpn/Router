@@ -116,16 +116,16 @@ class EnoceanLoader extends events_1.EventEmitter {
                 if (isFrameToSend(rorg)) {
                     //var rawFrame = new Buffer(data.rawByte, "hex");
                     //var rawData = new Buffer(data.raw, "hex");
-                    var resolved = undefined;
-                    enocean.eepResolvers.forEach((func) => {
+                    var resolved = enocean.eepResolvers.find((func) => {
                         try {
                             var ret = func(eep, data.raw);
                             if (ret != undefined)
-                                resolved = ret;
+                                return ret;
                         }
                         catch (e) {
                             console.log(e);
                         }
+                        return undefined;
                     });
                     var output = {
                         "date": new Date(),
@@ -135,6 +135,8 @@ class EnoceanLoader extends events_1.EventEmitter {
                     };
                     if (resolved != undefined) {
                         output.data = resolved;
+                        output.rawDataStr = data.raw;
+                        output.rawFrameStr = data.rawByte;
                     }
                     else {
                         output.rawDataStr = data.raw;
