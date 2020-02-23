@@ -89,13 +89,15 @@ class BLEAsyncDescriptionCharacteristic extends Characteristic {
     return this._callback()
     .then(value => {
       this._obtained = Buffer.from(value, "utf-8");
+      console.log("length := ", {byteLength: this._obtained.byteLength});
       return this._obtained;
     });
   }
 
   onReadRequest(offset: number, cb: BLECallback) {
+    console.log("offset := ", {offset});
     this.readOrSend()
-    .then(buffer => cb(RESULT_SUCCESS, Buffer.from(buffer, offset)));
+    .then(buffer => cb(RESULT_SUCCESS, buffer.slice(offset)));
   }
 }
 
