@@ -47,9 +47,18 @@ class BLEAsyncDescriptionCharacteristic extends safeBleno_1.Characteristic {
         });
         this._callback = callback;
     }
+    readOrSend() {
+        if (this._obtained)
+            return Promise.resolve(this._obtained);
+        return this._callback()
+            .then(value => {
+            this._obtained = Buffer.from(value, "utf-8");
+            return this._obtained;
+        });
+    }
     onReadRequest(offset, cb) {
-        this._callback()
-            .then(value => cb(BLEConstants_1.RESULT_SUCCESS, Buffer.from(value, "utf-8")));
+        this.readOrSend()
+            .then(buffer => cb(BLEConstants_1.RESULT_SUCCESS, Buffer.from(buffer, offset)));
     }
 }
 class BLEFrameNotify extends safeBleno_1.Characteristic {
@@ -169,7 +178,7 @@ class BLEPrimaryDeviceService extends safeBleno_1.PrimaryService {
                 new BLEWriteCharacteristic("0007", "Update", (value) => this._editType(value)),
                 new BLEAsyncDescriptionCharacteristic("0008", () => device.getAdditionnalInfo1()),
                 new BLEAsyncDescriptionCharacteristic("0009", () => device.getAdditionnalInfo2()),
-                new BLEAsyncDescriptionCharacteristic("0010", () => device.getLatestFramesAsString()),
+                new BLEAsyncDescriptionCharacteristic("000A", () => device.getLatestFramesAsString()),
             ]
         });
         this.device = device;

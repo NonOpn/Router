@@ -82,9 +82,20 @@ class BLEAsyncDescriptionCharacteristic extends Characteristic {
     this._callback = callback;
   }
 
+  private _obtained: Buffer|undefined;
+
+  private readOrSend() {
+    if(this._obtained) return Promise.resolve(this._obtained);
+    return this._callback()
+    .then(value => {
+      this._obtained = Buffer.from(value, "utf-8");
+      return this._obtained;
+    });
+  }
+
   onReadRequest(offset: number, cb: BLECallback) {
-    this._callback()
-    .then(value => cb(RESULT_SUCCESS, Buffer.from(value, "utf-8")));
+    this.readOrSend()
+    .then(buffer => cb(RESULT_SUCCESS, Buffer.from(buffer, offset)));
   }
 }
 
@@ -229,7 +240,7 @@ class BLEPrimaryDeviceService extends PrimaryService {
         new BLEWriteCharacteristic("0007", "Update", (value: string) => this._editType(value)),
         new BLEAsyncDescriptionCharacteristic("0008", () => device.getAdditionnalInfo1()),
         new BLEAsyncDescriptionCharacteristic("0009", () => device.getAdditionnalInfo2()),
-        new BLEAsyncDescriptionCharacteristic("0010", () => device.getLatestFramesAsString()),
+        new BLEAsyncDescriptionCharacteristic("000A", () => device.getLatestFramesAsString()),
       ]
     });
 
