@@ -69,7 +69,7 @@ class BLEAsyncDescriptionCharacteristic extends safeBleno_1.Characteristic {
         if (this._timeout > 0) {
             console.log("-", { timeout: this._timeout });
             this._timeout--;
-            setTimeout(() => this.checkInterval(), 100); //well 100ms should be enough to have 1s interval
+            setTimeout(() => this.checkInterval(), 1000); //well 1000ms should be enough to have 10s interval
         }
         else {
             console.log("killing interval");
