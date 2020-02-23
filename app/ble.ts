@@ -83,15 +83,36 @@ class BLEAsyncDescriptionCharacteristic extends Characteristic {
   }
 
   private _obtained: Buffer|undefined;
+  private _timeout = 0;
+  private _interval: any|undefined = undefined;
 
-  private readOrSend() {
-    if(this._obtained) return Promise.resolve(this._obtained);
+  private readOrSend(): Promise<Buffer> {
+    if(this._obtained) {
+      return new Promise((resolve) => {
+        this._timeout = 10;
+        resolve(this._obtained);
+      });
+    }
     return this._callback()
     .then(value => {
       this._obtained = Buffer.from(value, "utf-8");
+      this._timeout = 10;
       console.log("length := ", {byteLength: this._obtained.byteLength});
+      this._interval = setInterval(() => {
+        this._timeout --;
+        this.checkInterval();
+      }, 50);
       return this._obtained;
     });
+  }
+
+  private checkInterval() {
+    if(this._timeout <= 0 && this._interval) {
+      console.log("killing interval");
+      this._obtained = undefined;
+      clearInterval(this._interval);
+      this._interval = undefined;
+    }
   }
 
   onReadRequest(offset: number, cb: BLECallback) {
