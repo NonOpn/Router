@@ -46,7 +46,6 @@ class BLEAsyncDescriptionCharacteristic extends safeBleno_1.Characteristic {
             properties: ['read']
         });
         this._timeout = 0;
-        this._interval = undefined;
         this._callback = callback;
     }
     readOrSend() {
@@ -59,21 +58,21 @@ class BLEAsyncDescriptionCharacteristic extends safeBleno_1.Characteristic {
         return this._callback()
             .then(value => {
             this._obtained = Buffer.from(value, "utf-8");
+            const send_interval = this._timeout <= 0;
             this._timeout = 10;
             console.log("length := ", { byteLength: this._obtained.byteLength });
-            this._interval = setInterval(() => {
-                this._timeout--;
-                this.checkInterval();
-            }, 50);
+            send_interval && this.checkInterval();
             return this._obtained;
         });
     }
     checkInterval() {
-        if (this._timeout <= 0 && this._interval) {
+        if (this._timeout > 0) {
+            this._timeout--;
+            setTimeout(() => this.checkInterval(), 50);
+        }
+        else {
             console.log("killing interval");
             this._obtained = undefined;
-            clearInterval(this._interval);
-            this._interval = undefined;
         }
     }
     onReadRequest(offset, cb) {

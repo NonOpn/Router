@@ -84,7 +84,6 @@ class BLEAsyncDescriptionCharacteristic extends Characteristic {
 
   private _obtained: Buffer|undefined;
   private _timeout = 0;
-  private _interval: any|undefined = undefined;
 
   private readOrSend(): Promise<Buffer> {
     if(this._obtained) {
@@ -96,22 +95,22 @@ class BLEAsyncDescriptionCharacteristic extends Characteristic {
     return this._callback()
     .then(value => {
       this._obtained = Buffer.from(value, "utf-8");
+      const send_interval = this._timeout <= 0;
       this._timeout = 10;
       console.log("length := ", {byteLength: this._obtained.byteLength});
-      this._interval = setInterval(() => {
-        this._timeout --;
-        this.checkInterval();
-      }, 50);
+
+      send_interval && this.checkInterval();
       return this._obtained;
     });
   }
 
   private checkInterval() {
-    if(this._timeout <= 0 && this._interval) {
+    if(this._timeout > 0) {
+      this._timeout --;
+      setTimeout(() => this.checkInterval(), 50);
+    } else {
       console.log("killing interval");
       this._obtained = undefined;
-      clearInterval(this._interval);
-      this._interval = undefined;
     }
   }
 
