@@ -137,11 +137,11 @@ class AlertairTS extends abstract_1.default {
             const compressed = frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame);
             return {
                 d: transaction.timestamp,
-                c: AlertairTS.isConnected(compressed),
-                a: AlertairTS.isAlert(compressed),
+                c: !!AlertairTS.isConnected(compressed),
+                a: !!AlertairTS.isAlert(compressed),
+                s: !!transaction.sent,
                 t: AlertairTS.detectionType(compressed),
-                km: AlertairTS.distance(compressed),
-                s: !!transaction.sent
+                km: AlertairTS.distance(compressed)
             };
         }));
     }

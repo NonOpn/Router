@@ -52,8 +52,8 @@ export default class AlertairDC extends AbstractDevice {
       const compressed = FrameModelCompress.instance.getFrameWithoutHeader(transaction.frame);
       return {
         d: transaction.timestamp,
-        c: AlertairDC.isConnected(compressed),
-        a: AlertairDC.isCircuitDisconnect(compressed),
+        c: !!AlertairDC.isConnected(compressed),
+        a: !!AlertairDC.isCircuitDisconnect(compressed),
         s: !!transaction.sent
       }
     }))

@@ -138,11 +138,11 @@ export default class AlertairTS extends AbstractDevice {
       const compressed = FrameModelCompress.instance.getFrameWithoutHeader(transaction.frame);
       return {
         d: transaction.timestamp,
-        c: AlertairTS.isConnected(compressed),
-        a: AlertairTS.isAlert(compressed),
+        c: !!AlertairTS.isConnected(compressed),
+        a: !!AlertairTS.isAlert(compressed),
+        s: !!transaction.sent,
         t: AlertairTS.detectionType(compressed),
-        km: AlertairTS.distance(compressed),
-        s: !!transaction.sent
+        km: AlertairTS.distance(compressed)
       }
     }))
   }

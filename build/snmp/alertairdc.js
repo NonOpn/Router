@@ -53,8 +53,8 @@ class AlertairDC extends abstract_1.default {
             const compressed = frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame);
             return {
                 d: transaction.timestamp,
-                c: AlertairDC.isConnected(compressed),
-                a: AlertairDC.isCircuitDisconnect(compressed),
+                c: !!AlertairDC.isConnected(compressed),
+                a: !!AlertairDC.isCircuitDisconnect(compressed),
                 s: !!transaction.sent
             };
         }));
