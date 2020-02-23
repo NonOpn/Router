@@ -108,7 +108,7 @@ class BLEAsyncDescriptionCharacteristic extends Characteristic {
     if(this._timeout > 0) {
       console.log("-", {timeout: this._timeout});
       this._timeout --;
-      setTimeout(() => this.checkInterval(), 50);
+      setTimeout(() => this.checkInterval(), 100); //well 100ms should be enough to have 1s interval
     } else {
       console.log("killing interval");
       this._obtained = undefined;
