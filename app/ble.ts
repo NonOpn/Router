@@ -106,6 +106,7 @@ class BLEAsyncDescriptionCharacteristic extends Characteristic {
 
   private checkInterval() {
     if(this._timeout > 0) {
+      console.log("-", {timeout: this._timeout});
       this._timeout --;
       setTimeout(() => this.checkInterval(), 50);
     } else {
