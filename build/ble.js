@@ -53,10 +53,12 @@ class BLEAsyncDescriptionCharacteristic extends safeBleno_1.Characteristic {
         return this._callback()
             .then(value => {
             this._obtained = Buffer.from(value, "utf-8");
+            console.log("length := ", { byteLength: this._obtained.byteLength });
             return this._obtained;
         });
     }
     onReadRequest(offset, cb) {
+        console.log("offset := ", { offset });
         this.readOrSend()
             .then(buffer => cb(BLEConstants_1.RESULT_SUCCESS, Buffer.from(buffer, offset)));
     }
