@@ -45,41 +45,33 @@ class BLEAsyncDescriptionCharacteristic extends safeBleno_1.Characteristic {
             uuid: uuid,
             properties: ['read']
         });
-        this._timeout = 0;
+        this._last_offset = 0;
         this._callback = callback;
     }
-    readOrSend() {
-        if (this._obtained) {
+    readOrSend(offset) {
+        if (offset > 0 && this._last_offset <= offset) {
             return new Promise((resolve) => {
-                this._timeout = 10;
+                this._last_offset = offset;
                 resolve(this._obtained);
             });
         }
         return this._callback()
             .then(value => {
             this._obtained = Buffer.from(value, "utf-8");
-            const send_interval = this._timeout <= 0;
-            this._timeout = 10;
-            console.log("length := ", { byteLength: this._obtained.byteLength });
-            send_interval && this.checkInterval();
+            this._last_offset = offset;
             return this._obtained;
         });
     }
-    checkInterval() {
-        if (this._timeout > 0) {
-            console.log("-", { timeout: this._timeout });
-            this._timeout--;
-            setTimeout(() => this.checkInterval(), 1000); //well 1000ms should be enough to have 10s interval
-        }
-        else {
-            console.log("killing interval");
-            this._obtained = undefined;
-        }
-    }
     onReadRequest(offset, cb) {
         console.log("offset := ", { offset });
-        this.readOrSend()
-            .then(buffer => cb(BLEConstants_1.RESULT_SUCCESS, buffer.slice(offset)));
+        this.readOrSend(offset)
+            .then(buffer => {
+            const current_mtu = Math.max(0, safeBleno_1.mtu() - 4);
+            if (current_mtu >= buffer.byteLength - offset) {
+                console.log("ended !");
+            }
+            cb(BLEConstants_1.RESULT_SUCCESS, buffer.slice(offset));
+        });
     }
 }
 class BLEFrameNotify extends safeBleno_1.Characteristic {
@@ -370,6 +362,10 @@ class BLE {
             return;
         frame_model_compress_1.default.instance.start();
         this._started = true;
+        safeBleno_1.onBlenoEvent("mtuChange", (mtuValue) => {
+            global_mtu = mtuValue || 23;
+            console.log("new mtu value");
+        });
         safeBleno_1.onBlenoEvent('stateChange', (state) => {
             console.log('on -> stateChange: ' + state);
             if (state == 'poweredOn' && !this._started_advertising) {

@@ -8,7 +8,7 @@ import DeviceManagement, { TYPE } from "./ble/device";
 import AbstractDevice from "./snmp/abstract";
 import NetworkInfo from "./network";
 import Diskspace from "./system";
-import { Characteristic, BLECallback, BLEWriteCallback, PrimaryService, isBlenoAvailable, startAdvertising, setServices, onBlenoEvent, stopAdvertising } from "./ble/safeBleno";
+import { Characteristic, BLECallback, BLEWriteCallback, PrimaryService, isBlenoAvailable, startAdvertising, setServices, onBlenoEvent, stopAdvertising, mtu } from "./ble/safeBleno";
 
 const device_management = DeviceManagement.instance;
 const wifi = Wifi.instance;
@@ -83,42 +83,34 @@ class BLEAsyncDescriptionCharacteristic extends Characteristic {
   }
 
   private _obtained: Buffer|undefined;
-  private _timeout = 0;
+  private _last_offset = 0;
 
-  private readOrSend(): Promise<Buffer> {
-    if(this._obtained) {
+  private readOrSend(offset: number): Promise<Buffer> {
+    if(offset > 0 && this._last_offset <= offset) {
       return new Promise((resolve) => {
-        this._timeout = 10;
+        this._last_offset = offset;
         resolve(this._obtained);
       });
     }
     return this._callback()
     .then(value => {
       this._obtained = Buffer.from(value, "utf-8");
-      const send_interval = this._timeout <= 0;
-      this._timeout = 10;
-      console.log("length := ", {byteLength: this._obtained.byteLength});
-
-      send_interval && this.checkInterval();
+      this._last_offset = offset;
       return this._obtained;
     });
   }
 
-  private checkInterval() {
-    if(this._timeout > 0) {
-      console.log("-", {timeout: this._timeout});
-      this._timeout --;
-      setTimeout(() => this.checkInterval(), 1000); //well 1000ms should be enough to have 10s interval
-    } else {
-      console.log("killing interval");
-      this._obtained = undefined;
-    }
-  }
-
   onReadRequest(offset: number, cb: BLECallback) {
     console.log("offset := ", {offset});
-    this.readOrSend()
-    .then(buffer => cb(RESULT_SUCCESS, buffer.slice(offset)));
+    this.readOrSend(offset)
+    .then(buffer => {
+      const current_mtu = Math.max(0, mtu() - 4);
+      
+      if(current_mtu >= buffer.byteLength - offset) {
+        console.log("ended !");
+      }
+      cb(RESULT_SUCCESS, buffer.slice(offset));
+    });
   }
 }
 
@@ -479,6 +471,10 @@ export default class BLE {
     FrameModelCompress.instance.start();
 
     this._started = true;
+    onBlenoEvent("mtuChange", (mtuValue) => {
+      global_mtu = mtuValue || 23;
+      console.log("new mtu value");
+    })
     onBlenoEvent('stateChange', (state: string) => {
       console.log('on -> stateChange: ' + state);
 

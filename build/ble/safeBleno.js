@@ -54,6 +54,12 @@ exports.onBlenoEvent = (name, callback) => {
         console.log("setServices failed, no bleno");
     }
 };
+exports.mtu = () => {
+    if (bleno) {
+        return bleno.mtu;
+    }
+    return 0;
+};
 const _PrimaryService = bleno ? bleno.PrimaryService : SafePrimaryService;
 const _Characteristic = bleno ? bleno.Characteristic : SafeCharacteristics;
 const _Descriptor = bleno ? bleno.Descriptor : null;

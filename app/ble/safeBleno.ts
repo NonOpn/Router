@@ -68,6 +68,13 @@ export const onBlenoEvent = (name: string, callback: any) => {
     }
 }
 
+export const mtu = (): number => {
+    if(bleno) {
+        return bleno.mtu;
+    }
+    return 0;
+}
+
 export interface GenericInterface<T> {
     new(something: any): T;
 }

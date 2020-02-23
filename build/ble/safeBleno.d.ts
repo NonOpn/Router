@@ -17,6 +17,7 @@ export declare const startAdvertising: (id: string, uuids: string[]) => void;
 export declare const stopAdvertising: () => void;
 export declare const setServices: (services: SafePrimaryService[], callback: SetServiceCallback) => void;
 export declare const onBlenoEvent: (name: string, callback: any) => void;
+export declare const mtu: () => number;
 export interface GenericInterface<T> {
     new (something: any): T;
 }
