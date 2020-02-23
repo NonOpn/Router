@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const os_1 = __importDefault(require("os"));
 const abstract_1 = __importDefault(require("./abstract"));
 const comptair_1 = __importDefault(require("./comptair"));
+const frame_model_compress_1 = __importDefault(require("../push_web/frame_model_compress"));
 class Paratonair extends abstract_1.default {
     constructor(params) {
         super();
@@ -46,6 +47,18 @@ class Paratonair extends abstract_1.default {
     getImpactedString(item) {
         const connected = item ? comptair_1.default.isStriken(item.data) : false;
         return connected ? "striken" : "normal";
+    }
+    getFormattedLatestFrames() {
+        return this.getLatestFrames()
+            .then(transactions => transactions.map(transaction => {
+            const compressed = frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame);
+            return {
+                d: transaction.timestamp,
+                c: Paratonair.isConnected(compressed),
+                a: Paratonair.isStriken(compressed),
+                s: !!transaction.sent
+            };
+        }));
     }
     asMib() {
         return [

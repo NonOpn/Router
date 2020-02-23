@@ -1,6 +1,7 @@
 import AbstractDevice, { Filter, OID } from "./abstract";
 import os from "os";
 import { DataPointModel } from "../database/data_point";
+import FrameModelCompress from "../push_web/frame_model_compress";
 
 export default class AlertairDC extends AbstractDevice {
   constructor(params: any) {
@@ -43,6 +44,19 @@ export default class AlertairDC extends AbstractDevice {
   getImpactedString(item: DataPointModel|undefined): string {
     const circuit_disconnected = item ? AlertairDC.isCircuitDisconnect(item.data) : false;
     return circuit_disconnected ? "circuit_disconnect" : "circuit_normal";
+  }
+
+  getFormattedLatestFrames(): Promise<any[]> {
+    return this.getLatestFrames()
+    .then(transactions => transactions.map(transaction => {
+      const compressed = FrameModelCompress.instance.getFrameWithoutHeader(transaction.frame);
+      return {
+        d: transaction.timestamp,
+        c: AlertairDC.isConnected(compressed),
+        a: AlertairDC.isCircuitDisconnect(compressed),
+        s: !!transaction.sent
+      }
+    }))
   }
 
   asMib(): OID[] {

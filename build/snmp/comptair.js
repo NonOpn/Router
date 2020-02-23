@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const os_1 = __importDefault(require("os"));
 const abstract_1 = __importDefault(require("./abstract"));
+const frame_model_compress_1 = __importDefault(require("../push_web/frame_model_compress"));
 class Comptair extends abstract_1.default {
     constructor(params) {
         super();
@@ -45,6 +46,18 @@ class Comptair extends abstract_1.default {
     getImpactedString(item) {
         const connected = item ? Comptair.isStriken(item.data) : false;
         return connected ? "striken" : "normal";
+    }
+    getFormattedLatestFrames() {
+        return this.getLatestFrames()
+            .then(transactions => transactions.map(transaction => {
+            const compressed = frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame);
+            return {
+                d: transaction.timestamp,
+                c: Comptair.isConnected(compressed),
+                a: Comptair.isStriken(compressed),
+                s: !!transaction.sent
+            };
+        }));
     }
     asMib() {
         return [

@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 }
 Object.defineProperty(exports, "__esModule", { value: true });
+const frame_model_1 = __importDefault(require("./../push_web/frame_model"));
 const data_point_1 = __importDefault(require("../database/data_point"));
 const snmpjs_1 = __importDefault(require("snmpjs"));
 class AbstractDevice {
@@ -82,11 +83,26 @@ class AbstractDevice {
         const filter = this.getStandardFilter();
         return this.data_point_provider.findMatching(filter.key, filter.value);
     }
+    getLatestFrames() {
+        return frame_model_1.default.instance.lasts(this.getId(), 5);
+    }
+    getFormattedLatestFrames() {
+        return Promise.reject("invalid");
+    }
+    getLatestFramesAsString() {
+        return this.getFormattedLatestFrames()
+            .then(array => JSON.stringify(array))
+            .catch(err => { console.log(err); return JSON.stringify({ error: true }); });
+    }
     getAdditionnalInfo1() {
         return this.getLatest()
             .then(item => this.getAdditionnalInfo1String(item));
     }
     getAdditionnalInfo2() {
+        return this.getLatest()
+            .then(item => this.getAdditionnalInfo2String(item));
+    }
+    getLatests() {
         return this.getLatest()
             .then(item => this.getAdditionnalInfo2String(item));
     }

@@ -23,6 +23,7 @@ export default class FrameModel extends Abstract {
     getMaxFrame(): Promise<number>;
     setDevice(index: number, product_id: number, is_alert?: boolean, is_alert_disconnect?: boolean): Promise<boolean>;
     getFrame(index: number, limit: number): Promise<Transaction[] | undefined>;
+    lasts(product_id: number, limit: number): Promise<Transaction[]>;
     getFrameIsAlert(index: number, limit: number): Promise<Transaction[] | undefined>;
     isLastDisconnectedState(product_id: number, before_index: number): Promise<boolean>;
     beforeForDevice(device: Device, timestamp: number): Promise<Transaction[]>;

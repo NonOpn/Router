@@ -1,3 +1,4 @@
+import { Transaction } from './../push_web/frame_model';
 import { DataPointModel } from '../database/data_point';
 import DataPoint from "../database/data_point";
 export interface Filter {
@@ -33,8 +34,12 @@ export default class AbstractDevice {
     getAdditionnalInfo2String(item: DataPointModel | undefined): string;
     getLPSFR(): any;
     getLatest(): Promise<DataPointModel | undefined>;
+    getLatestFrames(): Promise<Transaction[]>;
+    getFormattedLatestFrames(): Promise<any[]>;
+    getLatestFramesAsString(): Promise<string>;
     getAdditionnalInfo1(): Promise<string>;
     getAdditionnalInfo2(): Promise<string>;
+    getLatests(): Promise<string>;
     getConnectedState(): Promise<string>;
     getImpactedState(): Promise<string>;
     getStandardFilter(): Filter;

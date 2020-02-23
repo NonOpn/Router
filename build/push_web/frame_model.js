@@ -173,6 +173,13 @@ class FrameModel extends abstract_js_1.default {
                 .catch(err => manageErrorCrash(err, reject));
         });
     }
+    lasts(product_id, limit) {
+        return new Promise((resolve, reject) => {
+            pool.queryParameters("SELECT * FROM Frames WHERE product_id = ? ORDER BY id DESC LIMIT ?", [product_id, limit])
+                .then(results => results && results.length > 0 ? resolve(results) : resolve([]))
+                .catch(err => manageErrorCrash(err, reject));
+        });
+    }
     getFrameIsAlert(index, limit) {
         return new Promise((resolve, reject) => {
             pool.queryParameters("SELECT * FROM Frames WHERE id >= ? AND is_alert = 1 ORDER BY id LIMIT ?", [index, limit])

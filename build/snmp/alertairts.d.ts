@@ -16,6 +16,8 @@ export default class AlertairTS extends AbstractDevice {
     constructor(params: any);
     getStandardFilter(): Filter;
     static isConnected(frame: string): boolean;
+    static distance(frame: string): number;
+    static detectionType(frame: string): Detection;
     static isAlert(frame: string): boolean;
     getConnectedStateString(item: DataPointModel | undefined): string;
     getImpactedString(item: DataPointModel | undefined): string;
@@ -23,6 +25,7 @@ export default class AlertairTS extends AbstractDevice {
     getAdditionnalInfo2String(item: DataPointModel | undefined): string;
     getDistance(item: DataPointModel | undefined): string;
     getDetectionType(item: DataPointModel | undefined): string;
+    getFormattedLatestFrames(): Promise<any[]>;
     detectionStr(detection: Detection): "close" | "normal" | "arrival" | "departing" | "stable" | "approaching" | "far" | "noise" | "disturbing" | "cal_ok";
     asMib(): OID[];
 }

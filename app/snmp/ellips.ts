@@ -1,5 +1,6 @@
 import { DataPointModel } from './../database/data_point';
 import AbstractDevice, { Filter, OID } from "./abstract";
+import FrameModelCompress from '../push_web/frame_model_compress';
 
 export default class Ellips extends AbstractDevice {
   constructor(params: any) {

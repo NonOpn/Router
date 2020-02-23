@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const os_1 = __importDefault(require("os"));
 const abstract_1 = __importDefault(require("./abstract"));
+const frame_model_compress_1 = __importDefault(require("../push_web/frame_model_compress"));
 var Detection;
 (function (Detection) {
     Detection[Detection["NORMAL"] = 0] = "NORMAL";
@@ -40,10 +41,30 @@ class AlertairTS extends abstract_1.default {
         }
         return true;
     }
-    static isAlert(frame) {
+    static distance(frame) {
+        const buffer = new Buffer(frame, "hex");
+        if (buffer.length >= 16) {
+            var distance = buffer[4];
+            if (distance < 0)
+                distance = -1;
+            if (distance > 40)
+                distance = 40;
+            return distance;
+        }
+        return -1;
+    }
+    static detectionType(frame) {
         const buffer = new Buffer(frame, "hex");
         if (buffer.length >= 6 && this.isConnected(frame)) {
             var detection = (buffer[5] >> 4);
+            return detection;
+        }
+        return Detection.NORMAL;
+    }
+    static isAlert(frame) {
+        const buffer = new Buffer(frame, "hex");
+        if (buffer.length >= 6 && this.isConnected(frame)) {
+            var detection = AlertairTS.detectionType(frame);
             console.log("frame >> " + frame + " // " + frame[10] + frame[11]);
             console.log("ALERTAIR TS", "detection ??? " + detection);
             switch (detection) {
@@ -85,16 +106,7 @@ class AlertairTS extends abstract_1.default {
     getDistance(item) {
         if (!item || !item.data)
             return "-2";
-        const buffer = new Buffer(item.data, "hex");
-        if (buffer.length >= 16) {
-            var distance = buffer[4];
-            if (distance < 0)
-                distance = 0;
-            if (distance > 40)
-                distance = 40;
-            return "" + distance;
-        }
-        return "-1";
+        return "" + AlertairTS.distance(item.data);
     }
     getDetectionType(item) {
         if (!item || !item.data)
@@ -118,6 +130,20 @@ class AlertairTS extends abstract_1.default {
             }
         }
         return "-1";
+    }
+    getFormattedLatestFrames() {
+        return this.getLatestFrames()
+            .then(transactions => transactions.map(transaction => {
+            const compressed = frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame);
+            return {
+                d: transaction.timestamp,
+                c: AlertairTS.isConnected(compressed),
+                a: AlertairTS.isAlert(compressed),
+                t: AlertairTS.detectionType(compressed),
+                km: AlertairTS.distance(compressed),
+                s: !!transaction.sent
+            };
+        }));
     }
     detectionStr(detection) {
         switch (detection) {

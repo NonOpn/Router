@@ -7,5 +7,6 @@ export default class AlertairDC extends AbstractDevice {
     static isCircuitDisconnect(frame: string): boolean;
     getConnectedStateString(item: DataPointModel | undefined): string;
     getImpactedString(item: DataPointModel | undefined): string;
+    getFormattedLatestFrames(): Promise<any[]>;
     asMib(): OID[];
 }

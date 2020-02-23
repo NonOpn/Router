@@ -169,6 +169,7 @@ class BLEPrimaryDeviceService extends safeBleno_1.PrimaryService {
                 new BLEWriteCharacteristic("0007", "Update", (value) => this._editType(value)),
                 new BLEAsyncDescriptionCharacteristic("0008", () => device.getAdditionnalInfo1()),
                 new BLEAsyncDescriptionCharacteristic("0009", () => device.getAdditionnalInfo2()),
+                new BLEAsyncDescriptionCharacteristic("0010", () => device.getLatestFramesAsString()),
             ]
         });
         this.device = device;

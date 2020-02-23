@@ -1,3 +1,4 @@
+import FrameModel, { Transaction } from './../push_web/frame_model';
 import { DataPointModel } from '../database/data_point';
 import DataPoint from "../database/data_point";
 import snmp from "snmpjs";
@@ -111,12 +112,31 @@ export default class AbstractDevice {
     return this.data_point_provider.findMatching(filter.key, filter.value);
   }
 
+  getLatestFrames(): Promise<Transaction[]> {
+    return FrameModel.instance.lasts(this.getId(), 5);
+  }
+
+  getFormattedLatestFrames(): Promise<any[]> {
+    return Promise.reject("invalid");
+  }
+
+  getLatestFramesAsString(): Promise<string> {
+    return this.getFormattedLatestFrames()
+    .then(array => JSON.stringify(array))
+    .catch(err => { console.log(err); return JSON.stringify({error: true}); })
+  }
+
   getAdditionnalInfo1(): Promise<string> {
     return this.getLatest()
     .then(item => this.getAdditionnalInfo1String(item));
   }
 
   getAdditionnalInfo2(): Promise<string> {
+    return this.getLatest()
+    .then(item => this.getAdditionnalInfo2String(item));
+  }
+
+  getLatests(): Promise<string> {
     return this.getLatest()
     .then(item => this.getAdditionnalInfo2String(item));
   }

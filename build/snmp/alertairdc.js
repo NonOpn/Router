@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const abstract_1 = __importDefault(require("./abstract"));
 const os_1 = __importDefault(require("os"));
+const frame_model_compress_1 = __importDefault(require("../push_web/frame_model_compress"));
 class AlertairDC extends abstract_1.default {
     constructor(params) {
         super();
@@ -45,6 +46,18 @@ class AlertairDC extends abstract_1.default {
     getImpactedString(item) {
         const circuit_disconnected = item ? AlertairDC.isCircuitDisconnect(item.data) : false;
         return circuit_disconnected ? "circuit_disconnect" : "circuit_normal";
+    }
+    getFormattedLatestFrames() {
+        return this.getLatestFrames()
+            .then(transactions => transactions.map(transaction => {
+            const compressed = frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame);
+            return {
+                d: transaction.timestamp,
+                c: AlertairDC.isConnected(compressed),
+                a: AlertairDC.isCircuitDisconnect(compressed),
+                s: !!transaction.sent
+            };
+        }));
     }
     asMib() {
         return [

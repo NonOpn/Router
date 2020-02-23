@@ -7,5 +7,6 @@ export default class Paratonair extends AbstractDevice {
     static isStriken(frame: string): boolean;
     getConnectedStateString(item: DataPointModel | undefined): string;
     getImpactedString(item: DataPointModel | undefined): string;
+    getFormattedLatestFrames(): Promise<any[]>;
     asMib(): OID[];
 }

@@ -1,6 +1,7 @@
 import os from 'os';
 import { DataPointModel } from './../database/data_point';
 import AbstractDevice, { Filter, OID } from "./abstract";
+import FrameModelCompress from '../push_web/frame_model_compress';
 
 export enum Detection {
   NORMAL = 0,
@@ -38,10 +39,30 @@ export default class AlertairTS extends AbstractDevice {
     return true;
   }
 
-  static isAlert(frame: string): boolean {
+  static distance(frame: string): number {
+    const buffer = new Buffer(frame, "hex");
+    if(buffer.length >= 16) {
+      var distance: number = buffer[4];
+      if(distance < 0) distance = -1;
+      if(distance > 40) distance = 40;
+      return distance;
+    }
+    return -1;
+  }
+
+  static detectionType(frame: string): Detection {
     const buffer = new Buffer(frame, "hex");
     if(buffer.length >= 6 && this.isConnected(frame)) {
       var detection: number = (buffer[5] >> 4);
+      return detection;
+    }
+    return Detection.NORMAL;
+  }
+
+  static isAlert(frame: string): boolean {
+    const buffer = new Buffer(frame, "hex");
+    if(buffer.length >= 6 && this.isConnected(frame)) {
+      var detection: number = AlertairTS.detectionType(frame);
       console.log("frame >> " + frame+" // " + frame[10]+frame[11]);
       console.log("ALERTAIR TS", "detection ??? " + detection);
       switch(detection) {
@@ -85,14 +106,7 @@ export default class AlertairTS extends AbstractDevice {
 
   getDistance(item: DataPointModel|undefined): string {
     if(!item || !item.data) return "-2";
-    const buffer = new Buffer(item.data, "hex");
-    if(buffer.length >= 16) {
-      var distance: number = buffer[4];
-      if(distance < 0) distance = 0;
-      if(distance > 40) distance = 40;
-      return ""+distance;
-    }
-    return "-1";
+    return "" + AlertairTS.distance(item.data);
   }
 
   getDetectionType(item: DataPointModel|undefined): string {
@@ -116,6 +130,21 @@ export default class AlertairTS extends AbstractDevice {
       }
     }
     return "-1";
+  }
+
+  getFormattedLatestFrames(): Promise<any[]> {
+    return this.getLatestFrames()
+    .then(transactions => transactions.map(transaction => {
+      const compressed = FrameModelCompress.instance.getFrameWithoutHeader(transaction.frame);
+      return {
+        d: transaction.timestamp,
+        c: AlertairTS.isConnected(compressed),
+        a: AlertairTS.isAlert(compressed),
+        t: AlertairTS.detectionType(compressed),
+        km: AlertairTS.distance(compressed),
+        s: !!transaction.sent
+      }
+    }))
   }
   
   detectionStr(detection: Detection) {
