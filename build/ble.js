@@ -60,7 +60,7 @@ class BLEAsyncDescriptionCharacteristic extends safeBleno_1.Characteristic {
     onReadRequest(offset, cb) {
         console.log("offset := ", { offset });
         this.readOrSend()
-            .then(buffer => cb(BLEConstants_1.RESULT_SUCCESS, Buffer.from(buffer, offset)));
+            .then(buffer => cb(BLEConstants_1.RESULT_SUCCESS, buffer.slice(offset)));
     }
 }
 class BLEFrameNotify extends safeBleno_1.Characteristic {
