@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { Characteristic, BLECallback } from "./safeBleno";
 import { Transaction } from "../push_web/frame_model";
 export interface BLEResultCallback {
@@ -15,7 +16,24 @@ export interface Result {
     max: number;
     txs: Compressed[];
 }
-export default class BLESyncCharacteristic extends Characteristic {
+export declare class BLELargeSyncCharacteristic extends Characteristic {
+    private max;
+    private use_write;
+    private mtu;
+    constructor(uuid: string, max: number, use_write: boolean, mtu: () => number);
+    numberToFetch(): number;
+    getMaxFrame(): Promise<number>;
+    getMinFrame(): Promise<number>;
+    getFrame(value: number, to_fetch: number): Promise<Transaction[] | undefined>;
+    private _obtained;
+    private _last_offset;
+    _log_id: number;
+    private _callback;
+    private readOrSend;
+    onReadRequest(offset: number, cb: BLECallback): void;
+    onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback): void;
+}
+export declare class BLESyncCharacteristic extends Characteristic {
     _log_id: number;
     _last: Buffer;
     _compress: boolean;

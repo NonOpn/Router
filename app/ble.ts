@@ -1,4 +1,4 @@
-import BLESyncCharacteristic, { Result, BLEResultCallback } from './ble/BLESyncCharacteristic';
+import { BLESyncCharacteristic, BLELargeSyncCharacteristic, Result, BLEResultCallback } from './ble/BLESyncCharacteristic';
 import config from "./config/config";
 import DeviceModel from "./push_web/device_model";
 import FrameModelCompress from "./push_web/frame_model_compress";
@@ -293,6 +293,24 @@ class BLEPrimaryDeviceService extends PrimaryService {
   }
 }
 
+class BLEReadWriteLargeLogCharacteristic extends BLELargeSyncCharacteristic {
+  constructor(uuid: string, number_logs: number = 5, use_write: boolean = true) {
+    super(uuid, number_logs, use_write, mtu);
+  }
+
+  public getMaxFrame(): Promise<number> {
+    return FrameModelCompress.instance.getMaxFrame();
+  }
+
+  public getMinFrame(): Promise<number> {
+    return FrameModelCompress.instance.getMinFrame();
+  }
+
+  public getFrame(value: number, to_fetch: number): Promise<Transaction[]|undefined> {
+    return FrameModelCompress.instance.getFrame(value, to_fetch);
+  }
+}
+
 class BLEReadWriteLogCharacteristic extends BLESyncCharacteristic {
   constructor(uuid: string, compress:boolean = false, use_write: boolean = true) {
     super(uuid, compress, use_write);
@@ -382,7 +400,8 @@ export default class BLE {
       new BLEReadWriteLogCharacteristic("0104"),
       new BLEReadWriteLogCharacteristic("0105", true),
       new BLEReadWriteLogCharacteristic("0106", true, false),
-      new BLEReadWriteLogIsAlertCharacteristic("0107", true, true)
+      new BLEReadWriteLogIsAlertCharacteristic("0107", true, true),
+      new BLEReadWriteLargeLogCharacteristic("0666", 500, true)
       //this._notify_frame
     ];
 

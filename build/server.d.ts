@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { EventEmitter } from "events";
 import EnoceanLoader from "./enocean";
 export default class Server extends EventEmitter {

@@ -1,9 +1,9 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const BLESyncCharacteristic_1 = __importDefault(require("./ble/BLESyncCharacteristic"));
+const BLESyncCharacteristic_1 = require("./ble/BLESyncCharacteristic");
 const config_1 = __importDefault(require("./config/config"));
 const device_model_1 = __importDefault(require("./push_web/device_model"));
 const frame_model_compress_1 = __importDefault(require("./push_web/frame_model_compress"));
@@ -21,7 +21,7 @@ const devices = device_model_1.default.instance;
 const BLEConstants_1 = require("./ble/BLEConstants");
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
 var id = "Routair";
-if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) {
+if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) { //0xAABBCCDD
     id += config_1.default.identity.substr(0, 5 * 2);
 }
 var seenDevices = {
@@ -226,7 +226,21 @@ class BLEPrimaryDeviceService extends safeBleno_1.PrimaryService {
             .then(internal_serial => !!seenDevices.devices[internal_serial] ? "true" : "false");
     }
 }
-class BLEReadWriteLogCharacteristic extends BLESyncCharacteristic_1.default {
+class BLEReadWriteLargeLogCharacteristic extends BLESyncCharacteristic_1.BLELargeSyncCharacteristic {
+    constructor(uuid, number_logs = 5, use_write = true) {
+        super(uuid, number_logs, use_write, safeBleno_1.mtu);
+    }
+    getMaxFrame() {
+        return frame_model_compress_1.default.instance.getMaxFrame();
+    }
+    getMinFrame() {
+        return frame_model_compress_1.default.instance.getMinFrame();
+    }
+    getFrame(value, to_fetch) {
+        return frame_model_compress_1.default.instance.getFrame(value, to_fetch);
+    }
+}
+class BLEReadWriteLogCharacteristic extends BLESyncCharacteristic_1.BLESyncCharacteristic {
     constructor(uuid, compress = false, use_write = true) {
         super(uuid, compress, use_write);
     }
@@ -240,7 +254,7 @@ class BLEReadWriteLogCharacteristic extends BLESyncCharacteristic_1.default {
         return frame_model_compress_1.default.instance.getFrame(value, to_fetch);
     }
 }
-class BLEReadWriteLogIsAlertCharacteristic extends BLESyncCharacteristic_1.default {
+class BLEReadWriteLogIsAlertCharacteristic extends BLESyncCharacteristic_1.BLESyncCharacteristic {
     constructor(uuid, compress = false, use_write = true) {
         super(uuid, compress, use_write);
     }
@@ -289,7 +303,8 @@ class BLE {
             new BLEReadWriteLogCharacteristic("0104"),
             new BLEReadWriteLogCharacteristic("0105", true),
             new BLEReadWriteLogCharacteristic("0106", true, false),
-            new BLEReadWriteLogIsAlertCharacteristic("0107", true, true)
+            new BLEReadWriteLogIsAlertCharacteristic("0107", true, true),
+            new BLEReadWriteLargeLogCharacteristic("0666", 500, true)
             //this._notify_frame
         ];
         this._refreshing_called_once = false;
