@@ -226,9 +226,9 @@ class BLEPrimaryDeviceService extends safeBleno_1.PrimaryService {
             .then(internal_serial => !!seenDevices.devices[internal_serial] ? "true" : "false");
     }
 }
-class BLEReadWriteLargeCompressedLogCharacteristic extends BLESyncCharacteristic_1.BLELargeSyncCharacteristic {
-    constructor(uuid, number_logs = 5, use_write = true) {
-        super(uuid, number_logs, use_write, safeBleno_1.mtu);
+class BLEReadWriteLogCharacteristic extends BLESyncCharacteristic_1.BLELargeSyncCharacteristic {
+    constructor(uuid, compress = false, use_write = true) {
+        super(uuid, 50, compress, use_write, safeBleno_1.mtu);
     }
     getMaxFrame() {
         return frame_model_compress_1.default.instance.getMaxFrame();
@@ -240,37 +240,9 @@ class BLEReadWriteLargeCompressedLogCharacteristic extends BLESyncCharacteristic
         return frame_model_compress_1.default.instance.getFrame(value, to_fetch);
     }
 }
-class BLEReadWriteLargeLogCharacteristic extends BLESyncCharacteristic_1.BLELargeSyncCharacteristic {
-    constructor(uuid, number_logs = 5, use_write = true) {
-        super(uuid, number_logs, use_write, safeBleno_1.mtu);
-    }
-    getMaxFrame() {
-        return frame_model_1.default.instance.getMaxFrame();
-    }
-    getMinFrame() {
-        return frame_model_1.default.instance.getMinFrame();
-    }
-    getFrame(value, to_fetch) {
-        return frame_model_1.default.instance.getFrame(value, to_fetch);
-    }
-}
-class BLEReadWriteLogCharacteristic extends BLESyncCharacteristic_1.BLESyncCharacteristic {
+class BLEReadWriteLogIsAlertCharacteristic extends BLESyncCharacteristic_1.BLELargeSyncCharacteristic {
     constructor(uuid, compress = false, use_write = true) {
-        super(uuid, compress, use_write);
-    }
-    getMaxFrame() {
-        return frame_model_compress_1.default.instance.getMaxFrame();
-    }
-    getMinFrame() {
-        return frame_model_compress_1.default.instance.getMinFrame();
-    }
-    getFrame(value, to_fetch) {
-        return frame_model_compress_1.default.instance.getFrame(value, to_fetch);
-    }
-}
-class BLEReadWriteLogIsAlertCharacteristic extends BLESyncCharacteristic_1.BLESyncCharacteristic {
-    constructor(uuid, compress = false, use_write = true) {
-        super(uuid, compress, use_write);
+        super(uuid, 50, compress, use_write, safeBleno_1.mtu);
     }
     getMaxFrame() {
         return frame_model_1.default.instance.getMaxFrame();
@@ -317,9 +289,7 @@ class BLE {
             new BLEReadWriteLogCharacteristic("0104"),
             new BLEReadWriteLogCharacteristic("0105", true),
             new BLEReadWriteLogCharacteristic("0106", true, false),
-            new BLEReadWriteLogIsAlertCharacteristic("0107", true, true),
-            new BLEReadWriteLargeLogCharacteristic("0666", 500, true),
-            new BLEReadWriteLargeCompressedLogCharacteristic("0667", 500, true)
+            new BLEReadWriteLogIsAlertCharacteristic("0107", true, true)
             //this._notify_frame
         ];
         this._refreshing_called_once = false;
@@ -393,8 +363,8 @@ class BLE {
         frame_model_compress_1.default.instance.start();
         this._started = true;
         safeBleno_1.onBlenoEvent("mtuChange", (mtuValue) => {
-            global_mtu = mtuValue || 23;
-            console.log("new mtu value");
+            const global_mtu = mtuValue || 23;
+            console.log("new mtu value", global_mtu);
         });
         safeBleno_1.onBlenoEvent('stateChange', (state) => {
             console.log('on -> stateChange: ' + state);

@@ -1,4 +1,4 @@
-import { BLESyncCharacteristic, BLELargeSyncCharacteristic, Result, BLEResultCallback } from './ble/BLESyncCharacteristic';
+import { BLELargeSyncCharacteristic, Result, BLEResultCallback } from './ble/BLESyncCharacteristic';
 import config from "./config/config";
 import DeviceModel from "./push_web/device_model";
 import FrameModelCompress from "./push_web/frame_model_compress";
@@ -293,9 +293,9 @@ class BLEPrimaryDeviceService extends PrimaryService {
   }
 }
 
-class BLEReadWriteLargeCompressedLogCharacteristic extends BLELargeSyncCharacteristic {
-  constructor(uuid: string, number_logs: number = 5, use_write: boolean = true) {
-    super(uuid, number_logs, use_write, mtu);
+class BLEReadWriteLogCharacteristic extends BLELargeSyncCharacteristic {
+  constructor(uuid: string, compress:boolean = false, use_write: boolean = true) {
+    super(uuid, 50, compress, use_write, mtu);
   }
 
   public getMaxFrame(): Promise<number> {
@@ -311,45 +311,9 @@ class BLEReadWriteLargeCompressedLogCharacteristic extends BLELargeSyncCharacter
   }
 }
 
-class BLEReadWriteLargeLogCharacteristic extends BLELargeSyncCharacteristic {
-  constructor(uuid: string, number_logs: number = 5, use_write: boolean = true) {
-    super(uuid, number_logs, use_write, mtu);
-  }
-
-  public getMaxFrame(): Promise<number> {
-    return FrameModel.instance.getMaxFrame();
-  }
-
-  public getMinFrame(): Promise<number> {
-    return FrameModel.instance.getMinFrame();
-  }
-
-  public getFrame(value: number, to_fetch: number): Promise<Transaction[]|undefined> {
-    return FrameModel.instance.getFrame(value, to_fetch);
-  }
-}
-
-class BLEReadWriteLogCharacteristic extends BLESyncCharacteristic {
+class BLEReadWriteLogIsAlertCharacteristic extends BLELargeSyncCharacteristic {
   constructor(uuid: string, compress:boolean = false, use_write: boolean = true) {
-    super(uuid, compress, use_write);
-  }
-
-  public getMaxFrame(): Promise<number> {
-    return FrameModelCompress.instance.getMaxFrame();
-  }
-
-  public getMinFrame(): Promise<number> {
-    return FrameModelCompress.instance.getMinFrame();
-  }
-
-  public getFrame(value: number, to_fetch: number): Promise<Transaction[]|undefined> {
-    return FrameModelCompress.instance.getFrame(value, to_fetch);
-  }
-}
-
-class BLEReadWriteLogIsAlertCharacteristic extends BLESyncCharacteristic {
-  constructor(uuid: string, compress:boolean = false, use_write: boolean = true) {
-    super(uuid, compress, use_write);
+    super(uuid, 50, compress, use_write, mtu);
   }
 
   public getMaxFrame(): Promise<number> {
@@ -418,9 +382,7 @@ export default class BLE {
       new BLEReadWriteLogCharacteristic("0104"),
       new BLEReadWriteLogCharacteristic("0105", true),
       new BLEReadWriteLogCharacteristic("0106", true, false),
-      new BLEReadWriteLogIsAlertCharacteristic("0107", true, true),
-      new BLEReadWriteLargeLogCharacteristic("0666", 500, true),
-      new BLEReadWriteLargeCompressedLogCharacteristic("0667", 500, true)
+      new BLEReadWriteLogIsAlertCharacteristic("0107", true, true)
       //this._notify_frame
     ];
 
@@ -509,10 +471,11 @@ export default class BLE {
     FrameModelCompress.instance.start();
 
     this._started = true;
-    onBlenoEvent("mtuChange", (mtuValue) => {
-      global_mtu = mtuValue || 23;
-      console.log("new mtu value");
-    })
+    onBlenoEvent("mtuChange", (mtuValue: number) => {
+      const global_mtu = mtuValue || 23;
+      console.log("new mtu value", global_mtu);
+    });
+
     onBlenoEvent('stateChange', (state: string) => {
       console.log('on -> stateChange: ' + state);
 

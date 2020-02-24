@@ -14,13 +14,14 @@ export interface Compressed {
 export interface Result {
     index: number;
     max: number;
-    txs: Compressed[];
+    txs: string[];
 }
 export declare class BLELargeSyncCharacteristic extends Characteristic {
     private max;
+    private compress;
     private use_write;
     private mtu;
-    constructor(uuid: string, max: number, use_write: boolean, mtu: () => number);
+    constructor(uuid: string, max: number, compress: boolean, use_write: boolean, mtu: () => number);
     numberToFetch(): number;
     getMaxFrame(): Promise<number>;
     getMinFrame(): Promise<number>;
@@ -28,20 +29,9 @@ export declare class BLELargeSyncCharacteristic extends Characteristic {
     private _obtained;
     private _last_offset;
     _log_id: number;
+    private transform;
     private _callback;
     private readOrSend;
-    onReadRequest(offset: number, cb: BLECallback): void;
-    onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback): void;
-}
-export declare class BLESyncCharacteristic extends Characteristic {
-    _log_id: number;
-    _last: Buffer;
-    _compress: boolean;
-    constructor(uuid: string, compress?: boolean, use_write?: boolean);
-    numberToFetch(): number;
-    getMaxFrame(): Promise<number>;
-    getMinFrame(): Promise<number>;
-    getFrame(value: number, to_fetch: number): Promise<Transaction[] | undefined>;
     onReadRequest(offset: number, cb: BLECallback): void;
     onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback): void;
 }
