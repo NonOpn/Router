@@ -67,6 +67,11 @@ class Pool {
             this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
             index_js_1.Logger.data({ repair: table_name, use_frm: true });
         }
+        else if (error && error.code === "HA_ERR_CRASHED_ON_REPAIR") {
+            console.log("crashed on auto repair... try repair", { error });
+            this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
+            index_js_1.Logger.data({ repair: table_name });
+        }
         else if (error && error.code === "ER_CRASHED_ON_USAGE") {
             console.log("crashed... try repair", { error });
             this.repair("REPAIR TABLE " + table_name, error, reject);
