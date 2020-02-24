@@ -9,6 +9,7 @@ const index_js_1 = require("../log/index.js");
 const systemctl_1 = require("../systemctl");
 class Pool {
     constructor() {
+        this.can_post_error = true;
         this.sent_mysql_status = 0;
         this.mysql = new systemctl_1.MySQL();
         this.mysqladmin = new systemctl_1.MysqlAdmin();
@@ -113,8 +114,16 @@ class Pool {
         }
         else {
             index_js_1.Logger.error(error, "in pool call for table := " + table_name);
-            new systemctl_1.Cat().exec("/etc/mysql/my.cnf").then(content => index_js_1.Logger.identity({ content })).catch(err => { });
+            this.tryPostingSQLState();
             reject(error);
+        }
+    }
+    tryPostingSQLState() {
+        if (this.can_post_error) {
+            this.can_post_error = false;
+            new systemctl_1.Cat().exec("/etc/mysql/my.cnf").then(content => index_js_1.Logger.identity({ content })).catch(err => { });
+            //allow in 10min
+            setTimeout(() => this.can_post_error = true, 10 * 60 * 1000);
         }
     }
     _exec(query, parameters, resolve, reject, resolve_if_fail) {

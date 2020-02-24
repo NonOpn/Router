@@ -12,5 +12,7 @@ export default class Pool {
     queryParameters(query: string, parameters: any[], resolve_if_fail?: boolean): Promise<any[]>;
     repair(request: string, error: any, reject: Reject): void;
     manageErrorCrash(table_name: string, error: any, reject: Reject): void;
+    private can_post_error;
+    private tryPostingSQLState();
     _exec(query: string, parameters: any[], resolve: Resolve, reject: Reject, resolve_if_fail: boolean): void;
 }
