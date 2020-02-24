@@ -95,7 +95,8 @@ class BLELargeSyncCharacteristic extends safeBleno_1.Characteristic {
         });
     }
     onReadRequest(offset, cb) {
-        console.log("offset := ", { offset });
+        const length = this._obtained ? this._obtained.length : 0;
+        console.log("offset := ", { offset, length });
         this.readOrSend(offset)
             .then(buffer => {
             const current_mtu = Math.max(0, this.mtu() - 4);

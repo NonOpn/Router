@@ -128,11 +128,13 @@ export class BLELargeSyncCharacteristic extends Characteristic {
   }
 
   onReadRequest(offset: number, cb: BLECallback) {
-    console.log("offset := ", {offset});
+    const length = this._obtained ? this._obtained.length : 0;
+    console.log("offset := ", {offset, length});
     this.readOrSend(offset)
     .then(buffer => {
       const current_mtu = Math.max(0, this.mtu() - 4);
       
+
       if(current_mtu >= buffer.byteLength - offset) {
         console.log("ended !");
       }
