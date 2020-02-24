@@ -68,9 +68,13 @@ function ToArrayForInsert(device: Device): any[] {
   ]
 }
 
-function manageErrorCrash(error: Error, reject: Reject) {
+function manageErrorCrash(error: Error, reject?: Reject): Promise<any>|undefined {
   console.log("Device crash", error);
-  pool.manageErrorCrash("Device", error, reject);
+  if(reject) {
+    pool.manageErrorCrash("Device", error, reject);
+  } else {
+    return new Promise((resolve, reject) => pool.manageErrorCrash("Device", error, reject));
+  }
 }
 
 export default class DeviceModel extends Abstract {
@@ -106,20 +110,14 @@ export default class DeviceModel extends Abstract {
   cleanContactair() {
     return pool.query("UPDATE Device AS D1 LEFT JOIN Device AS D2 ON D1.last_contactair = D2.last_contactair SET D1.last_contactair_index = 0, D1.last_contactair = NULL WHERE D1.last_contactair_index < D2.last_contactair_index")
     .then(() => true)
-    .catch(error => {
-      manageErrorCrash(error, () => console.log("crashed in getDeviceForInternalSerial()"));
-      return false;
-    });
+    .catch(error => manageErrorCrash(error));
   }
 
   unsetContactair(last_contactair: string, frame_id: number): Promise<boolean> {
     if(!last_contactair) last_contactair = "";
     return pool.queryParameters("UPDATE Device SET last_contactair_index = 0, last_contactair = NULL WHERE last_contactair=? AND last_contactair_index < ? ORDER BY id LIMIT 1", [last_contactair, frame_id])
     .then(() => true)
-    .catch(error => {
-      manageErrorCrash(error, () => console.log("crashed in getDeviceForInternalSerial()"));
-      return false;
-    });
+    .catch(error => manageErrorCrash(error));
   }
 
   setContactairForDevice(last_contactair: string, internal_serial: string, frame_id: number): Promise<Device|undefined> {
@@ -129,11 +127,7 @@ export default class DeviceModel extends Abstract {
       this.unsetContactair(last_contactair, frame_id)
       .then(() => pool.queryParameters("UPDATE Device SET last_contactair_index = ?, last_contactair = ? WHERE internal_serial=? AND last_contactair_index < ? ORDER BY id LIMIT 1", [frame_id, last_contactair, internal_serial, frame_id]))
       .then(() => this.getDeviceForInternalSerial(internal_serial))
-      .then(device => resolve(device))
-      .catch(error => {
-        manageErrorCrash(error, () => console.log("crashed in getDeviceForInternalSerial()"));
-        resolve(undefined);
-      });
+      .then(device => resolve(device));
     });
   }
 
