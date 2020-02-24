@@ -226,7 +226,7 @@ class BLEPrimaryDeviceService extends safeBleno_1.PrimaryService {
             .then(internal_serial => !!seenDevices.devices[internal_serial] ? "true" : "false");
     }
 }
-class BLEReadWriteLargeLogCharacteristic extends BLESyncCharacteristic_1.BLELargeSyncCharacteristic {
+class BLEReadWriteLargeCompressedLogCharacteristic extends BLESyncCharacteristic_1.BLELargeSyncCharacteristic {
     constructor(uuid, number_logs = 5, use_write = true) {
         super(uuid, number_logs, use_write, safeBleno_1.mtu);
     }
@@ -238,6 +238,20 @@ class BLEReadWriteLargeLogCharacteristic extends BLESyncCharacteristic_1.BLELarg
     }
     getFrame(value, to_fetch) {
         return frame_model_compress_1.default.instance.getFrame(value, to_fetch);
+    }
+}
+class BLEReadWriteLargeLogCharacteristic extends BLESyncCharacteristic_1.BLELargeSyncCharacteristic {
+    constructor(uuid, number_logs = 5, use_write = true) {
+        super(uuid, number_logs, use_write, safeBleno_1.mtu);
+    }
+    getMaxFrame() {
+        return frame_model_1.default.instance.getMaxFrame();
+    }
+    getMinFrame() {
+        return frame_model_1.default.instance.getMinFrame();
+    }
+    getFrame(value, to_fetch) {
+        return frame_model_1.default.instance.getFrame(value, to_fetch);
     }
 }
 class BLEReadWriteLogCharacteristic extends BLESyncCharacteristic_1.BLESyncCharacteristic {
@@ -304,7 +318,8 @@ class BLE {
             new BLEReadWriteLogCharacteristic("0105", true),
             new BLEReadWriteLogCharacteristic("0106", true, false),
             new BLEReadWriteLogIsAlertCharacteristic("0107", true, true),
-            new BLEReadWriteLargeLogCharacteristic("0666", 500, true)
+            new BLEReadWriteLargeLogCharacteristic("0666", 500, true),
+            new BLEReadWriteLargeCompressedLogCharacteristic("0667", 500, true)
             //this._notify_frame
         ];
         this._refreshing_called_once = false;

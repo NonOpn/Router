@@ -293,7 +293,7 @@ class BLEPrimaryDeviceService extends PrimaryService {
   }
 }
 
-class BLEReadWriteLargeLogCharacteristic extends BLELargeSyncCharacteristic {
+class BLEReadWriteLargeCompressedLogCharacteristic extends BLELargeSyncCharacteristic {
   constructor(uuid: string, number_logs: number = 5, use_write: boolean = true) {
     super(uuid, number_logs, use_write, mtu);
   }
@@ -308,6 +308,24 @@ class BLEReadWriteLargeLogCharacteristic extends BLELargeSyncCharacteristic {
 
   public getFrame(value: number, to_fetch: number): Promise<Transaction[]|undefined> {
     return FrameModelCompress.instance.getFrame(value, to_fetch);
+  }
+}
+
+class BLEReadWriteLargeLogCharacteristic extends BLELargeSyncCharacteristic {
+  constructor(uuid: string, number_logs: number = 5, use_write: boolean = true) {
+    super(uuid, number_logs, use_write, mtu);
+  }
+
+  public getMaxFrame(): Promise<number> {
+    return FrameModel.instance.getMaxFrame();
+  }
+
+  public getMinFrame(): Promise<number> {
+    return FrameModel.instance.getMinFrame();
+  }
+
+  public getFrame(value: number, to_fetch: number): Promise<Transaction[]|undefined> {
+    return FrameModel.instance.getFrame(value, to_fetch);
   }
 }
 
@@ -401,7 +419,8 @@ export default class BLE {
       new BLEReadWriteLogCharacteristic("0105", true),
       new BLEReadWriteLogCharacteristic("0106", true, false),
       new BLEReadWriteLogIsAlertCharacteristic("0107", true, true),
-      new BLEReadWriteLargeLogCharacteristic("0666", 500, true)
+      new BLEReadWriteLargeLogCharacteristic("0666", 500, true),
+      new BLEReadWriteLargeCompressedLogCharacteristic("0667", 500, true)
       //this._notify_frame
     ];
 
