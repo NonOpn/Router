@@ -9,7 +9,6 @@ const serialport_1 = __importDefault(require("serialport"));
 const node_enocean_1 = __importDefault(require("node-enocean"));
 const enocean_1 = __importDefault(require("./config/enocean"));
 const enocean_send_1 = __importDefault(require("./enocean_send"));
-const log_1 = require("./log");
 const enocean = node_enocean_1.default();
 const enocean_send = new enocean_send_1.default();
 function getByte(telegram_byte_str, index) {
@@ -139,8 +138,6 @@ class EnoceanLoader extends events_1.EventEmitter {
                     output.rawDataStr = data.raw;
                     output.rawFrameStr = data.rawByte;
                     console.log(output);
-                    //log the input enocean for the given device
-                    log_1.Logger.identity(output);
                     this.emit("managed_frame", output);
                 }
             }
