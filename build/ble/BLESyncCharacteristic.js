@@ -42,13 +42,15 @@ class BLELargeSyncCharacteristic extends safeBleno_1.Characteristic {
             ].join(",");
             payload = `[${payload}]`;
         }
-        payload = JSON.stringify({
-            i: transaction.id,
-            f: frame_model_compress_1.default.instance.getCompressedFrame(transaction.frame),
-            t: transaction.timestamp,
-            s: frame_model_compress_1.default.instance.getInternalSerial(transaction.frame),
-            c: frame_model_compress_1.default.instance.getContactair(transaction.frame)
-        });
+        else {
+            payload = JSON.stringify({
+                i: transaction.id,
+                f: frame_model_compress_1.default.instance.getCompressedFrame(transaction.frame),
+                t: transaction.timestamp,
+                s: frame_model_compress_1.default.instance.getInternalSerial(transaction.frame),
+                c: frame_model_compress_1.default.instance.getContactair(transaction.frame)
+            });
+        }
         return { index: transaction.id || 0, payload };
     }
     fromPayload(payload) {
@@ -108,7 +110,6 @@ class BLELargeSyncCharacteristic extends safeBleno_1.Characteristic {
             if (copy.length > 0)
                 result.index = copy[copy.length - 1].index;
             result.txs = copy.map(p => this.fromPayload(p.payload));
-            console.log("logs", { result });
             if (this._log_id > result.max + 1)
                 this._log_id = result.max + 1;
             return JSON.stringify(result);

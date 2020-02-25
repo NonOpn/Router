@@ -71,15 +71,15 @@ export class BLELargeSyncCharacteristic extends Characteristic {
         FrameModelCompress.instance.getContactair(transaction.frame)
       ].join(",");
       payload=`[${payload}]`;
+    } else {
+      payload = JSON.stringify({
+        i: transaction.id,
+        f: FrameModelCompress.instance.getCompressedFrame(transaction.frame),
+        t: transaction.timestamp,
+        s: FrameModelCompress.instance.getInternalSerial(transaction.frame),
+        c: FrameModelCompress.instance.getContactair(transaction.frame)
+      });
     }
-
-    payload = JSON.stringify({
-      i: transaction.id,
-      f: FrameModelCompress.instance.getCompressedFrame(transaction.frame),
-      t: transaction.timestamp,
-      s: FrameModelCompress.instance.getInternalSerial(transaction.frame),
-      c: FrameModelCompress.instance.getContactair(transaction.frame)
-    });
 
     return {index: transaction.id || 0, payload};
   }
@@ -147,7 +147,6 @@ export class BLELargeSyncCharacteristic extends Characteristic {
 
       if(copy.length > 0) result.index = copy[copy.length - 1].index;
       result.txs = copy.map(p => this.fromPayload(p.payload));
-      console.log("logs", {result});
 
       if(this._log_id > result.max + 1) this._log_id = result.max + 1;
       return JSON.stringify(result);
