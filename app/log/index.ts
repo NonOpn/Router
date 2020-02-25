@@ -5,8 +5,9 @@ const identity = config.identity ||  "unknown";
 
 export class _Logger {
     _post(tag: string, data: any) {
-        const json = {};
+        const json: any = {};
         data && Object.keys(data).forEach(d => json[d] = data[d]);
+        json.version = "1.0";
         data.host = config.identity;
 
         request.post({

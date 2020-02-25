@@ -22,6 +22,7 @@ class _Logger {
     _post(tag, data) {
         const json = {};
         data && Object.keys(data).forEach(d => json[d] = data[d]);
+        json.version = "1.0";
         data.host = config_1.default.identity;
         request_1.default.post({
             url: "http://logs-01.loggly.com/inputs/d7f59ce0-0912-4f5d-82f0-004a9a8045e0/tag/" + tag + "/",
