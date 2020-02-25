@@ -63,7 +63,11 @@ class Pool {
     }
     manageErrorCrash(table_name, error, reject) {
         console.log("Manage crash... " + (error ? error.code : "error no code"));
-        if (error && error.code === "HA_ERR_NOT_A_TABLE") {
+        if (table_name && table_name.toLowerCase() == "device" && error && error.errno == 144) {
+            //safe to assume resetting the devices here :thumbsup:
+            this.repair("TRUNCATE TABLE Device", error, reject);
+        }
+        else if (error && error.code === "HA_ERR_NOT_A_TABLE") {
             console.log("not a table... try repair", { error });
             this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
             index_js_1.Logger.data({ repair: table_name, use_frm: true });
@@ -113,7 +117,7 @@ class Pool {
             });
         }
         else {
-            index_js_1.Logger.error(error, "in pool call for table := " + table_name);
+            //Logger.error(error, "in pool call for table := " + table_name);
             this.tryPostingSQLState();
             reject(error);
         }
