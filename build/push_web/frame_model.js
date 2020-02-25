@@ -136,6 +136,14 @@ class FrameModel extends abstract_js_1.default {
                 .catch(err => manageErrorCrash(err, reject));
         });
     }
+    invalidateAlerts(product_id) {
+        return new Promise((resolve, reject) => {
+            console.log("set is_alert = null where id", product_id);
+            pool.queryParameters("UPDATE Frames SET is_disconnected = NULL, is_alert = NULL WHERE product_id = ? AND is_alert IS NOT NULL", [product_id])
+                .then(results => resolve(true))
+                .catch(err => manageErrorCrash(err, reject));
+        });
+    }
     setDevice(index, product_id, is_alert, is_alert_disconnect) {
         return new Promise((resolve, reject) => {
             console.log(`UPDATE setting ${product_id} :: ${index} :: is_alert:=${is_alert} :: is_alert_disconnect:=${is_alert_disconnect}`);

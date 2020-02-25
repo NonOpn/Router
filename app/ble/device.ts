@@ -9,6 +9,7 @@ import AbstractDevice from "../snmp/abstract";
 import Comptair from "../snmp/comptair";
 import AlertairTS from "../snmp/alertairts";
 import FrameModelCompress from "../push_web/frame_model_compress";
+import FrameModel from "../push_web/frame_model";
 
 const model_devices = DeviceModel.instance;
 const TYPE_UNASSIGNED = 0;
@@ -166,22 +167,31 @@ export default class DeviceManagement {
         return undefined;
     }
 
+    //previous implementation checked out only
+    //.then(previous_type => {
+    //    console.log("setType > update ? ", {previous_type, type});
+    //    if(previous_type != type) {
+    //        console.log("setType > update ? update to do");
+    //        return Promise.all([
+    //            FrameModelCompress.instance.invalidateAlerts(device.getId()),
+    //            FrameModel.instance.invalidateAlerts(device.getId())
+    //        ])
+    //        .then(() => device.setType(type).then(() => serial))
+    //    }
+    //    console.log("setType > update ? no update to do");
+    //    return device.setType(type).then(() => serial);
+    //})
     setType(device: AbstractDevice, type?: TYPE): Promise<AbstractDevice|undefined> {
         console.log("setType", {product_id: device.getId(), type});
         return device.getInternalSerial()
         .then(serial => {
             return device.getType()
-            .then(previous_type => {
-                console.log("setType > update ? ", {previous_type, type});
-                if(previous_type != type) {
-                    console.log("setType > update ? update to do");
-                    return FrameModelCompress.instance.invalidateAlerts(device.getId())
-                    .then(() => device.setType(type).then(() => serial))
-                }
-                console.log("setType > update ? no update to do");
-                return device.setType(type).then(() => serial)
-            })
-            .then(serial => {
+            .then(() => device.setType(type).then(() => serial))
+            .then(() => Promise.all([
+                FrameModelCompress.instance.invalidateAlerts(device.getId()),
+                FrameModel.instance.invalidateAlerts(device.getId())
+            ]))
+            .then(() => {
                 return model_devices.saveType(serial, stringTypeToInt(type || "paratonair"))
                 .then(() => this.getDevice(serial))
             });
