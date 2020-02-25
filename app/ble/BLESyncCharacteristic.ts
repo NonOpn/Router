@@ -84,6 +84,13 @@ export class BLELargeSyncCharacteristic extends Characteristic {
     return {index: transaction.id || 0, payload};
   }
 
+  private fromPayload(payload: string): any {
+    if(this.compress) {
+      return payload;
+    }
+    return JSON.parse(payload);
+  }
+
   private _callback(): Promise<any> {
     const index = this._log_id;
     console.log("get log ", {index});
@@ -139,7 +146,8 @@ export class BLELargeSyncCharacteristic extends Characteristic {
       }
 
       if(copy.length > 0) result.index = copy[copy.length - 1].index;
-      result.txs = copy.map(p => p.payload);
+      result.txs = copy.map(p => this.fromPayload(p.payload));
+      console.log("logs", {result});
 
       if(this._log_id > result.max + 1) this._log_id = result.max + 1;
       return JSON.stringify(result);

@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 const BLEConstants_1 = require("./BLEConstants");
 const safeBleno_1 = require("./safeBleno");
@@ -51,6 +51,12 @@ class BLELargeSyncCharacteristic extends safeBleno_1.Characteristic {
         });
         return { index: transaction.id || 0, payload };
     }
+    fromPayload(payload) {
+        if (this.compress) {
+            return payload;
+        }
+        return JSON.parse(payload);
+    }
     _callback() {
         const index = this._log_id;
         console.log("get log ", { index });
@@ -90,7 +96,7 @@ class BLELargeSyncCharacteristic extends safeBleno_1.Characteristic {
             const copy = [];
             var idx = 0;
             var count = 0;
-            while (idx < payloads.length && count < 450) { //TODO strip this magic number off...
+            while (idx < payloads.length && count < 450) {
                 const { payload } = payloads[idx];
                 if (payload.length + count < 450) {
                     copy.push(payloads[idx]);
@@ -101,7 +107,8 @@ class BLELargeSyncCharacteristic extends safeBleno_1.Characteristic {
             }
             if (copy.length > 0)
                 result.index = copy[copy.length - 1].index;
-            result.txs = copy.map(p => p.payload);
+            result.txs = copy.map(p => this.fromPayload(p.payload));
+            console.log("logs", { result });
             if (this._log_id > result.max + 1)
                 this._log_id = result.max + 1;
             return JSON.stringify(result);

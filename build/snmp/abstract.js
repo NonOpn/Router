@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 const frame_model_1 = __importDefault(require("./../push_web/frame_model"));
 const data_point_1 = __importDefault(require("../database/data_point"));
