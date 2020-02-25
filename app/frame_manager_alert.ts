@@ -157,6 +157,7 @@ export default class FrameManagerAlert extends EventEmitter {
 				console.log("getDevice", {contactair});
 				return DeviceManagement.instance.getDeviceForContactair(contactair)
 				.then(device => {
+					console.log("getDeviceFromContactair", {contactair, device});
 					if(!device) return Promise.resolve(false);
 					
 					return device.getInternalSerial()
@@ -196,8 +197,6 @@ export default class FrameManagerAlert extends EventEmitter {
 						promises.push(() => device.getType().then(rawType => {
 
 							const compressed = FrameModelCompress.instance.getFrameWithoutHeader(frame);
-							console.log("frame      " + frame);
-							console.log("compressed " + compressed);
 							const type = DeviceManagement.instance.stringToType(rawType);
 							const is_alert = DeviceManagement.instance.isAlert(type, compressed);
 							const is_disconnected = DeviceManagement.instance.isDisconnected(type, compressed);
