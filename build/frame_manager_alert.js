@@ -153,6 +153,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
                             const type = device_js_1.default.instance.stringToType(rawType);
                             const is_alert = device_js_1.default.instance.isAlert(type, compressed);
                             const is_disconnected = device_js_1.default.instance.isDisconnected(type, compressed);
+                            console.log("device management ", { id: device.getId(), rawType, is_alert, is_disconnected });
                             return frame_model_1.default.instance.setDevice(id, device.getId(), is_alert, is_disconnected);
                         }));
                     });
