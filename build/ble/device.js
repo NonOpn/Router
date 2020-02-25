@@ -154,29 +154,24 @@ class DeviceManagement {
         return undefined;
     }
     //previous implementation checked out only
-    //.then(previous_type => {
-    //    console.log("setType > update ? ", {previous_type, type});
-    //    if(previous_type != type) {
-    //        console.log("setType > update ? update to do");
-    //        return Promise.all([
-    //            FrameModelCompress.instance.invalidateAlerts(device.getId()),
-    //            FrameModel.instance.invalidateAlerts(device.getId())
-    //        ])
-    //        .then(() => device.setType(type).then(() => serial))
-    //    }
-    //    console.log("setType > update ? no update to do");
-    //    return device.setType(type).then(() => serial);
-    //})
     setType(device, type) {
         console.log("setType", { product_id: device.getId(), type });
         return device.getInternalSerial()
             .then(serial => {
             return device.getType()
-                .then(() => device.setType(type).then(() => serial))
-                .then(() => Promise.all([
-                frame_model_compress_1.default.instance.invalidateAlerts(device.getId()),
-                frame_model_1.default.instance.invalidateAlerts(device.getId())
-            ]))
+                .then(previous_type => {
+                console.log("setType > update ? ", { previous_type, type });
+                if (previous_type != type) {
+                    console.log("setType > update ? update to do");
+                    return Promise.all([
+                        frame_model_compress_1.default.instance.invalidateAlerts(device.getId()),
+                        frame_model_1.default.instance.invalidateAlerts(device.getId())
+                    ])
+                        .then(() => device.setType(type).then(() => serial));
+                }
+                console.log("setType > update ? no update to do");
+                return device.setType(type).then(() => serial);
+            })
                 .then(() => {
                 return model_devices.saveType(serial, stringTypeToInt(type || "paratonair"))
                     .then(() => this.getDevice(serial));
