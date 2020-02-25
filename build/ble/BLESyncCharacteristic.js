@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const BLEConstants_1 = require("./BLEConstants");
 const safeBleno_1 = require("./safeBleno");
@@ -98,7 +98,7 @@ class BLELargeSyncCharacteristic extends safeBleno_1.Characteristic {
             const copy = [];
             var idx = 0;
             var count = 0;
-            while (idx < payloads.length && count < 450) {
+            while (idx < payloads.length && count < 450) { //TODO strip this magic number off...
                 const { payload } = payloads[idx];
                 if (payload.length + count < 450) {
                     copy.push(payloads[idx]);

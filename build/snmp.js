@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
 const snmp_json_1 = __importDefault(require("../config/snmp.json"));
@@ -38,9 +38,9 @@ class SNMP extends events_1.EventEmitter {
         }
     }
     applyData(data) {
-        if (data && data.rawFrameStr) {
+        if (data && data.rawFrameStr) { //for now, using only lpsfr devices
             //rawFrameStr and rawDataStr are set
-            if (data.rawFrameStr.length === 60) {
+            if (data.rawFrameStr.length === 60) { //30*2
                 const rawdata = data.rawDataStr;
                 const internal = rawdata.substring(0, 6);
                 const callback = () => {
@@ -75,7 +75,7 @@ class SNMP extends events_1.EventEmitter {
                     callback();
                 }
             }
-            else if (data.rawFrameStr.length === 48) {
+            else if (data.rawFrameStr.length === 48) { //24*2
                 this.agents.forEach(agent => {
                     const lpsfr = agent.getLPSFR();
                     if (lpsfr.internal === data.sender && lpsfr.type === "ellips") {

@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const pool_1 = __importDefault(require("./pool"));
 const abstract_js_1 = __importDefault(require("../database/abstract.js"));
@@ -17,6 +17,7 @@ function create() {
         + "`type` INTEGER,"
         + "KEY `internal_serial` (`internal_serial`)"
         + ")ENGINE=MyISAM;")
+        .then(() => pool.query("ALTER TABLE Device ADD COLUMN `type_set` TINYINT(1) DEFAULT 0", true))
         .then(() => pool.query("ALTER TABLE Device ADD COLUMN `last_contactair` VARCHAR(20)", true))
         .then(() => pool.query("ALTER TABLE Device ADD COLUMN `last_contactair_index` INTEGER DEFAULT 0", true))
         .then(results => {
