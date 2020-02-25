@@ -93,7 +93,6 @@ export class BLELargeSyncCharacteristic extends Characteristic {
 
   private _callback(): Promise<any> {
     const index = this._log_id;
-    console.log("get log ", {index});
 
     var result: Result = { index, max: 0, txs: [] };
     var to_fetch = 1;
@@ -127,8 +126,6 @@ export class BLELargeSyncCharacteristic extends Characteristic {
     .then(value => this.getFrame(value, to_fetch))
     .then((transactions: Transaction[]|undefined) => {
       if(!transactions) transactions = [];
-
-      console.log("new index", { log_id:this._log_id, index: result.index});
 
       const payloads: Payload[] = transactions.map((transaction: any) => this.transform(transaction));
 
@@ -170,22 +167,19 @@ export class BLELargeSyncCharacteristic extends Characteristic {
 
   onReadRequest(offset: number, cb: BLECallback) {
     const length = this._obtained ? this._obtained.length : 0;
-    console.log("offset := ", {offset, length});
     this.readOrSend(offset)
     .then(buffer => {
       const current_mtu = Math.max(0, this.mtu() - 4);
       
 
       if(current_mtu >= buffer.byteLength - offset) {
-        console.log("ended !");
+
       }
       cb(RESULT_SUCCESS, buffer.slice(offset));
     });
   }
   
   onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback) {
-    console.log("offset := " + offset);
-    console.log(data.toString());
     var config: string = data.toString();
     var configuration: any = {};
     try {

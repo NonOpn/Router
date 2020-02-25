@@ -61,7 +61,6 @@ class BLELargeSyncCharacteristic extends safeBleno_1.Characteristic {
     }
     _callback() {
         const index = this._log_id;
-        console.log("get log ", { index });
         var result = { index, max: 0, txs: [] };
         var to_fetch = 1;
         var TO_FETCH_MAXIMUM = this.numberToFetch();
@@ -93,7 +92,6 @@ class BLELargeSyncCharacteristic extends safeBleno_1.Characteristic {
             .then((transactions) => {
             if (!transactions)
                 transactions = [];
-            console.log("new index", { log_id: this._log_id, index: result.index });
             const payloads = transactions.map((transaction) => this.transform(transaction));
             const copy = [];
             var idx = 0;
@@ -131,19 +129,15 @@ class BLELargeSyncCharacteristic extends safeBleno_1.Characteristic {
     }
     onReadRequest(offset, cb) {
         const length = this._obtained ? this._obtained.length : 0;
-        console.log("offset := ", { offset, length });
         this.readOrSend(offset)
             .then(buffer => {
             const current_mtu = Math.max(0, this.mtu() - 4);
             if (current_mtu >= buffer.byteLength - offset) {
-                console.log("ended !");
             }
             cb(BLEConstants_1.RESULT_SUCCESS, buffer.slice(offset));
         });
     }
     onWriteRequest(data, offset, withoutResponse, callback) {
-        console.log("offset := " + offset);
-        console.log(data.toString());
         var config = data.toString();
         var configuration = {};
         try {
