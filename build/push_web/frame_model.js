@@ -139,7 +139,7 @@ class FrameModel extends abstract_js_1.default {
     invalidateAlerts(product_id) {
         return new Promise((resolve, reject) => {
             console.log("set is_alert = null where id", product_id);
-            pool.queryParameters("UPDATE Frames SET is_disconnected = NULL, is_alert = NULL WHERE product_id = ? AND is_alert IS NOT NULL", [product_id])
+            pool.queryParameters("UPDATE Frames SET is_alert_disconnected = NULL, is_alert = NULL WHERE product_id = ? AND is_alert IS NOT NULL", [product_id])
                 .then(results => resolve(true))
                 .catch(err => manageErrorCrash(err, reject));
         });
