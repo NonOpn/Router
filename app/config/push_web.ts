@@ -7,7 +7,7 @@ export interface JsonConfig {
 };
 
 var config: JsonConfig = {
-  is_activated: "true" == from_config || from_config == true
+  is_activated: "false" != from_config && from_config != false
 };
 
 export default config;
