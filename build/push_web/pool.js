@@ -62,7 +62,7 @@ class Pool {
         });
     }
     manageErrorCrash(table_name, error, reject) {
-        console.log("Manage crash... " + (error ? error.code : "error no code"));
+        console.log("Manage crash... " + (error ? error.code : "error no code"), error);
         if (table_name && table_name.toLowerCase() == "device" && error && error.errno == 144) {
             //safe to assume resetting the devices here :thumbsup:
             this.repair("TRUNCATE TABLE Device", error, reject);
