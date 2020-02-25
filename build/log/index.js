@@ -25,7 +25,7 @@ class _Logger {
         json.version = "1.0";
         data.host = config_1.default.identity;
         request_1.default.post({
-            url: "http://logs-01.loggly.com/inputs/d7f59ce0-0912-4f5d-82f0-004a9a8045e0/tag/" + tag + "/",
+            url: "http://logs-01.loggly.com/inputs/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/" + tag + "/",
             json: json
         }, (e, response, body) => {
             //nothing to do

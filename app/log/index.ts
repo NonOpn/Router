@@ -11,7 +11,7 @@ export class _Logger {
         data.host = config.identity;
 
         request.post({
-            url: "http://logs-01.loggly.com/inputs/d7f59ce0-0912-4f5d-82f0-004a9a8045e0/tag/"+tag+"/",
+            url: "http://logs-01.loggly.com/inputs/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/"+tag+"/",
             json: json
         }, (e: any, response: any, body: any) => {
             //nothing to do
