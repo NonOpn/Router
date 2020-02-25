@@ -13,11 +13,9 @@ function create() {
         + "`internal_serial` VARCHAR(20) NOT NULL,"
         + "`last_contactair` VARCHAR(20),"
         + "`last_contactair_index` INTEGER DEFAULT 0,"
-        + "`type_set` TINYINT(1) DEFAULT 0,"
         + "`type` INTEGER,"
         + "KEY `internal_serial` (`internal_serial`)"
         + ")ENGINE=MyISAM;")
-        .then(() => pool.query("ALTER TABLE Device ADD COLUMN `type_set` TINYINT(1) DEFAULT 0", true))
         .then(() => pool.query("ALTER TABLE Device ADD COLUMN `last_contactair` VARCHAR(20)", true))
         .then(() => pool.query("ALTER TABLE Device ADD COLUMN `last_contactair_index` INTEGER DEFAULT 0", true))
         .then(results => {
@@ -167,7 +165,7 @@ class DeviceModel extends abstract_js_1.default {
     }
     saveType(internal_serial, type) {
         return new Promise((resolve, reject) => {
-            pool.queryParameters("UPDATE Device SET type_set=1, type=? WHERE internal_serial=? ORDER BY id LIMIT 1", [type, internal_serial])
+            pool.queryParameters("UPDATE Device SET type=? WHERE internal_serial=? ORDER BY id LIMIT 1", [type, internal_serial])
                 .then(results => {
                 resolve(true);
             })
