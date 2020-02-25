@@ -63,12 +63,11 @@ class BLEAsyncDescriptionCharacteristic extends safeBleno_1.Characteristic {
         });
     }
     onReadRequest(offset, cb) {
-        console.log("offset := ", { offset });
         this.readOrSend(offset)
             .then(buffer => {
             const current_mtu = Math.max(0, safeBleno_1.mtu() - 4);
             if (current_mtu >= buffer.byteLength - offset) {
-                console.log("ended !");
+                //console.log("ended !");
             }
             cb(BLEConstants_1.RESULT_SUCCESS, buffer.slice(offset));
         });
@@ -86,7 +85,6 @@ class BLEFrameNotify extends safeBleno_1.Characteristic {
     onSubscribe(maxValueSize, callback) { this._updateFramesCallback = callback; }
     onUnsubscribe() { this._updateFramesCallback = null; }
     onFrame(frame) {
-        console.log("sending frame, having notify ?", (null != this._updateFramesCallback));
         if (this._updateFramesCallback) {
             this._updateFramesCallback(Buffer.from(frame.rawFrameStr, "utf-8"));
         }
@@ -111,14 +109,12 @@ class BLEWriteCharacteristic extends safeBleno_1.Characteristic {
         if (this._counter < 0 && this._tmp) {
             const tmp = this._tmp;
             this._tmp = undefined;
-            console.log('WiFiBle - onWriteRequest: value = ', tmp);
             var p = undefined;
             if (tmp)
                 p = this._onValueRead(tmp);
             else
                 p = new Promise((r) => r());
             p.then(result => {
-                console.log("write set ", result);
             }).catch(err => {
                 console.log(err);
             });
@@ -127,7 +123,6 @@ class BLEWriteCharacteristic extends safeBleno_1.Characteristic {
             this._counter = 0;
     }
     onWriteRequest(data, offset, withoutResponse, callback) {
-        console.log("setting " + data.toString() + " " + this._tmp);
         if (!this._tmp) {
             this._tmp = data.toString();
             if (!this._tmp)
@@ -450,7 +445,6 @@ class BLE {
             }
             return new Promise((resolve, reject) => {
                 network.configure(net_interface, j, (err) => {
-                    console.log("set network info", err);
                     if (err)
                         reject(err);
                     else

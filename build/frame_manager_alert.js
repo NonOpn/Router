@@ -108,6 +108,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
                 }
             });
             return Promise.all(contactairs.map(contactair => {
+                console.log("getDevice", { contactair });
                 return device_js_1.default.instance.getDeviceForContactair(contactair)
                     .then(device => {
                     if (!device)

@@ -101,13 +101,12 @@ class BLEAsyncDescriptionCharacteristic extends Characteristic {
   }
 
   onReadRequest(offset: number, cb: BLECallback) {
-    console.log("offset := ", {offset});
     this.readOrSend(offset)
     .then(buffer => {
       const current_mtu = Math.max(0, mtu() - 4);
       
       if(current_mtu >= buffer.byteLength - offset) {
-        console.log("ended !");
+        //console.log("ended !");
       }
       cb(RESULT_SUCCESS, buffer.slice(offset));
     });
@@ -138,7 +137,6 @@ class BLEFrameNotify extends Characteristic {
   onUnsubscribe() { this._updateFramesCallback = null; }
 
   onFrame(frame: any) {
-    console.log("sending frame, having notify ?", (null != this._updateFramesCallback));
     if(this._updateFramesCallback) {
       this._updateFramesCallback(Buffer.from(frame.rawFrameStr, "utf-8"));
     }
@@ -170,13 +168,12 @@ class BLEWriteCharacteristic extends Characteristic {
     if(this._counter < 0 && this._tmp){
       const tmp = this._tmp;
       this._tmp = undefined;
-      console.log('WiFiBle - onWriteRequest: value = ', tmp);
       var p = undefined;
       if(tmp) p = this._onValueRead(tmp);
       else p = new Promise((r) => r());
   
       p.then(result => {
-        console.log("write set ", result);
+
       }).catch(err => {
         console.log(err);
       });
@@ -186,7 +183,6 @@ class BLEWriteCharacteristic extends Characteristic {
   }
 
   onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback) {
-    console.log("setting " + data.toString()+" "+this._tmp);
     if(!this._tmp) {
       this._tmp = data.toString();
       if(!this._tmp) this._tmp = "";
@@ -572,7 +568,6 @@ export default class BLE {
 
       return new Promise((resolve, reject) => {
         network.configure(net_interface, j, (err: any) => {
-          console.log("set network info", err);
           if(err) reject(err);
           else resolve(true);
         });

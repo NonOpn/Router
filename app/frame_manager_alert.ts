@@ -154,6 +154,7 @@ export default class FrameManagerAlert extends EventEmitter {
 			});
 
 			return Promise.all(contactairs.map(contactair => {
+				console.log("getDevice", {contactair});
 				return DeviceManagement.instance.getDeviceForContactair(contactair)
 				.then(device => {
 					if(!device) return Promise.resolve(false);
