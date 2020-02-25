@@ -21,7 +21,7 @@ class AlertairDC extends abstract_1.default {
         if (!frame || frame.length == 0)
             return false;
         const buffer = new Buffer(frame, "hex");
-        if (buffer.length >= 16) {
+        if (buffer.length >= 10) {
             const disconnect = (buffer[9] & 2) === 2;
             if (disconnect)
                 return false;
@@ -32,7 +32,7 @@ class AlertairDC extends abstract_1.default {
         if (!frame || frame.length == 0)
             return false;
         const buffer = new Buffer(frame, "hex");
-        if (buffer.length >= 16) {
+        if (buffer.length >= 10) {
             const striken = (buffer[9] & 1) === 0;
             if (striken)
                 return true;

@@ -41,7 +41,7 @@ export default class AlertairTS extends AbstractDevice {
 
   static distance(frame: string): number {
     const buffer = new Buffer(frame, "hex");
-    if(buffer.length >= 16) {
+    if(buffer.length >= 5) {
       var distance: number = buffer[4];
       if(distance < 0) distance = -1;
       if(distance > 40) distance = 40;
@@ -63,8 +63,6 @@ export default class AlertairTS extends AbstractDevice {
     const buffer = new Buffer(frame, "hex");
     if(buffer.length >= 6 && this.isConnected(frame)) {
       var detection: number = AlertairTS.detectionType(frame);
-      console.log("frame >> " + frame+" // " + frame[10]+frame[11]);
-      console.log("ALERTAIR TS", "detection ??? " + detection);
       switch(detection) {
           case Detection.ARRIVAL:
           case Detection.DEPARTING:
