@@ -284,7 +284,7 @@ class BLE {
             new BLEReadWriteLogCharacteristic("0104"),
             new BLEReadWriteLogCharacteristic("0105", true),
             new BLEReadWriteLogCharacteristic("0106", true, false),
-            new BLEReadWriteLogIsAlertCharacteristic("0107", true, true)
+            new BLEReadWriteLogIsAlertCharacteristic("0107", false, true)
             //this._notify_frame
         ];
         this._refreshing_called_once = false;
