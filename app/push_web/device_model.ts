@@ -15,6 +15,7 @@ function create() {
     + "`type` INTEGER,"
     + "KEY `internal_serial` (`internal_serial`)"
     + ")ENGINE=MyISAM;")
+    .then(() => pool.query("ALTER TABLE Device ADD COLUMN `type_set` TINYINT(1) DEFAULT 0", true))
     .then(() => pool.query("ALTER TABLE Device ADD COLUMN `last_contactair` VARCHAR(20)", true))
     .then(() => pool.query("ALTER TABLE Device ADD COLUMN `last_contactair_index` INTEGER DEFAULT 0", true))
   .then(results => {
