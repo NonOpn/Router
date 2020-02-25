@@ -21,8 +21,10 @@ class Comptair extends abstract_1.default {
         if (!frame || frame.length == 0)
             return false;
         const buffer = new Buffer(frame, "hex");
-        if (buffer.length >= 16) {
+        console.log("frame length := " + buffer.length);
+        if (buffer.length >= 10) {
             const disconnect = (buffer[9] & 2) === 2;
+            console.log("comptair disconnected ? ");
             if (disconnect)
                 return false;
         }
