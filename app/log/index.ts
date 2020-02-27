@@ -32,8 +32,14 @@ export class _Logger {
         }catch(e) {
 
         }
-        reason && (error.reason = reason);
-        this._post("error", error);
+
+        try {
+            output.process = process;
+        }catch(e) {
+            
+        }
+        reason && (output.reason = reason);
+        this._post("error", output);
     }
 
     data = (data: any) => this._post("data", data);

@@ -21,8 +21,13 @@ class _Logger {
             }
             catch (e) {
             }
-            reason && (error.reason = reason);
-            this._post("error", error);
+            try {
+                output.process = process;
+            }
+            catch (e) {
+            }
+            reason && (output.reason = reason);
+            this._post("error", output);
         };
         this.data = (data) => this._post("data", data);
         this.identity = (data, tags = []) => {
