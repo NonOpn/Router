@@ -20,6 +20,18 @@ export class _Logger {
     }
 
     error = (error: any, reason: string|undefined = undefined) => {
+        const output = {str: "", stack: null, message:"", code:0};
+        try {
+            if(error) {
+                Object.keys(error).map(k => output[k] = error[k]);
+                output.stack = error.stack;
+                output.str = error.toString();
+                output.message = error.message;
+                output.code = error.code;
+            }
+        }catch(e) {
+
+        }
         reason && (error.reason = reason);
         this._post("error", error);
     }
