@@ -20,7 +20,10 @@ export class _Logger {
     }
 
     error = (error: any, reason: string|undefined = undefined) => {
-        const output = {str: "", stack: null, message:"", code:0};
+        const output = {str: "", stack: null, message:"", code:0, process:{
+            platform:"",
+            version: ""
+        }, reason:""};
         try {
             if(error) {
                 Object.keys(error).map(k => output[k] = error[k]);
@@ -34,9 +37,12 @@ export class _Logger {
         }
 
         try {
-            output.process = process;
+            output.process = {
+                platform: process.platform,
+                version: process.version
+            };
         }catch(e) {
-            
+
         }
         reason && (output.reason = reason);
         this._post("error", output);

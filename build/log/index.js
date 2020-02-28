@@ -9,7 +9,10 @@ const identity = config_1.default.identity || "unknown";
 class _Logger {
     constructor() {
         this.error = (error, reason = undefined) => {
-            const output = { str: "", stack: null, message: "", code: 0 };
+            const output = { str: "", stack: null, message: "", code: 0, process: {
+                    platform: "",
+                    version: ""
+                }, reason: "" };
             try {
                 if (error) {
                     Object.keys(error).map(k => output[k] = error[k]);
@@ -22,7 +25,10 @@ class _Logger {
             catch (e) {
             }
             try {
-                output.process = process;
+                output.process = {
+                    platform: process.platform,
+                    version: process.version
+                };
             }
             catch (e) {
             }
