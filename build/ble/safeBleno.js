@@ -17,10 +17,11 @@ catch (e) {
 }
 try {
     if (!!bleno) {
-        log_1.Logger.data({ ble: true });
+        log_1.Logger.data({ ble: true, needRepair });
     }
     else {
-        log_1.Logger.data({ ble: false });
+        needRepair = true;
+        log_1.Logger.data({ ble: false, needRepair });
     }
 }
 catch (e) {

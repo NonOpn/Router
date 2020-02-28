@@ -18,9 +18,10 @@ try {
 
 try {
     if(!!bleno) {
-        Logger.data({ble:true});
+        Logger.data({ble:true, needRepair});
     } else {
-        Logger.data({ble:false});
+        needRepair = true;
+        Logger.data({ble:false, needRepair});
     }
 } catch(e) {
 
