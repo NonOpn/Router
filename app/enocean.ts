@@ -54,7 +54,6 @@ export default class EnoceanLoader extends EventEmitter {
 
     enocean.on("ready", () => {
       this.emit("usb-open", this.port);
-      console.log("-");
     });
   
     enocean.on("data", (data: any) => {
@@ -72,7 +71,7 @@ export default class EnoceanLoader extends EventEmitter {
     });
   
     enocean.on("unknown-teach-in", (data: any) => {
-      console.log("found a frame of teach in", data);
+
     });
   
     enocean.on("error", (err: any) => {
@@ -156,7 +155,6 @@ export default class EnoceanLoader extends EventEmitter {
 
           output.rawDataStr = data.raw;
           output.rawFrameStr = data.rawByte;
-          console.log(output);
 
           this.emit("managed_frame", output);
         }

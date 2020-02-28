@@ -11,10 +11,7 @@ class Systemctl {
     _launch(resolve, reject, ssh) {
         var output = "";
         ssh.stdout.on("data", (data) => output += data);
-        ssh.on('close', (code) => {
-            console.log(`child process exited with code ${code}`);
-            resolve(output);
-        });
+        ssh.on('close', (code) => resolve(output));
     }
 }
 exports.Systemctl = Systemctl;

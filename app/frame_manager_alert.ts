@@ -154,15 +154,13 @@ export default class FrameManagerAlert extends EventEmitter {
 			});
 
 			return Promise.all(contactairs.map(contactair => {
-				console.log("getDevice", {contactair});
 				return DeviceManagement.instance.getDeviceForContactair(contactair)
 				.then(device => {
-					console.log("getDeviceFromContactair", {contactair, device});
 					if(!device) return Promise.resolve(false);
 					
 					return device.getInternalSerial()
 					.then(internal_serial => {
-						if(internal_serial == "ffffff") { console.log("invalid serial found"); return false };
+						if(internal_serial == "ffffff") { return false };
 
 						const mapping_contactair: MappingHolder = mapping_contactairs[contactair];
 						if(mapping_contactair) {
@@ -200,7 +198,6 @@ export default class FrameManagerAlert extends EventEmitter {
 							const is_alert = DeviceManagement.instance.isAlert(type, compressed);
 							const is_disconnected = DeviceManagement.instance.isDisconnected(type, compressed);
 
-							console.log("device management ", {id: device.getId(), rawType, is_alert, is_disconnected});
 							return FrameModel.instance.setDevice(id, device.getId(), is_alert, is_disconnected);
 						}))
 					});
@@ -240,7 +237,6 @@ export default class FrameManagerAlert extends EventEmitter {
 			.then(() => this.manageFrame(devices, this._current_index, 200))
 			.then(new_index => {
 				if(new_index == -1) {
-					console.log("no frame to manage at all... we reset the loop...");
 					this._current_index = -1;
 					return new Promise(resolve => setTimeout(() => resolve(true), 50000));
 				}

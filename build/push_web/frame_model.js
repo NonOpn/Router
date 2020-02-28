@@ -138,7 +138,6 @@ class FrameModel extends abstract_js_1.default {
     }
     invalidateAlerts(product_id) {
         return new Promise((resolve, reject) => {
-            console.log("set is_alert = null where id", product_id);
             pool.queryParameters("UPDATE Frames SET is_alert_disconnected = NULL, is_alert = NULL WHERE product_id = ? AND is_alert IS NOT NULL", [product_id])
                 .then(results => resolve(true))
                 .catch(err => manageErrorCrash(err, reject));
@@ -146,7 +145,6 @@ class FrameModel extends abstract_js_1.default {
     }
     setDevice(index, product_id, is_alert, is_alert_disconnect) {
         return new Promise((resolve, reject) => {
-            console.log(`UPDATE setting ${product_id} :: ${index} :: is_alert:=${is_alert} :: is_alert_disconnect:=${is_alert_disconnect}`);
             if (is_alert) {
                 //it's an alert, already much more important than disconnected
                 pool.queryParameters("UPDATE Frames SET product_id = ?, is_alert = ?, is_alert_disconnected = ? WHERE id = ? LIMIT 1", [product_id, !!is_alert, !!is_alert_disconnect, index])
@@ -210,7 +208,6 @@ class FrameModel extends abstract_js_1.default {
     }
     before(timestamp) {
         return new Promise((resolve, reject) => {
-            console.log(timestamp);
             pool.queryParameters("SELECT * FROM Frames WHERE timestamp < ? ORDER BY timestamp LIMIT 100", [timestamp])
                 .then(results => resolve(results))
                 .catch(err => manageErrorCrash(err, reject));

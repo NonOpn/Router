@@ -75,7 +75,6 @@ class FrameModelCompress extends abstract_js_1.default {
     }
     invalidateAlerts(product_id) {
         return new Promise((resolve, reject) => {
-            console.log("set is_alert = null where id", product_id);
             pool.queryParameters("UPDATE FramesCompress SET is_alert = NULL WHERE product_id = ? AND is_alert IS NOT NULL", [product_id])
                 .then(results => resolve(true))
                 .catch(err => manageErrorCrash(err, reject));
@@ -111,7 +110,6 @@ class FrameModelCompress extends abstract_js_1.default {
                 var index = 0;
                 if (result && result.length > 0)
                     index = result[0].m;
-                console.log("getMinFrame", result);
                 resolve(index);
             })
                 .catch(err => manageErrorCrash(err, reject));
@@ -124,7 +122,6 @@ class FrameModelCompress extends abstract_js_1.default {
                 var index = 0;
                 if (result && result.length > 0)
                     index = result[0].m;
-                console.log("getMaxFrame", result);
                 resolve(index);
             })
                 .catch(err => manageErrorCrash(err, reject));
@@ -139,7 +136,6 @@ class FrameModelCompress extends abstract_js_1.default {
     }
     start() {
         if (!this._syncing) {
-            console.log("start migrating...");
             this._syncing = true;
             var index = 0;
             var callback = (from) => {
@@ -202,7 +198,6 @@ class FrameModelCompress extends abstract_js_1.default {
             const contactair = this.getContactair(tx.frame);
             const data = this.getRelevantByte(tx.frame);
             var cache = { data: null, timeout: 11 };
-            //console.log("managing frame := " + contactair+" data:="+data);
             if (!this._contactair_cache[contactair]) {
                 this._contactair_cache[contactair] = cache;
             }
@@ -217,7 +212,6 @@ class FrameModelCompress extends abstract_js_1.default {
             if (cache.data && cache.data == data && cache.timeout > 0) {
                 //now set the new cache for this round
                 this._contactair_cache[contactair] = cache;
-                //console.log("don't save the frame for " + contactair + " already known for this round, remaining " + cache.timeout);
                 resolve(transaction);
                 return;
             }

@@ -163,27 +163,22 @@ export default class DeviceManagement {
             }
         }
 
-        console.log("unnown type !", device);
         return undefined;
     }
 
     //previous implementation checked out only
     setType(device: AbstractDevice, type?: TYPE): Promise<AbstractDevice|undefined> {
-        console.log("setType", {product_id: device.getId(), type});
         return device.getInternalSerial()
         .then(serial => {
             return device.getType()
             .then(previous_type => {
-                console.log("setType > update ? ", {previous_type, type});
                 if(previous_type != type) {
-                    console.log("setType > update ? update to do");
                     return Promise.all([
                         FrameModelCompress.instance.invalidateAlerts(device.getId()),
                         FrameModel.instance.invalidateAlerts(device.getId())
                     ])
                     .then(() => device.setType(type).then(() => serial))
                 }
-                console.log("setType > update ? no update to do");
                 return device.setType(type).then(() => serial);
             })
             .then(() => {
@@ -268,12 +263,10 @@ export default class DeviceManagement {
                 };
 
                 if(internal === "ffffff") {
-                    console.log("having a ffffff serial, disconnected or impacted", data.sender);
                     this.data_point_provider.latestForContactair(data.sender)
                     .then(item => {
                         if(item) {
                             this.data_point_provider.savePoint(item.serial, item.internal, data.sender, data.rawDataStr);
-                            console.log("saving to "+item.serial+" "+item.internal+" "+data.sender+" "+data.rawDataStr);
                         } else {
                             callback();
                         }

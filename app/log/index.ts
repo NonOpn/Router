@@ -15,7 +15,6 @@ export class _Logger {
             json: json
         }, (e: any, response: any, body: any) => {
             //nothing to do
-            console.log(body);
         });
     }
 

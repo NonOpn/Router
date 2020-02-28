@@ -28,8 +28,6 @@ class Reporter {
             .catch(err => console.log(err));
         this.mysql.status()
             .then(status => {
-            console.log("mysq status := ");
-            console.log(status);
             _1.Logger.identity({ mysql: status }, ["mysql", "service"]);
         })
             .catch(err => {

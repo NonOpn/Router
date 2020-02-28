@@ -27,8 +27,6 @@ export default class Reporter {
 
         this.mysql.status()
         .then(status => {
-          console.log("mysq status := ");
-          console.log(status);
           Logger.identity({mysql: status}, ["mysql", "service"]);
         })
         .catch(err => {

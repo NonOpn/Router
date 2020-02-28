@@ -29,7 +29,6 @@ function ESP3DataCRC(h) {
     for (; i < h.length; i++) {
         u8CRC = proccrc8(u8CRC, h[i]);
     }
-    console.log("u8CRC: " + u8CRC, h);
     return u8CRC;
 }
 function proccrc8(CRC, u8Data) {
@@ -91,7 +90,6 @@ function buildTelegram(packetType, data, optionaldata) {
     i = 0;
     for (; i < m.length; i++)
         h.push(m[i]);
-    console.log("buildTelegram: " + arrayToHex(h));
     return h;
 }
 class EnoceanSend {

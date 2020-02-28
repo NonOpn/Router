@@ -52,7 +52,6 @@ class _Logger {
             json: json
         }, (e, response, body) => {
             //nothing to do
-            console.log(body);
         });
     }
 }

@@ -90,7 +90,6 @@ export default class FrameModelCompress extends Abstract {
 
   invalidateAlerts(product_id: number): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      console.log("set is_alert = null where id", product_id);
       pool.queryParameters("UPDATE FramesCompress SET is_alert = NULL WHERE product_id = ? AND is_alert IS NOT NULL", [product_id])
       .then(results => resolve(true))
       .catch(err => manageErrorCrash(err, reject));
@@ -131,7 +130,6 @@ export default class FrameModelCompress extends Abstract {
       .then(result => {
         var index = 0;
         if(result && result.length > 0) index = result[0].m;
-        console.log("getMinFrame", result);
         resolve(index);
       })
       .catch(err => manageErrorCrash(err, reject));
@@ -144,7 +142,6 @@ export default class FrameModelCompress extends Abstract {
       .then(result => {
         var index = 0;
         if(result && result.length > 0) index = result[0].m;
-        console.log("getMaxFrame", result);
         resolve(index);
       })
       .catch(err => manageErrorCrash(err, reject));
@@ -165,7 +162,6 @@ export default class FrameModelCompress extends Abstract {
 
   start() {
     if(!this._syncing) {
-      console.log("start migrating...");
       this._syncing = true;
       var index = 0;
 
@@ -231,8 +227,6 @@ export default class FrameModelCompress extends Abstract {
       const data = this.getRelevantByte(tx.frame);
       var cache: any = {data: null, timeout: 11};
 
-      //console.log("managing frame := " + contactair+" data:="+data);
-
       if(!this._contactair_cache[contactair]) {
         this._contactair_cache[contactair] = cache;
       } else {
@@ -248,7 +242,6 @@ export default class FrameModelCompress extends Abstract {
       if(cache.data && cache.data == data && cache.timeout > 0) {
         //now set the new cache for this round
         this._contactair_cache[contactair] = cache;
-        //console.log("don't save the frame for " + contactair + " already known for this round, remaining " + cache.timeout);
         resolve(transaction);
         return
       }

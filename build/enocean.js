@@ -47,7 +47,6 @@ class EnoceanLoader extends events_1.EventEmitter {
         this.open_device = undefined;
         enocean.on("ready", () => {
             this.emit("usb-open", this.port);
-            console.log("-");
         });
         enocean.on("data", (data) => {
             try {
@@ -63,7 +62,6 @@ class EnoceanLoader extends events_1.EventEmitter {
             });
         });
         enocean.on("unknown-teach-in", (data) => {
-            console.log("found a frame of teach in", data);
         });
         enocean.on("error", (err) => {
             this.checkEventClose(this);
@@ -137,7 +135,6 @@ class EnoceanLoader extends events_1.EventEmitter {
                     }
                     output.rawDataStr = data.raw;
                     output.rawFrameStr = data.rawByte;
-                    console.log(output);
                     this.emit("managed_frame", output);
                 }
             }

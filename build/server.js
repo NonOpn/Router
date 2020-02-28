@@ -62,7 +62,6 @@ function manageNewNetworkData(intface, data) {
         }
         var config = setup.network.config(conf);
         setup.network.save(config);
-        console.log("saved", config);
         return true;
     }
     return false;

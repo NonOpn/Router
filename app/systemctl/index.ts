@@ -14,10 +14,7 @@ export class Systemctl {
 
         ssh.stdout.on("data", (data: any) => output += data);
 
-        ssh.on('close', (code: any) => {
-            console.log(`child process exited with code ${code}`);
-            resolve(output);
-        });
+        ssh.on('close', (code: any) => resolve(output));
     }
 
 }

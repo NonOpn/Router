@@ -49,19 +49,16 @@ class SNMP extends events_1.EventEmitter {
                         if (rawdata.length > 6 && (lpsfr.type === "paratonair" || lpsfr.type === "comptair")) {
                             const config_internal = lpsfr.internal.substring(0, 6);
                             if (internal === config_internal) {
-                                console.log("having internal correct");
                                 this.data_point_provider.savePoint(lpsfr.serial, config_internal, data.sender, data.rawDataStr);
                             }
                         }
                     });
                 };
                 if (internal === "ffffff") {
-                    console.log("having a ffffff serial, disconnected or impacted", data.sender);
                     this.data_point_provider.latestForContactair(data.sender)
                         .then(item => {
                         if (item) {
                             this.data_point_provider.savePoint(item.serial, item.internal, data.sender, data.rawDataStr);
-                            console.log("saving to " + item.serial + " " + item.internal + " " + data.sender + " " + data.rawDataStr);
                         }
                         else {
                             callback();
