@@ -10,7 +10,7 @@ try {
   Logger.error(e, "Erreur while importing ble");
 
   if(e && e.toString) {
-      const message = e.toSting();
+      const message = e.toString();
       needRepair = message && message.indexOf("NODE_MODULE_VERSION 48. This version of Node.js requires NODE_MODULE_VERSION 51");
   }
 }
