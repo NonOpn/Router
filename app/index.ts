@@ -153,7 +153,7 @@ export default class MainEntryPoint {
             .exec("/etc/systemd/system/routair.service")
             .then(service => {
               return new Rebuild().exec("bluetooth-hci-socket")
-              .then(result => Logger.data(result))  
+              .then(rebuild => Logger.data({rebuild}))
               .catch(() => "")
               .then(rebuild => Logger.data({service, rebuild}));
             })
