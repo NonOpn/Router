@@ -1,12 +1,18 @@
 import { Logger } from "../log";
 
 var bleno: any = null;
+var needRepair: boolean = false;
 try {
   bleno = require("bleno");
 } catch (e) {
   console.log(e);
   bleno = null;
   Logger.error(e, "Erreur while importing ble");
+
+  if(e && e.toString) {
+      const message = e.toSting();
+      needRepair = message && message.indexOf("NODE_MODULE_VERSION 48. This version of Node.js requires NODE_MODULE_VERSION 51");
+  }
 }
 
 export interface SetServiceCallback {
@@ -89,3 +95,4 @@ export const Characteristic: GenericInterface<SafeCharacteristics> = _Characteri
 export const Descriptor = _Descriptor;
 
 export const isBlenoAvailable: boolean = null != bleno;
+export const needBluetoothRepair: boolean = !!needRepair;

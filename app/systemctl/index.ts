@@ -51,6 +51,20 @@ export class SSH {
     _executeCmd = (main: string): Promise<boolean> => this.systemctl.exec(main, "ssh").then(() => true);
 }
 
+export class Rebuild {
+    exec(package_name: string): Promise<string> {
+        return new Promise((resolve, reject) => {
+            var output = "";
+            const cmd = spawn('/usr/bin/npm', ["rebuild", package_name]);
+            cmd.stdout.on("data", (data: any) => output += data);
+
+            cmd.on('close', (code: any) => {
+                resolve(output);
+            });
+        });
+    }
+}
+
 export class DU {
     exec(path: string, depth: number): Promise<string> {
         return new Promise((resolve, reject) => {
@@ -59,7 +73,6 @@ export class DU {
             cmd.stdout.on("data", (data: any) => output += data);
 
             cmd.on('close', (code: any) => {
-                console.log(`child process exited with code ${code}`);
                 resolve(output);
             });
         });
@@ -74,7 +87,6 @@ export class Cat {
             cmd.stdout.on("data", (data: any) => output += data);
 
             cmd.on('close', (code: any) => {
-                console.log(`child process exited with code ${code}`);
                 resolve(output);
             });
         });
@@ -89,7 +101,6 @@ export class MysqlAdmin {
             cmd.stdout.on("data", (data: any) => output += data);
 
             cmd.on('close', (code: any) => {
-                console.log(`child process exited with code ${code}`);
                 resolve(output);
             });
         });

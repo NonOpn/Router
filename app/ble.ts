@@ -8,7 +8,7 @@ import DeviceManagement, { TYPE } from "./ble/device";
 import AbstractDevice from "./snmp/abstract";
 import NetworkInfo from "./network";
 import Diskspace from "./system";
-import { Characteristic, BLECallback, BLEWriteCallback, PrimaryService, isBlenoAvailable, startAdvertising, setServices, onBlenoEvent, stopAdvertising, mtu } from "./ble/safeBleno";
+import { Characteristic, BLECallback, BLEWriteCallback, PrimaryService, isBlenoAvailable, startAdvertising, setServices, onBlenoEvent, stopAdvertising, mtu, needBluetoothRepair } from "./ble/safeBleno";
 
 const device_management = DeviceManagement.instance;
 const wifi = Wifi.instance;
@@ -399,6 +399,10 @@ export default class BLE {
 
     this._started_advertising = false;
     this._started = false;
+  }
+
+  needRepair(): boolean {
+    return needBluetoothRepair;
   }
 
   refreshDevices() {

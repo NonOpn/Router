@@ -1,3 +1,4 @@
+import { Rebuild, Cat } from './systemctl/index';
 import EnoceanLoader from "./enocean.js";
 import Server from "./server.js";
 import BLE from "./ble";
@@ -146,6 +147,19 @@ export default class MainEntryPoint {
           ble.start();
           frame_manager_alert.start();
     
+
+          if(ble.needRepair()) {
+            new Cat()
+            .exec("/etc/systemd/system/routair.service")
+            .then(service => {
+              return new Rebuild().exec("bluetooth-hci-socket")
+              .then(result => Logger.data(result))  
+              .catch(() => "")
+              .then(rebuild => Logger.data({service, rebuild}));
+            })
+            .catch(err => Logger.error(err));
+          }
+
           enocean.on("usb-open", (port: any) => {
             console.log("device opened and ready");
             server.emit("usb-open");

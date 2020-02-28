@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { EventEmitter } from "events";
 export default class PushWEB extends EventEmitter {
     is_activated: boolean;

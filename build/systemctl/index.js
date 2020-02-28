@@ -35,6 +35,19 @@ class SSH {
     }
 }
 exports.SSH = SSH;
+class Rebuild {
+    exec(package_name) {
+        return new Promise((resolve, reject) => {
+            var output = "";
+            const cmd = spawn('/usr/bin/npm', ["rebuild", package_name]);
+            cmd.stdout.on("data", (data) => output += data);
+            cmd.on('close', (code) => {
+                resolve(output);
+            });
+        });
+    }
+}
+exports.Rebuild = Rebuild;
 class DU {
     exec(path, depth) {
         return new Promise((resolve, reject) => {
@@ -42,7 +55,6 @@ class DU {
             const cmd = spawn('/usr/bin/du', ["-h", "-d", "" + depth, path]);
             cmd.stdout.on("data", (data) => output += data);
             cmd.on('close', (code) => {
-                console.log(`child process exited with code ${code}`);
                 resolve(output);
             });
         });
@@ -56,7 +68,6 @@ class Cat {
             const cmd = spawn('/bin/cat', [filepath]);
             cmd.stdout.on("data", (data) => output += data);
             cmd.on('close', (code) => {
-                console.log(`child process exited with code ${code}`);
                 resolve(output);
             });
         });
@@ -70,7 +81,6 @@ class MysqlAdmin {
             const cmd = spawn('/usr/bin/mysqladmin', [command, "-u", user, "p" + password]);
             cmd.stdout.on("data", (data) => output += data);
             cmd.on('close', (code) => {
-                console.log(`child process exited with code ${code}`);
                 resolve(output);
             });
         });

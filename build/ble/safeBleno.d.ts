@@ -1,4 +1,3 @@
-/// <reference types="node" />
 export interface SetServiceCallback {
     (err: any): any;
 }
@@ -26,3 +25,4 @@ export declare const PrimaryService: GenericInterface<SafePrimaryService>;
 export declare const Characteristic: GenericInterface<SafeCharacteristics>;
 export declare const Descriptor: any;
 export declare const isBlenoAvailable: boolean;
+export declare const needBluetoothRepair: boolean;

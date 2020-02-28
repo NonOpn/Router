@@ -1,8 +1,9 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+}
 Object.defineProperty(exports, "__esModule", { value: true });
+const index_1 = require("./systemctl/index");
 const enocean_js_1 = __importDefault(require("./enocean.js"));
 const server_js_1 = __importDefault(require("./server.js"));
 const ble_1 = __importDefault(require("./ble"));
@@ -131,6 +132,17 @@ class MainEntryPoint {
                     discovery_service.bind();
                     ble.start();
                     frame_manager_alert.start();
+                    if (ble.needRepair()) {
+                        new index_1.Cat()
+                            .exec("/etc/systemd/system/routair.service")
+                            .then(service => {
+                            return new index_1.Rebuild().exec("bluetooth-hci-socket")
+                                .then(result => index_js_1.Logger.data(result))
+                                .catch(() => "")
+                                .then(rebuild => index_js_1.Logger.data({ service, rebuild }));
+                        })
+                            .catch(err => index_js_1.Logger.error(err));
+                    }
                     enocean.on("usb-open", (port) => {
                         console.log("device opened and ready");
                         server.emit("usb-open");

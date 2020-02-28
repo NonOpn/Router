@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const log_1 = require("../log");
 var bleno = null;
+var needRepair = false;
 try {
     bleno = require("bleno");
 }
@@ -9,6 +10,10 @@ catch (e) {
     console.log(e);
     bleno = null;
     log_1.Logger.error(e, "Erreur while importing ble");
+    if (e && e.toString) {
+        const message = e.toSting();
+        needRepair = message && message.indexOf("NODE_MODULE_VERSION 48. This version of Node.js requires NODE_MODULE_VERSION 51");
+    }
 }
 class SafePrimaryService {
 }
@@ -67,4 +72,5 @@ exports.PrimaryService = _PrimaryService;
 exports.Characteristic = _Characteristic;
 exports.Descriptor = _Descriptor;
 exports.isBlenoAvailable = null != bleno;
+exports.needBluetoothRepair = !!needRepair;
 //# sourceMappingURL=safeBleno.js.map

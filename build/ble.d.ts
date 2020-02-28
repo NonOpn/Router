@@ -1,4 +1,3 @@
-/// <reference types="node" />
 export default class BLE {
     private _notify_frame?;
     private _characteristics;
@@ -14,6 +13,7 @@ export default class BLE {
     _started_advertising_ok: boolean;
     _interval: NodeJS.Timeout | undefined;
     constructor();
+    needRepair(): boolean;
     refreshDevices(): void;
     start(): void;
     startDelayed(): void;
