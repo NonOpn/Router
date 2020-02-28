@@ -57,6 +57,7 @@ export class Rebuild {
             var output = "";
             const cmd = spawn('/usr/bin/npm', ["rebuild", package_name]);
             cmd.stdout.on("data", (data: any) => output += data);
+            cmd.stderr.on("data", (data: any) => output += data);
 
             cmd.on('close', (code: any) => {
                 resolve(output);
