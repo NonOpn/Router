@@ -15,6 +15,16 @@ catch (e) {
         needRepair = message && message.indexOf("NODE_MODULE_VERSION 48. This version of Node.js requires NODE_MODULE_VERSION 51");
     }
 }
+try {
+    if (!!bleno) {
+        log_1.Logger.data({ ble: true });
+    }
+    else {
+        log_1.Logger.data({ ble: false });
+    }
+}
+catch (e) {
+}
 class SafePrimaryService {
 }
 exports.SafePrimaryService = SafePrimaryService;

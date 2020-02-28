@@ -15,6 +15,17 @@ try {
   }
 }
 
+
+try {
+    if(!!bleno) {
+        Logger.data({ble:true});
+    } else {
+        Logger.data({ble:false});
+    }
+} catch(e) {
+
+}
+
 export interface SetServiceCallback {
     (err: any): any
 }
