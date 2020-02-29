@@ -6,6 +6,7 @@
 #alternatively, you can use crontab -e to add this script launched
 #e.g. 0 */3 * * * /usr/local/routair
 
+BRANCH=master
 NPM=/usr/bin/npm
 NODE_ENOCEAN="https://github.com/codlab/node-enocean#62f23eb"
 
@@ -45,6 +46,7 @@ if [ -f "/usr/local/node-v8.17.0/bin/node" ]; then
   ln -s /usr/local/node-v8.17.0/bin/node /usr/bin/node
   NPM=/usr/local/node-v8.17.0/bin/node
   NODE_ENOCEAN="https://github.com/codlab/node-enocean#62f23eb"
+  BRANCH=feature/upgrade
 fi
 
 if [ -f "/usr/local/node-v7.7.2/bin/node" ]; then
@@ -64,14 +66,14 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   cp config/snmp.json tmp_config.json
   # pull the update
 
-  echo "reset the local repo"
+  echo "reset the local repo at $BRANCH"
   git checkout .
   git fetch --all
-  git reset --hard origin/master
-  git checkout master
+  git reset --hard origin/$BRANCH
+  git checkout $BRANCH
 
-  echo "pull the update"
-  git pull origin master
+  echo "pull the update from $BRANCH"
+  git pull origin $BRANCH
   # restore the config
   cp tmp_config.json config/snmp.json
 
