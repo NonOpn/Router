@@ -29,7 +29,7 @@ else
     rm -rf node_modules
     NPM=/usr/local/node-v8.17.0/bin/npm
     NODE=/usr/local/node-v8.17.0/bin/node
-    su - nonopn -c "$NPM install"
+    su - nonopn -c "cd /usr/local/routair ; $NPM install"
   else
     echo "md5 mismatched"
   fi
@@ -86,9 +86,9 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   cp tmp_config.json config/snmp.json
 
   echo "executin:: $NPM install --save $NODE_ENOCEAN"
-  su - nonopn -c "$NPM install --save $NODE_ENOCEAN"
+  su - nonopn -c "cd /usr/local/routair ; $NPM install --save $NODE_ENOCEAN"
   echo "executin:: $NPM install"
-  su - nonopn -c "$NPM install"
+  su - nonopn -c "cd /usr/local/routair ; $NPM install"
 
   # stop services
   systemctl stop routair.service
