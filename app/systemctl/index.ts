@@ -73,7 +73,7 @@ export const npm = (): Promise<string> => {
 }
 
 export class Rebuild {
-    exec(package_name: string, npm: string = "/usr/bin/npm"): Promise<string> {
+    exec(package_name: string, npm: string = "/usr/bin/npm"): Promise<{output: string, code: number}> {
         console.log("using path", {package_name, npm})
         return new Promise((resolve, reject) => {
             var output = "";
@@ -82,7 +82,7 @@ export class Rebuild {
             cmd.stderr.on("data", (data: any) => output += data);
 
             cmd.on('close', (code: any) => {
-                resolve(output);
+                resolve({output, code});
             });
         });
     }
