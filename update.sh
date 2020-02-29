@@ -8,6 +8,7 @@
 
 BRANCH=master
 NPM=/usr/bin/npm
+NODE=/usr/bin/node
 NODE_ENOCEAN="https://github.com/codlab/node-enocean#62f23eb"
 
 if [ -f "/usr/local/node-v8.17.0/bin/node" ]; then
@@ -26,7 +27,9 @@ else
     echo "reinstalling packages..."
     cd /usr/local/routair
     rm -rf node_modules
-    npm install
+    NPM=/usr/local/node-v8.17.0/bin/npm
+    NODE=/usr/local/node-v8.17.0/bin/node
+    su - nonopn -c "$NPM install"
   else
     echo "md5 mismatched"
   fi
@@ -47,6 +50,7 @@ if [ -f "/usr/local/node-v8.17.0/bin/node" ]; then
   ln -s /usr/local/node-v8.17.0/bin/npm /usr/bin/npm
   ln -s /usr/local/node-v8.17.0/bin/node /usr/bin/node
   NPM=/usr/local/node-v8.17.0/bin/npm
+  NODE=/usr/local/node-v8.17.0/bin/node
   NODE_ENOCEAN="https://github.com/codlab/node-enocean#62f23eb"
   BRANCH=feature/upgrade
 elif [ -f "/usr/local/node-v7.7.2/bin/node" ]; then
@@ -54,11 +58,13 @@ elif [ -f "/usr/local/node-v7.7.2/bin/node" ]; then
   ln -s /usr/local/node-v7.7.2/bin/npm /usr/bin/npm
   ln -s /usr/local/node-v7.7.2/bin/node /usr/bin/node
   NPM=/usr/local/node-v7.7.2/bin/npm
+  NODE=/usr/local/node-v7.7.2/bin/node
   NODE_ENOCEAN="https://github.com/codlab/node-enocean"
   BRANCH=master
 fi
 
 echo "using $NPM"
+echo "using $NODE"
 
 if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   echo "online, check for updates"
@@ -80,9 +86,9 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   cp tmp_config.json config/snmp.json
 
   echo "executin:: $NPM install --save $NODE_ENOCEAN"
-  $NPM install --save $NODE_ENOCEAN
+  su - nonopn -c "$NPM install --save $NODE_ENOCEAN"
   echo "executin:: $NPM install"
-  $NPM install
+  su - nonopn -c "$NPM install"
 
   # stop services
   systemctl stop routair.service
@@ -114,7 +120,7 @@ else
   systemctl restart routair.service
 fi
 
-nodevers=`node -v`
+nodevers=`$NODE -v`
 nodevers=${nodevers%$'\r'}
 curl -X GET "https://contact-platform.com/api/versions/$nodevers"
 
