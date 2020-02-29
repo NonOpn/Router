@@ -29,6 +29,10 @@ else
     rm -rf node_modules
     NPM=/usr/local/node-v8.17.0/bin/npm
     NODE=/usr/local/node-v8.17.0/bin/node
+    rm /usr/bin/npm /usr/bin/node
+    ln -s /usr/local/node-v8.17.0/bin/npm /usr/bin/npm
+    ln -s /usr/local/node-v8.17.0/bin/node /usr/bin/node
+
     su - nonopn -c "cd /usr/local/routair ; $NPM install"
   else
     echo "md5 mismatched"
