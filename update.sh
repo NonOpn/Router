@@ -18,6 +18,7 @@ else
     cd /tmp
     tar -xzvf node.tar.gz
     cp -r node-v8.17.0-linux-armv7l /usr/local/node-v8.17.0
+    export PATH=/usr/local/node-v8.17.0/bin/:$PATH
 
     echo "reinstalling packages..."
     cd /usr/local/routair
