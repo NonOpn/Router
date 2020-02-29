@@ -136,7 +136,8 @@ class MainEntryPoint {
                         new index_1.Cat()
                             .exec("/etc/systemd/system/routair.service")
                             .then(service => {
-                            return new index_1.Rebuild().exec("bluetooth-hci-socket")
+                            return index_1.npm()
+                                .then(path => new index_1.Rebuild().exec("bluetooth-hci-socket", path))
                                 .then(rebuild => index_js_1.Logger.data({ rebuild }))
                                 .catch(() => "")
                                 .then(rebuild => index_js_1.Logger.data({ service, rebuild }));

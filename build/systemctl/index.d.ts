@@ -18,8 +18,10 @@ export declare class SSH {
     enable: () => Promise<boolean>;
     _executeCmd: (main: string) => Promise<boolean>;
 }
+export declare const exists: (file: string) => Promise<boolean>;
+export declare const npm: () => Promise<string>;
 export declare class Rebuild {
-    exec(package_name: string): Promise<string>;
+    exec(package_name: string, npm?: string): Promise<string>;
 }
 export declare class DU {
     exec(path: string, depth: number): Promise<string>;

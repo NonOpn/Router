@@ -1,4 +1,4 @@
-import { Rebuild, Cat } from './systemctl/index';
+import { Rebuild, Cat, npm } from './systemctl/index';
 import EnoceanLoader from "./enocean.js";
 import Server from "./server.js";
 import BLE from "./ble";
@@ -152,7 +152,8 @@ export default class MainEntryPoint {
             new Cat()
             .exec("/etc/systemd/system/routair.service")
             .then(service => {
-              return new Rebuild().exec("bluetooth-hci-socket")
+              return npm()
+              .then(path => new Rebuild().exec("bluetooth-hci-socket", path))
               .then(rebuild => Logger.data({rebuild}))
               .catch(() => "")
               .then(rebuild => Logger.data({service, rebuild}));

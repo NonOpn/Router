@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const { spawn } = require('child_process');
+const fs = require('fs');
 class Systemctl {
     exec(action, service) {
         return new Promise((resolve, reject) => {
@@ -35,11 +36,30 @@ class SSH {
     }
 }
 exports.SSH = SSH;
+const _exists = (file) => {
+    return new Promise((resolve, reject) => {
+        fs.access(file, fs.F_OK, (err) => {
+            if (err) {
+                console.error(err);
+                resolve(false);
+            }
+            else {
+                resolve(true);
+            }
+        });
+    });
+};
+exports.exists = _exists;
+exports.npm = () => {
+    const path = `/usr/local/node-${process.version}/bin/npm`;
+    return _exists(path).then(ok => ok ? path : "/usr/bin/npm");
+};
 class Rebuild {
-    exec(package_name) {
+    exec(package_name, npm = "/usr/bin/npm") {
+        console.log("using path", { package_name, npm });
         return new Promise((resolve, reject) => {
             var output = "";
-            const cmd = spawn('/usr/bin/npm', ["rebuild", package_name]);
+            const cmd = spawn(npm, ["rebuild", package_name]);
             cmd.stdout.on("data", (data) => output += data);
             cmd.stderr.on("data", (data) => output += data);
             cmd.on('close', (code) => {

@@ -1,4 +1,5 @@
 const { spawn } = require('child_process');
+const fs = require('fs')
 
 export class Systemctl {
 
@@ -51,11 +52,32 @@ export class SSH {
     _executeCmd = (main: string): Promise<boolean> => this.systemctl.exec(main, "ssh").then(() => true);
 }
 
+const _exists = (file: string): Promise<boolean> => {
+    return new Promise((resolve, reject) => {
+        fs.access(file, fs.F_OK, (err: Error) => {
+            if (err) {
+                console.error(err);
+                resolve(false);
+            } else {
+                resolve(true);
+            }
+        })
+    })
+}
+
+export const exists = _exists;
+
+export const npm = (): Promise<string> => {
+    const path = `/usr/local/node-${process.version}/bin/npm`
+    return _exists(path).then(ok => ok ? path : "/usr/bin/npm");
+}
+
 export class Rebuild {
-    exec(package_name: string): Promise<string> {
+    exec(package_name: string, npm: string = "/usr/bin/npm"): Promise<string> {
+        console.log("using path", {package_name, npm})
         return new Promise((resolve, reject) => {
             var output = "";
-            const cmd = spawn('/usr/bin/npm', ["rebuild", package_name]);
+            const cmd = spawn(npm, ["rebuild", package_name]);
             cmd.stdout.on("data", (data: any) => output += data);
             cmd.stderr.on("data", (data: any) => output += data);
 
