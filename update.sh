@@ -17,6 +17,7 @@ else
   echo "7eb48c81e035dab37282d3275fc9a09a  node.tar.gz" > /tmp/node.tar.gz.md5
   cd /tmp
   if md5sum -c node.tar.gz.md5; then
+    sudo systemctl stop routair.service
     echo "md5 match"
     tar -xzvf node.tar.gz
     cp -r node-v8.17.0-linux-armv7l /usr/local/node-v8.17.0
@@ -78,7 +79,9 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   # restore the config
   cp tmp_config.json config/snmp.json
 
+  echo "executin:: $NPM install --save $NODE_ENOCEAN"
   $NPM install --save $NODE_ENOCEAN
+  echo "executin:: $NPM install"
   $NPM install
 
   # stop services
