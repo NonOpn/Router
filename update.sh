@@ -49,9 +49,7 @@ if [ -f "/usr/local/node-v8.17.0/bin/node" ]; then
   NPM=/usr/local/node-v8.17.0/bin/npm
   NODE_ENOCEAN="https://github.com/codlab/node-enocean#62f23eb"
   BRANCH=feature/upgrade
-fi
-
-if [ -f "/usr/local/node-v7.7.2/bin/node" ]; then
+elif [ -f "/usr/local/node-v7.7.2/bin/node" ]; then
   rm /usr/bin/npm /usr/bin/node
   ln -s /usr/local/node-v7.7.2/bin/npm /usr/bin/npm
   ln -s /usr/local/node-v7.7.2/bin/node /usr/bin/node
