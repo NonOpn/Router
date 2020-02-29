@@ -53,6 +53,12 @@ if [ -f "/usr/local/node-v8.17.0/bin/node" ]; then
   NODE=/usr/local/node-v8.17.0/bin/node
   NODE_ENOCEAN="https://github.com/codlab/node-enocean#62f23eb"
   BRANCH=feature/upgrade
+
+  # in case, update service
+  systemctl stop routair.service
+  cp systemd/routair.8.17.0.service /etc/systemd/system/routair.service
+  systemctl daemon-reload
+
 elif [ -f "/usr/local/node-v7.7.2/bin/node" ]; then
   rm /usr/bin/npm /usr/bin/node
   ln -s /usr/local/node-v7.7.2/bin/npm /usr/bin/npm
