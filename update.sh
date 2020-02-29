@@ -6,6 +6,55 @@
 #alternatively, you can use crontab -e to add this script launched
 #e.g. 0 */3 * * * /usr/local/routair
 
+NPM=/usr/bin/npm
+NODE_ENOCEAN="https://github.com/codlab/node-enocean#62f23eb"
+
+if [ -f "/usr/local/node-v8.17.0/bin/node" ]; then
+  echo "node available, skipping upgrade"
+else
+  wget -O /tmp/node.tar.gz https://nodejs.org/dist/latest-v8.x/node-v8.17.0-linux-armv7l.tar.gz
+  if md5sum -c node.tar.gz.md5; then
+    echo "md5 match"
+    cd /tmp
+    tar -xzvf node.tar.gz
+    cp -r node-v8.17.0-linux-armv7l /usr/local/node-v8.17.0
+
+    echo "reinstalling packages..."
+    cd /usr/local/routair
+    rm -rf node_modules
+    npm install
+  else
+    echo "md5 mismatched"
+  fi
+
+  rm -rf /tmp/node.tar.gz
+  rm -rf /tmp/node-v8.17.0-linux-armv7l
+fi
+
+#if [ -f "/usr/local/node-v10.19.0/bin/node" ]; then
+#  rm /usr/bin/npm /usr/bin/node
+#  ln -s /usr/local/node-v10.19.0/bin/npm /usr/bin/npm
+#  ln -s /usr/local/node-v10.19.0/bin/node /usr/bin/node
+#  NPM=/usr/local/node-v10.19.0/bin/node
+#fi
+
+if [ -f "/usr/local/node-v8.17.0/bin/node" ]; then
+  rm /usr/bin/npm /usr/bin/node
+  ln -s /usr/local/node-v8.17.0/bin/npm /usr/bin/npm
+  ln -s /usr/local/node-v8.17.0/bin/node /usr/bin/node
+  NPM=/usr/local/node-v8.17.0/bin/node
+  NODE_ENOCEAN="https://github.com/codlab/node-enocean#62f23eb"
+fi
+
+if [ -f "/usr/local/node-v7.7.2/bin/node" ]; then
+  rm /usr/bin/npm /usr/bin/node
+  ln -s /usr/local/node-v7.7.2/bin/npm /usr/bin/npm
+  ln -s /usr/local/node-v7.7.2/bin/node /usr/bin/node
+  NPM=/usr/local/node-v7.7.2/bin/node
+fi
+
+echo "using $NPM"
+
 if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   echo "online, check for updates"
   cd /usr/local/routair
@@ -25,8 +74,8 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   # restore the config
   cp tmp_config.json config/snmp.json
 
-  npm install https://github.com/codlab/node-enocean
-  npm install
+  $NPM install --save $NODE_ENOCEAN
+  $NPM install
 
   # stop services
   systemctl stop routair.service
