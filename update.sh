@@ -14,6 +14,7 @@ if [ -f "/usr/local/node-v8.17.0/bin/node" ]; then
   echo "node available, skipping upgrade"
 else
   wget -O /tmp/node.tar.gz https://nodejs.org/dist/latest-v8.x/node-v8.17.0-linux-armv7l.tar.gz
+  echo "7eb48c81e035dab37282d3275fc9a09a  node.tar.gz" > /tmp/node.tar.gz.md5
   if md5sum -c node.tar.gz.md5; then
     echo "md5 match"
     cd /tmp
