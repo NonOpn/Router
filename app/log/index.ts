@@ -10,6 +10,15 @@ export class _Logger {
         json.version = "1.0";
         data.host = config.identity;
 
+        try {
+            json.process = {
+                platform: process.platform,
+                version: process.version
+            };
+        }catch(e) {
+
+        }
+
         request.post({
             url: "http://logs-01.loggly.com/inputs/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/"+tag+"/",
             json: json
@@ -31,15 +40,6 @@ export class _Logger {
                 output.message = error.message;
                 output.code = error.code;
             }
-        }catch(e) {
-
-        }
-
-        try {
-            output.process = {
-                platform: process.platform,
-                version: process.version
-            };
         }catch(e) {
 
         }

@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const request_1 = __importDefault(require("request"));
 const config_1 = __importDefault(require("../config/config"));
@@ -24,14 +24,6 @@ class _Logger {
             }
             catch (e) {
             }
-            try {
-                output.process = {
-                    platform: process.platform,
-                    version: process.version
-                };
-            }
-            catch (e) {
-            }
             reason && (output.reason = reason);
             this._post("error", output);
         };
@@ -47,6 +39,14 @@ class _Logger {
         data && Object.keys(data).forEach(d => json[d] = data[d]);
         json.version = "1.0";
         data.host = config_1.default.identity;
+        try {
+            json.process = {
+                platform: process.platform,
+                version: process.version
+            };
+        }
+        catch (e) {
+        }
         request_1.default.post({
             url: "http://logs-01.loggly.com/inputs/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/" + tag + "/",
             json: json
