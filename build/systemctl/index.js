@@ -31,6 +31,13 @@ class MySQL {
     }
 }
 exports.MySQL = MySQL;
+class Apt {
+    constructor() {
+        this.command = new Command();
+        this.list = () => this.command.exec("/usr/bin/apt", ["list", "--installed"]);
+    }
+}
+exports.Apt = Apt;
 class Bluetooth {
     constructor() {
         this.command = new Command();

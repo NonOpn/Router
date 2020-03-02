@@ -1,4 +1,4 @@
-import { Rebuild, Cat, npm, Bluetooth } from './systemctl/index';
+import { Rebuild, Cat, npm, Bluetooth, Apt } from './systemctl/index';
 import EnoceanLoader from "./enocean.js";
 import Server from "./server.js";
 import BLE from "./ble";
@@ -136,6 +136,15 @@ export default class MainEntryPoint {
           .catch(err => {
             console.log("error on ssh", err);
           });
+
+          new Apt().list()
+          .then(result => {
+            Logger.data({
+              packages: (result || "").split("\n").filter(s => s.indexOf("blue") >= 0),
+              option: "bluetooth"
+            });
+          })
+          .catch(err => Logger.error(err, "Error with bluetooth status"));
 
           const bluetooth = new Bluetooth();
           bluetooth.status()

@@ -124,6 +124,14 @@ class MainEntryPoint {
                         .catch(err => {
                         console.log("error on ssh", err);
                     });
+                    new index_1.Apt().list()
+                        .then(result => {
+                        index_js_1.Logger.data({
+                            packages: (result || "").split("\n").filter(s => s.indexOf("blue") >= 0),
+                            option: "bluetooth"
+                        });
+                    })
+                        .catch(err => index_js_1.Logger.error(err, "Error with bluetooth status"));
                     const bluetooth = new index_1.Bluetooth();
                     bluetooth.status()
                         .then(status => {

@@ -39,6 +39,12 @@ export class MySQL {
     restart = (): Promise<string> => this.systemctl.exec("restart", "mysql");
 }
 
+export class Apt {
+    command: Command = new Command();
+
+    list = (): Promise<string> => this.command.exec("/usr/bin/apt", ["list", "--installed"]);
+}
+
 export class Bluetooth {
     systemctl: Systemctl;
     command: Command = new Command();

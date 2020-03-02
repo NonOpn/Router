@@ -12,6 +12,10 @@ export declare class MySQL {
     start: () => Promise<string>;
     restart: () => Promise<string>;
 }
+export declare class Apt {
+    command: Command;
+    list: () => Promise<string>;
+}
 export declare class Bluetooth {
     systemctl: Systemctl;
     command: Command;
