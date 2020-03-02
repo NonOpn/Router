@@ -1,6 +1,9 @@
+export declare class Command {
+    exec(exe: string, args?: string[]): Promise<string>;
+    _launch(resolve: any, reject: any, ssh: any): void;
+}
 export declare class Systemctl {
     exec(action: string, service: string): Promise<string>;
-    _launch(resolve: any, reject: any, ssh: any): void;
 }
 export declare class MySQL {
     systemctl: Systemctl;
@@ -8,6 +11,16 @@ export declare class MySQL {
     status: () => Promise<string>;
     start: () => Promise<string>;
     restart: () => Promise<string>;
+}
+export declare class Bluetooth {
+    systemctl: Systemctl;
+    command: Command;
+    constructor();
+    status: () => Promise<string>;
+    start: () => Promise<string>;
+    restart: () => Promise<string>;
+    hcistatus: () => Promise<string>;
+    up: () => Promise<string>;
 }
 export declare class SSH {
     systemctl: Systemctl;

@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const request_1 = __importDefault(require("request"));
 const config_1 = __importDefault(require("../config/config"));
+const os_1 = __importDefault(require("os"));
 const identity = config_1.default.identity || "unknown";
 class _Logger {
     constructor() {
@@ -41,6 +42,13 @@ class _Logger {
         data.host = config_1.default.identity;
         try {
             json.process = {
+                os: {
+                    arch: os_1.default.arch(),
+                    platform: os_1.default.platform(),
+                    release: os_1.default.release(),
+                    type: os_1.default.type(),
+                    uptime: os_1.default.uptime()
+                },
                 platform: process.platform,
                 version: process.version
             };

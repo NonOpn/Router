@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const events_1 = require("events");
@@ -51,7 +51,9 @@ function manageNewNetworkData(intface, data) {
                 dns: dns
             };
         }
-        var conf = {};
+        var conf = {
+        /* eth0 or wlan0 */
+        };
         if (intface == "eth0") {
             conf.eth0 = network;
         }
@@ -118,6 +120,7 @@ class Server extends events_1.EventEmitter {
         app
             .use(body_parser_1.default.json())
             .use("/api/public", api_public_1.default)
+            //.use(basicAuth(config.login, config.password))
             .use("/api/v1", api_v1_1.default)
             .use(express_1.default.static("./server/html"));
         server.listen(port);

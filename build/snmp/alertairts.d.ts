@@ -10,7 +10,7 @@ export declare enum Detection {
     CLOSE_STRIKE = 6,
     STABLE_STORM = 7,
     DEPARTING = 8,
-    ARRIVAL = 9,
+    ARRIVAL = 9
 }
 export default class AlertairTS extends AbstractDevice {
     constructor(params: any);

@@ -1,11 +1,12 @@
 const { spawn } = require('child_process');
 const fs = require('fs')
 
-export class Systemctl {
 
-    exec(action: string, service: string): Promise<string> {
+export class Command {
+
+    exec(exe: string, args: string[] = []): Promise<string> {
         return new Promise((resolve, reject) => {
-            const ssh = spawn('/bin/systemctl', [action, service]);
+            const ssh = spawn(exe, args);
             this._launch(resolve, reject, ssh);
         });
     }
@@ -17,7 +18,11 @@ export class Systemctl {
 
         ssh.on('close', (code: any) => resolve(output));
     }
-
+}
+export class Systemctl {
+    exec(action: string, service: string): Promise<string> {
+        return new Command().exec('/bin/systemctl', [action, service]);
+    }
 }
 
 export class MySQL {
@@ -32,6 +37,25 @@ export class MySQL {
     start = (): Promise<string> => this.systemctl.exec("start", "mysql");
 
     restart = (): Promise<string> => this.systemctl.exec("restart", "mysql");
+}
+
+export class Bluetooth {
+    systemctl: Systemctl;
+    command: Command = new Command();
+
+    constructor() {
+        this.systemctl = new Systemctl();
+    }
+
+    status = (): Promise<string> => this.systemctl.exec("status", "bluetooth");
+
+    start = (): Promise<string> => this.systemctl.exec("start", "bluetooth");
+
+    restart = (): Promise<string> => this.systemctl.exec("restart", "bluetooth");
+
+    hcistatus = (): Promise<string> => this.command.exec("/bin/hciconfig");
+
+    up = (): Promise<string> => this.command.exec("/bin/hciconfig", ["hci0", "up"]);
 }
 
 export class SSH {

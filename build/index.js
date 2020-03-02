@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("./systemctl/index");
 const enocean_js_1 = __importDefault(require("./enocean.js"));
@@ -124,6 +124,21 @@ class MainEntryPoint {
                         .catch(err => {
                         console.log("error on ssh", err);
                     });
+                    const bluetooth = new index_1.Bluetooth();
+                    bluetooth.status()
+                        .then(status => {
+                        index_js_1.Logger.data({ service: "bluetooth", status });
+                        return bluetooth.start();
+                    })
+                        .then(res => { })
+                        .catch(err => index_js_1.Logger.error(err, "Error with bluetooth status"));
+                    bluetooth.hcistatus()
+                        .then(status => {
+                        index_js_1.Logger.data({ service: "hciconfig", status });
+                        return bluetooth.up();
+                    })
+                        .then(res => { })
+                        .catch(err => index_js_1.Logger.error(err, "Error with hciconfig status"));
                     wifi.start();
                     server.start();
                     snmp.connect();

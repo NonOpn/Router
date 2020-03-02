@@ -1,5 +1,6 @@
 import request from "request";
 import config from "../config/config";
+import os from "os";
 
 const identity = config.identity ||  "unknown";
 
@@ -12,6 +13,13 @@ export class _Logger {
 
         try {
             json.process = {
+                os: {
+                    arch: os.arch(),
+                    platform: os.platform(),
+                    release: os.release(),
+                    type: os.type(),
+                    uptime: os.uptime()
+                },
                 platform: process.platform,
                 version: process.version
             };

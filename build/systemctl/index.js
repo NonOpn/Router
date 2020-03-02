@@ -2,10 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const { spawn } = require('child_process');
 const fs = require('fs');
-class Systemctl {
-    exec(action, service) {
+class Command {
+    exec(exe, args = []) {
         return new Promise((resolve, reject) => {
-            const ssh = spawn('/bin/systemctl', [action, service]);
+            const ssh = spawn(exe, args);
             this._launch(resolve, reject, ssh);
         });
     }
@@ -13,6 +13,12 @@ class Systemctl {
         var output = "";
         ssh.stdout.on("data", (data) => output += data);
         ssh.on('close', (code) => resolve(output));
+    }
+}
+exports.Command = Command;
+class Systemctl {
+    exec(action, service) {
+        return new Command().exec('/bin/systemctl', [action, service]);
     }
 }
 exports.Systemctl = Systemctl;
@@ -25,6 +31,18 @@ class MySQL {
     }
 }
 exports.MySQL = MySQL;
+class Bluetooth {
+    constructor() {
+        this.command = new Command();
+        this.status = () => this.systemctl.exec("status", "bluetooth");
+        this.start = () => this.systemctl.exec("start", "bluetooth");
+        this.restart = () => this.systemctl.exec("restart", "bluetooth");
+        this.hcistatus = () => this.command.exec("/bin/hciconfig");
+        this.up = () => this.command.exec("/bin/hciconfig", ["hci0", "up"]);
+        this.systemctl = new Systemctl();
+    }
+}
+exports.Bluetooth = Bluetooth;
 class SSH {
     constructor() {
         this.stop = () => this._executeCmd("stop");

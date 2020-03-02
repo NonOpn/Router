@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { Characteristic, BLECallback } from "./safeBleno";
 import { Transaction } from "../push_web/frame_model";
 export interface BLEResultCallback {
@@ -28,10 +29,10 @@ export declare class BLELargeSyncCharacteristic extends Characteristic {
     private _obtained;
     private _last_offset;
     _log_id: number;
-    private transform(transaction);
-    private fromPayload(payload);
-    private _callback();
-    private readOrSend(offset);
+    private transform;
+    private fromPayload;
+    private _callback;
+    private readOrSend;
     onReadRequest(offset: number, cb: BLECallback): void;
     onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback): void;
 }

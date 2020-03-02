@@ -1,4 +1,4 @@
-import { Rebuild, Cat, npm } from './systemctl/index';
+import { Rebuild, Cat, npm, Bluetooth } from './systemctl/index';
 import EnoceanLoader from "./enocean.js";
 import Server from "./server.js";
 import BLE from "./ble";
@@ -136,6 +136,23 @@ export default class MainEntryPoint {
           .catch(err => {
             console.log("error on ssh", err);
           });
+
+          const bluetooth = new Bluetooth();
+          bluetooth.status()
+          .then(status => {
+            Logger.data({service: "bluetooth", status})
+            return bluetooth.start();
+          })
+          .then(res => {})
+          .catch(err => Logger.error(err, "Error with bluetooth status"));
+
+          bluetooth.hcistatus()
+          .then(status => {
+            Logger.data({service: "hciconfig", status})
+            return bluetooth.up();
+          })
+          .then(res => {})
+          .catch(err => Logger.error(err, "Error with hciconfig status"));
 
 
           wifi.start();

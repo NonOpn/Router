@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
 const v4_1 = __importDefault(require("uuid/v4"));
@@ -99,7 +99,7 @@ class EnoceanLoader extends events_1.EventEmitter {
             if (sensor_data != undefined && sensor_data.eep != undefined) {
                 eep = sensor_data.eep;
             }
-            if ((eep != undefined) || data.rawByte.length >= (6 + 7)) {
+            if ((eep != undefined) || data.rawByte.length >= (6 + 7)) { //at least 6 bytes for headers and 7 to have all data
                 var rorg = undefined;
                 if (eep == undefined) {
                     rorg = getByte(data.rawByte, 6);
