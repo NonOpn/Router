@@ -5,14 +5,20 @@ const fs = require('fs');
 class Command {
     exec(exe, args = []) {
         return new Promise((resolve, reject) => {
-            const ssh = spawn(exe, args);
-            this._launch(resolve, reject, ssh);
+            const cmd = spawn(exe, args);
+            this._launch(resolve, reject, cmd);
         });
     }
-    _launch(resolve, reject, ssh) {
+    _launch(resolve, reject, cmd) {
         var output = "";
-        ssh.stdout.on("data", (data) => output += data);
-        ssh.on('close', (code) => resolve(output));
+        cmd.stdout.on("data", (data) => output += data);
+        try {
+            cmd.stderr.on("data", (data) => output += data);
+        }
+        catch (e) {
+            output += "error " + e;
+        }
+        cmd.on('close', (code) => resolve(output));
     }
 }
 exports.Command = Command;
@@ -35,6 +41,7 @@ class Apt {
     constructor() {
         this.command = new Command();
         this.list = () => this.command.exec("/usr/bin/apt", ["list", "--installed"]);
+        this.install = (pack) => this.command.exec("/usr/bin/apt", ["install", "-y", pack]);
     }
 }
 exports.Apt = Apt;

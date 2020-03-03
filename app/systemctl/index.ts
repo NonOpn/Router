@@ -6,17 +6,23 @@ export class Command {
 
     exec(exe: string, args: string[] = []): Promise<string> {
         return new Promise((resolve, reject) => {
-            const ssh = spawn(exe, args);
-            this._launch(resolve, reject, ssh);
+            const cmd = spawn(exe, args);
+            this._launch(resolve, reject, cmd);
         });
     }
 
-    _launch(resolve: any, reject: any, ssh: any) {
+    _launch(resolve: any, reject: any, cmd: any) {
         var output = "";
 
-        ssh.stdout.on("data", (data: any) => output += data);
+        cmd.stdout.on("data", (data: any) => output += data);
 
-        ssh.on('close', (code: any) => resolve(output));
+        try {
+            cmd.stderr.on("data", (data: any) => output += data);
+        } catch(e) {
+            output += "error " + e;
+        }
+
+        cmd.on('close', (code: any) => resolve(output));
     }
 }
 export class Systemctl {
@@ -43,6 +49,8 @@ export class Apt {
     command: Command = new Command();
 
     list = (): Promise<string> => this.command.exec("/usr/bin/apt", ["list", "--installed"]);
+
+    install = (pack: string): Promise<string> => this.command.exec("/usr/bin/apt", ["install", "-y", pack]);
 }
 
 export class Which {

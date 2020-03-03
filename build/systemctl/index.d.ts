@@ -1,6 +1,6 @@
 export declare class Command {
     exec(exe: string, args?: string[]): Promise<string>;
-    _launch(resolve: any, reject: any, ssh: any): void;
+    _launch(resolve: any, reject: any, cmd: any): void;
 }
 export declare class Systemctl {
     exec(action: string, service: string): Promise<string>;
@@ -15,6 +15,7 @@ export declare class MySQL {
 export declare class Apt {
     command: Command;
     list: () => Promise<string>;
+    install: (pack: string) => Promise<string>;
 }
 export declare class Which {
     command: Command;
