@@ -34,6 +34,36 @@ class RfKill {
     }
 }
 exports.RfKill = RfKill;
+class AptCache {
+    exec(action, service) {
+        return new Command().exec('/usr/bin/apt-cache', [action, service]);
+    }
+    rpiBootloader() {
+        return this.exec("show", "raspberrypi-bootloader")
+            .then(output => {
+            if (!output || output.length < 30)
+                throw "invalid bootloader info";
+            return output;
+        });
+    }
+    isLatest() {
+        return this.rpiBootloader().then(output => {
+            const version = this.findVersion(output);
+            return version.indexOf("1.20170703-1") >= 0;
+        });
+    }
+    findVersion(output) {
+        if (output && output.length > 0) {
+            var spl = output.split("\n");
+            if (spl.length > 0) {
+                const version = spl.filter(s => s.indexOf("Version:") == 0);
+                return version;
+            }
+        }
+        return "";
+    }
+}
+exports.AptCache = AptCache;
 class Systemctl {
     exec(action, service) {
         return new Command().exec('/bin/systemctl', [action, service]);

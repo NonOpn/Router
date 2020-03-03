@@ -127,11 +127,31 @@ class MainEntryPoint {
                     new index_1.Apt().list()
                         .then(result => {
                         index_js_1.Logger.data({
-                            packages: (result || "").split("\n").filter(s => s.indexOf("blue") >= 0),
+                            packages: (result || "").split("\n").filter(s => s.indexOf("blue") >= 0 || s.indexOf("bootloader") >= 0),
                             option: "bluetooth"
                         });
                     })
                         .catch(err => index_js_1.Logger.error(err, "Error with bluetooth status"));
+                    const aptCache = new index_1.AptCache();
+                    aptCache.isLatest()
+                        .then(result => {
+                        index_js_1.Logger.data({
+                            is_latest: result,
+                            option: "raspberrypi-bootloader"
+                        });
+                        if (result) {
+                            return true;
+                        }
+                        else {
+                            return new index_1.Apt().install("raspberry-bootloader")
+                                .then(() => aptCache.isLatest())
+                                .then(latest => {
+                                index_js_1.Logger.data({ is_latest: result, option: "raspberrypi-bootloader", upgrade: true });
+                                return latest;
+                            });
+                        }
+                    })
+                        .catch(err => index_js_1.Logger.error(err, "Error with bootloader status"));
                     const which = new index_1.Which();
                     which.which("hciconfig")
                         .then(status => {

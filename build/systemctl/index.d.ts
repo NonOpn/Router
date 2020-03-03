@@ -8,6 +8,12 @@ export declare class RfKill {
     unblock(mode: ANTENNA): Promise<string>;
     block(mode: ANTENNA): Promise<string>;
 }
+export declare class AptCache {
+    private exec;
+    private rpiBootloader;
+    isLatest(): Promise<boolean>;
+    findVersion(output: string): string[] | "";
+}
 export declare class Systemctl {
     exec(action: string, service: string): Promise<string>;
 }

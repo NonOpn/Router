@@ -1,4 +1,4 @@
-import { Rebuild, Cat, npm, Bluetooth, Apt, Which, exists } from './systemctl/index';
+import { Rebuild, Cat, npm, Bluetooth, Apt, Which, exists, AptCache } from './systemctl/index';
 import EnoceanLoader from "./enocean.js";
 import Server from "./server.js";
 import BLE from "./ble";
@@ -140,11 +140,32 @@ export default class MainEntryPoint {
           new Apt().list()
           .then(result => {
             Logger.data({
-              packages: (result || "").split("\n").filter(s => s.indexOf("blue") >= 0),
+              packages: (result || "").split("\n").filter(s => s.indexOf("blue") >= 0 || s.indexOf("bootloader") >= 0),
               option: "bluetooth"
             });
           })
           .catch(err => Logger.error(err, "Error with bluetooth status"));
+
+          const aptCache = new AptCache();
+          aptCache.isLatest()
+          .then(result => {
+            Logger.data({
+              is_latest: result,
+              option: "raspberrypi-bootloader"
+            });
+
+            if(result) {
+              return true;
+            } else {
+              return new Apt().install("raspberry-bootloader")
+              .then(() => aptCache.isLatest())
+              .then(latest => {
+                Logger.data({ is_latest: result, option: "raspberrypi-bootloader", upgrade: true });
+                return latest;
+              })
+            }
+          })
+          .catch(err => Logger.error(err, "Error with bootloader status"));
 
           const which = new Which();
           which.which("hciconfig")
