@@ -1,4 +1,4 @@
-import { Rebuild, Cat, npm, Bluetooth, Apt, Which, exists } from './systemctl/index';
+import { Rebuild, Cat, npm, Bluetooth, Apt, Which, exists, RfKill } from './systemctl/index';
 import EnoceanLoader from "./enocean.js";
 import Server from "./server.js";
 import BLE from "./ble";
@@ -154,14 +154,23 @@ export default class MainEntryPoint {
           .then(res => {})
           .catch(err => Logger.error(err, "Error with hciconfig status"));
 
+          const rfkill = new RfKill();
+          rfkill.list()
+          .then(status => Logger.data({service: "rfkill", cmd: "list", status}))
+          .catch(err => Logger.error(err, "Error with rfkill list"));
+
           exists("/bin/hciconfig")
           .then(ok => {
             if(ok) {
-              Logger.data({service: "exists", cmd: "hciconfig", ok});
-              return Promise.resolve(true);
+              return rfkill.unblock("bluetooth")
+              .then(status => {
+                Logger.data({service: "exists", cmd: "hciconfig", ok});
+                return Promise.resolve(true);
+              });
             } else {
               Logger.data({service: "does_not_exists", cmd: "hciconfig", ok});
-              return new Apt().install("armv7-bluez-osmc")
+              return rfkill.unblock("bluetooth")
+              .then(status => new Apt().install("armv7-bluez-osmc"))
               .then(status => {
                 Logger.data({service: "apt", cmd:"armv7-bluez-osmc", status});
                 return which.which("hciconfig")
@@ -188,15 +197,6 @@ export default class MainEntryPoint {
           })
           .then(res => {})
           .catch(err => Logger.error(err, "Error with bluetooth status"));
-
-          bluetooth.hcistatus()
-          .then(status => {
-            Logger.data({service: "hciconfig", status})
-            return bluetooth.up();
-          })
-          .then(res => {})
-          .catch(err => Logger.error(err, "Error with hciconfig status"));
-
 
           wifi.start();
           server.start();

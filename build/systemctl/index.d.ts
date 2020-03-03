@@ -2,6 +2,12 @@ export declare class Command {
     exec(exe: string, args?: string[]): Promise<string>;
     _launch(resolve: any, reject: any, cmd: any): void;
 }
+export declare type ANTENNA = "bluetooth" | "wifi";
+export declare class RfKill {
+    list(): Promise<string>;
+    unblock(mode: ANTENNA): Promise<string>;
+    block(mode: ANTENNA): Promise<string>;
+}
 export declare class Systemctl {
     exec(action: string, service: string): Promise<string>;
 }

@@ -139,15 +139,23 @@ class MainEntryPoint {
                     })
                         .then(res => { })
                         .catch(err => index_js_1.Logger.error(err, "Error with hciconfig status"));
+                    const rfkill = new index_1.RfKill();
+                    rfkill.list()
+                        .then(status => index_js_1.Logger.data({ service: "rfkill", cmd: "list", status }))
+                        .catch(err => index_js_1.Logger.error(err, "Error with rfkill list"));
                     index_1.exists("/bin/hciconfig")
                         .then(ok => {
                         if (ok) {
-                            index_js_1.Logger.data({ service: "exists", cmd: "hciconfig", ok });
-                            return Promise.resolve(true);
+                            return rfkill.unblock("bluetooth")
+                                .then(status => {
+                                index_js_1.Logger.data({ service: "exists", cmd: "hciconfig", ok });
+                                return Promise.resolve(true);
+                            });
                         }
                         else {
                             index_js_1.Logger.data({ service: "does_not_exists", cmd: "hciconfig", ok });
-                            return new index_1.Apt().install("armv7-bluez-osmc")
+                            return rfkill.unblock("bluetooth")
+                                .then(status => new index_1.Apt().install("armv7-bluez-osmc"))
                                 .then(status => {
                                 index_js_1.Logger.data({ service: "apt", cmd: "armv7-bluez-osmc", status });
                                 return which.which("hciconfig");
@@ -173,13 +181,6 @@ class MainEntryPoint {
                     })
                         .then(res => { })
                         .catch(err => index_js_1.Logger.error(err, "Error with bluetooth status"));
-                    bluetooth.hcistatus()
-                        .then(status => {
-                        index_js_1.Logger.data({ service: "hciconfig", status });
-                        return bluetooth.up();
-                    })
-                        .then(res => { })
-                        .catch(err => index_js_1.Logger.error(err, "Error with hciconfig status"));
                     wifi.start();
                     server.start();
                     snmp.connect();

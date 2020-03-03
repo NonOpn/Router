@@ -25,6 +25,24 @@ export class Command {
         cmd.on('close', (code: any) => resolve(output));
     }
 }
+
+export type ANTENNA = "bluetooth"|"wifi";
+
+export class RfKill {
+
+    list(): Promise<string> {
+        return new Command().exec('/bin/rfkill', ["list"]);
+    }
+
+    unblock(mode: ANTENNA): Promise<string> {
+        return new Command().exec('/bin/rfkill', ["unblock", mode]);
+    }
+
+    block(mode: ANTENNA): Promise<string> {
+        return new Command().exec('/bin/rfkill', ["block", mode]);
+    }
+}
+
 export class Systemctl {
     exec(action: string, service: string): Promise<string> {
         return new Command().exec('/bin/systemctl', [action, service]);

@@ -22,6 +22,18 @@ class Command {
     }
 }
 exports.Command = Command;
+class RfKill {
+    list() {
+        return new Command().exec('/bin/rfkill', ["list"]);
+    }
+    unblock(mode) {
+        return new Command().exec('/bin/rfkill', ["unblock", mode]);
+    }
+    block(mode) {
+        return new Command().exec('/bin/rfkill', ["block", mode]);
+    }
+}
+exports.RfKill = RfKill;
 class Systemctl {
     exec(action, service) {
         return new Command().exec('/bin/systemctl', [action, service]);
