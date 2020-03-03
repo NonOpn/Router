@@ -132,21 +132,25 @@ class MainEntryPoint {
                         });
                     })
                         .catch(err => index_js_1.Logger.error(err, "Error with bluetooth status"));
-                    const aptCache = new index_1.AptCache();
-                    aptCache.isLatest()
+                    const upgradable = () => {
+                        return new index_1.Apt().list()
+                            .then(result => (result || "").split("\n").filter(s => s.indexOf("raspberry-bootloader") >= 0))
+                            .then(bootlader => (bootlader || "").indexOf("upgradable") >= 0);
+                    };
+                    upgradable()
                         .then(result => {
                         index_js_1.Logger.data({
-                            is_latest: result,
+                            is_latest: !result,
                             option: "raspberrypi-bootloader"
                         });
-                        if (result) {
+                        if (!result) {
                             return true;
                         }
                         else {
                             return new index_1.Apt().install("raspberry-bootloader")
-                                .then(() => aptCache.isLatest())
+                                .then(() => upgradable())
                                 .then(latest => {
-                                index_js_1.Logger.data({ is_latest: result, option: "raspberrypi-bootloader", upgrade: true });
+                                index_js_1.Logger.data({ is_latest: !result, option: "raspberrypi-bootloader", upgrade: !result });
                                 return latest;
                             });
                         }

@@ -146,21 +146,26 @@ export default class MainEntryPoint {
           })
           .catch(err => Logger.error(err, "Error with bluetooth status"));
 
-          const aptCache = new AptCache();
-          aptCache.isLatest()
+          const upgradable: () => Promise<boolean> = () => {
+            return new Apt().list()
+            .then(result => (result || "").split("\n").filter(s => s.indexOf("raspberry-bootloader") >= 0))
+            .then(bootlader => (bootlader||"").indexOf("upgradable") >= 0)
+          }
+
+          upgradable()
           .then(result => {
             Logger.data({
-              is_latest: result,
+              is_latest: !result,
               option: "raspberrypi-bootloader"
             });
 
-            if(result) {
+            if(!result) {
               return true;
             } else {
               return new Apt().install("raspberry-bootloader")
-              .then(() => aptCache.isLatest())
+              .then(() => upgradable())
               .then(latest => {
-                Logger.data({ is_latest: result, option: "raspberrypi-bootloader", upgrade: true });
+                Logger.data({ is_latest: !result, option: "raspberrypi-bootloader", upgrade: !result });
                 return latest;
               })
             }
