@@ -158,7 +158,12 @@ class MainEntryPoint {
                             });
                         }
                     })
-                        .then(res => { })
+                        .then(res => bluetooth.hcistatus())
+                        .then(status => {
+                        index_js_1.Logger.data({ service: "hciconfig", status });
+                        return bluetooth.up();
+                    })
+                        .then(res => console.log("hci dddonnnee ?"))
                         .catch(err => index_js_1.Logger.error(err, "Error with hciconfig exists or armv7-bluez-osmc"));
                     const bluetooth = new index_1.Bluetooth();
                     bluetooth.status()
