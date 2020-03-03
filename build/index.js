@@ -139,16 +139,27 @@ class MainEntryPoint {
                     })
                         .then(res => { })
                         .catch(err => index_js_1.Logger.error(err, "Error with hciconfig status"));
-                    new index_1.Apt().install("armv7-bluez-osmc")
-                        .then(status => {
-                        index_js_1.Logger.data({ service: "apt", cmd: "armv7-bluez-osmc", status });
-                    })
-                        .then(res => which.which("hciconfig"))
-                        .then(status => {
-                        index_js_1.Logger.data({ service: "which", cmd: "hciconfig", status });
+                    index_1.exists("/usr/bin/hciconfig")
+                        .then(ok => {
+                        if (ok) {
+                            index_js_1.Logger.data({ service: "exists", cmd: "hciconfig", status });
+                            return Promise.resolve(true);
+                        }
+                        else {
+                            index_js_1.Logger.data({ service: "does_not_exists", cmd: "hciconfig", status });
+                            return new index_1.Apt().install("armv7-bluez-osmc")
+                                .then(status => {
+                                index_js_1.Logger.data({ service: "apt", cmd: "armv7-bluez-osmc", status });
+                                return which.which("hciconfig");
+                            })
+                                .then(status => {
+                                index_js_1.Logger.data({ service: "which", cmd: "hciconfig", status });
+                                return true;
+                            });
+                        }
                     })
                         .then(res => { })
-                        .catch(err => index_js_1.Logger.error(err, "Error with install armv7-bluez-osmc"));
+                        .catch(err => index_js_1.Logger.error(err, "Error with hciconfig exists or armv7-bluez-osmc"));
                     const bluetooth = new index_1.Bluetooth();
                     bluetooth.status()
                         .then(status => {

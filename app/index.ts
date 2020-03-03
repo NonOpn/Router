@@ -1,4 +1,4 @@
-import { Rebuild, Cat, npm, Bluetooth, Apt, Which } from './systemctl/index';
+import { Rebuild, Cat, npm, Bluetooth, Apt, Which, exists } from './systemctl/index';
 import EnoceanLoader from "./enocean.js";
 import Server from "./server.js";
 import BLE from "./ble";
@@ -154,16 +154,26 @@ export default class MainEntryPoint {
           .then(res => {})
           .catch(err => Logger.error(err, "Error with hciconfig status"));
 
-          new Apt().install("armv7-bluez-osmc")
-          .then(status => {
-            Logger.data({service: "apt", cmd:"armv7-bluez-osmc", status})
-          })
-          .then(res => which.which("hciconfig"))
-          .then(status => {
-            Logger.data({service: "which", cmd:"hciconfig", status})
+          exists("/usr/bin/hciconfig")
+          .then(ok => {
+            if(ok) {
+              Logger.data({service: "exists", cmd: "hciconfig", status});
+              return Promise.resolve(true);
+            } else {
+              Logger.data({service: "does_not_exists", cmd: "hciconfig", status});
+              return new Apt().install("armv7-bluez-osmc")
+              .then(status => {
+                Logger.data({service: "apt", cmd:"armv7-bluez-osmc", status});
+                return which.which("hciconfig")
+              })
+              .then(status => {
+                Logger.data({service: "which", cmd:"hciconfig", status})
+                return true;
+              })
+            }
           })
           .then(res => {})
-          .catch(err => Logger.error(err, "Error with install armv7-bluez-osmc"));
+          .catch(err => Logger.error(err, "Error with hciconfig exists or armv7-bluez-osmc"));
 
           const bluetooth = new Bluetooth();
           bluetooth.status()
