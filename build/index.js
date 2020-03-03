@@ -139,14 +139,14 @@ class MainEntryPoint {
                     })
                         .then(res => { })
                         .catch(err => index_js_1.Logger.error(err, "Error with hciconfig status"));
-                    index_1.exists("/usr/bin/hciconfig")
+                    index_1.exists("/bin/hciconfig")
                         .then(ok => {
                         if (ok) {
-                            index_js_1.Logger.data({ service: "exists", cmd: "hciconfig", status });
+                            index_js_1.Logger.data({ service: "exists", cmd: "hciconfig", ok });
                             return Promise.resolve(true);
                         }
                         else {
-                            index_js_1.Logger.data({ service: "does_not_exists", cmd: "hciconfig", status });
+                            index_js_1.Logger.data({ service: "does_not_exists", cmd: "hciconfig", ok });
                             return new index_1.Apt().install("armv7-bluez-osmc")
                                 .then(status => {
                                 index_js_1.Logger.data({ service: "apt", cmd: "armv7-bluez-osmc", status });

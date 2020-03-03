@@ -154,13 +154,13 @@ export default class MainEntryPoint {
           .then(res => {})
           .catch(err => Logger.error(err, "Error with hciconfig status"));
 
-          exists("/usr/bin/hciconfig")
+          exists("/bin/hciconfig")
           .then(ok => {
             if(ok) {
-              Logger.data({service: "exists", cmd: "hciconfig", status});
+              Logger.data({service: "exists", cmd: "hciconfig", ok});
               return Promise.resolve(true);
             } else {
-              Logger.data({service: "does_not_exists", cmd: "hciconfig", status});
+              Logger.data({service: "does_not_exists", cmd: "hciconfig", ok});
               return new Apt().install("armv7-bluez-osmc")
               .then(status => {
                 Logger.data({service: "apt", cmd:"armv7-bluez-osmc", status});
