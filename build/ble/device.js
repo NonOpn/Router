@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 const device_model_1 = __importDefault(require("../push_web/device_model"));
 const paratonair_1 = __importDefault(require("../snmp/paratonair"));
@@ -64,7 +64,6 @@ class DeviceManagement {
         return model_devices.list()
             .then(devices => devices ? devices : [])
             .then(devices => devices.map(device => this._databaseDeviceToRealDevice(device)))
-            //.then(devices => devices.filter(device => undefined != device));
             .then(devices => {
             const array = [];
             devices.forEach(d => { if (undefined != d)
@@ -201,9 +200,9 @@ class DeviceManagement {
             .then(device => this._databaseDeviceToRealDevice(device));
     }
     applyData(data, device_callback = undefined) {
-        if (data && data.rawFrameStr) { //for now, using only lpsfr devices
+        if (data && data.rawFrameStr) {
             //rawFrameStr and rawDataStr are set
-            if (data.rawFrameStr.length === 60) { //30*2
+            if (data.rawFrameStr.length === 60) {
                 const rawdata = data.rawDataStr;
                 const internal = rawdata.substring(0, 6);
                 const callback = () => {
@@ -262,7 +261,7 @@ class DeviceManagement {
                     callback();
                 }
             }
-            else if (data.rawFrameStr.length === 48) { //24*2
+            else if (data.rawFrameStr.length === 48) {
                 /*this.agents.forEach(agent => {
                     const lpsfr = agent.getLPSFR();
                     if(lpsfr.internal === data.sender && lpsfr.type === "ellips") {

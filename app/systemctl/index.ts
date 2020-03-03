@@ -45,6 +45,12 @@ export class Apt {
     list = (): Promise<string> => this.command.exec("/usr/bin/apt", ["list", "--installed"]);
 }
 
+export class Which {
+    command: Command = new Command();
+
+    which = (cmd: string): Promise<string> => this.command.exec("/usr/bin/which", [cmd]);
+}
+
 export class Bluetooth {
     systemctl: Systemctl;
     command: Command = new Command();

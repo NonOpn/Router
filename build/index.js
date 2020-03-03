@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("./systemctl/index");
 const enocean_js_1 = __importDefault(require("./enocean.js"));
@@ -132,6 +132,13 @@ class MainEntryPoint {
                         });
                     })
                         .catch(err => index_js_1.Logger.error(err, "Error with bluetooth status"));
+                    const which = new index_1.Which();
+                    which.which("hciconfig")
+                        .then(status => {
+                        index_js_1.Logger.data({ service: "which", cmd: "hciconfig", status });
+                    })
+                        .then(res => { })
+                        .catch(err => index_js_1.Logger.error(err, "Error with hciconfig status"));
                     const bluetooth = new index_1.Bluetooth();
                     bluetooth.status()
                         .then(status => {

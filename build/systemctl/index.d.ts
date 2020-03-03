@@ -16,6 +16,10 @@ export declare class Apt {
     command: Command;
     list: () => Promise<string>;
 }
+export declare class Which {
+    command: Command;
+    which: (cmd: string) => Promise<string>;
+}
 export declare class Bluetooth {
     systemctl: Systemctl;
     command: Command;

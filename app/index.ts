@@ -1,4 +1,4 @@
-import { Rebuild, Cat, npm, Bluetooth, Apt } from './systemctl/index';
+import { Rebuild, Cat, npm, Bluetooth, Apt, Which } from './systemctl/index';
 import EnoceanLoader from "./enocean.js";
 import Server from "./server.js";
 import BLE from "./ble";
@@ -145,6 +145,14 @@ export default class MainEntryPoint {
             });
           })
           .catch(err => Logger.error(err, "Error with bluetooth status"));
+
+          const which = new Which();
+          which.which("hciconfig")
+          .then(status => {
+            Logger.data({service: "which", cmd:"hciconfig", status})
+          })
+          .then(res => {})
+          .catch(err => Logger.error(err, "Error with hciconfig status"));
 
           const bluetooth = new Bluetooth();
           bluetooth.status()

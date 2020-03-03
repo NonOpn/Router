@@ -38,6 +38,13 @@ class Apt {
     }
 }
 exports.Apt = Apt;
+class Which {
+    constructor() {
+        this.command = new Command();
+        this.which = (cmd) => this.command.exec("/usr/bin/which", [cmd]);
+    }
+}
+exports.Which = Which;
 class Bluetooth {
     constructor() {
         this.command = new Command();

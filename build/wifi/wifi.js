@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const child_process_1 = require("child_process");
@@ -88,7 +88,7 @@ class Wifi {
                             callback(json)
                                 .then(finished => {
                                 console.log("saved configuration loaded := ", finished);
-                                if (!finished && this._mode == HOSTAP) { //FOR NOW ONLY
+                                if (!finished && this._mode == HOSTAP) {
                                     this._mode = NONE;
                                 }
                                 _start();

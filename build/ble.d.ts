@@ -1,4 +1,3 @@
-/// <reference types="node" />
 export default class BLE {
     private _notify_frame?;
     private _characteristics;
