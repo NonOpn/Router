@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { EventEmitter } from "events";
 export default class FrameManagerAlert extends EventEmitter {
     static instance: FrameManagerAlert;
@@ -5,13 +6,13 @@ export default class FrameManagerAlert extends EventEmitter {
     private _current_index;
     constructor();
     start(): void;
-    private deviceForContactair(devices, contactair);
-    private deviceForInternal(devices, internal_serial);
+    private deviceForContactair;
+    private deviceForInternal;
     private isProductButNeedAlertOrNot;
     private hasNotProduct;
     private hasProduct;
-    private tryUpdateDevicesForContactairs(devices, internal_serials);
-    private setDevicesForInvalidProductsOrAlerts(devices, frames);
-    private manageFrame(devices, from, until);
-    private checkNextTransactions();
+    private tryUpdateDevicesForContactairs;
+    private setDevicesForInvalidProductsOrAlerts;
+    private manageFrame;
+    private checkNextTransactions;
 }

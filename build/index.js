@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("./systemctl/index");
 const enocean_js_1 = __importDefault(require("./enocean.js"));
@@ -139,23 +139,15 @@ class MainEntryPoint {
                     })
                         .then(res => { })
                         .catch(err => index_js_1.Logger.error(err, "Error with hciconfig status"));
-                    const rfkill = new index_1.RfKill();
-                    rfkill.list()
-                        .then(status => index_js_1.Logger.data({ service: "rfkill", cmd: "list", status }))
-                        .catch(err => index_js_1.Logger.error(err, "Error with rfkill list"));
                     index_1.exists("/bin/hciconfig")
                         .then(ok => {
                         if (ok) {
-                            return rfkill.unblock("bluetooth")
-                                .then(status => {
-                                index_js_1.Logger.data({ service: "exists", cmd: "hciconfig", ok });
-                                return Promise.resolve(true);
-                            });
+                            index_js_1.Logger.data({ service: "exists", cmd: "hciconfig", ok });
+                            return Promise.resolve(true);
                         }
                         else {
                             index_js_1.Logger.data({ service: "does_not_exists", cmd: "hciconfig", ok });
-                            return rfkill.unblock("bluetooth")
-                                .then(status => new index_1.Apt().install("armv7-bluez-osmc"))
+                            return new index_1.Apt().install("armv7-bluez-osmc")
                                 .then(status => {
                                 index_js_1.Logger.data({ service: "apt", cmd: "armv7-bluez-osmc", status });
                                 return which.which("hciconfig");

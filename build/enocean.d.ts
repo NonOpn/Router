@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { EventEmitter } from "events";
 export default class EnoceanLoader extends EventEmitter {
     open_device: any;
