@@ -133,27 +133,31 @@ class MainEntryPoint {
                     })
                         .catch(err => index_js_1.Logger.error(err, "Error with bluetooth status"));
                     const FIRMWARE = "raspberrypi-bootloader";
-                    const upgradable = () => {
+                    const fn_upgradable = () => {
                         return new index_1.Apt().list()
-                            .then(result => (result || "").split("\n").filter(s => s.indexOf(FIRMWARE) >= 0))
-                            .then(bootlader => (bootlader || "").indexOf("upgradable") >= 0);
+                            .then(result => (result || "").split("\n").find(s => s.indexOf(FIRMWARE) >= 0))
+                            .then(bootlader => ({
+                            upgradable: (bootlader || "").indexOf("upgradable") >= 0,
+                            version: bootlader || ""
+                        }));
                     };
-                    upgradable()
-                        .then(result => {
-                        console.log("upgradable", { result });
+                    fn_upgradable()
+                        .then(({ upgradable, version }) => {
+                        console.log("upgradable", { upgradable, version });
                         index_js_1.Logger.data({
-                            is_latest: !!(!result),
+                            is_latest: upgradable,
+                            version,
                             option: FIRMWARE
                         });
-                        if (!result) {
+                        if (!upgradable) {
                             return true;
                         }
                         else {
                             return new index_1.Apt().install(FIRMWARE)
-                                .then(() => upgradable())
-                                .then(latest => {
-                                index_js_1.Logger.data({ is_latest: !result, option: FIRMWARE, upgrade: !result });
-                                return latest;
+                                .then(() => fn_upgradable())
+                                .then(({ upgradable, version }) => {
+                                index_js_1.Logger.data({ is_latest: !upgradable, version, option: FIRMWARE, upgrade: upgradable });
+                                return upgradable;
                             });
                         }
                     })

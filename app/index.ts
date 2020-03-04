@@ -16,6 +16,11 @@ import FrameManagerAlert from "./frame_manager_alert.js";
 const wifi = Wifi.instance;
 const errors = Errors.instance;
 
+interface Upgradable {
+  upgradable: boolean,
+  version: string
+}
+
 const RESTART_DELAY: number = 180000; //restart the program after 180 000 ms
 
 export default class MainEntryPoint {
@@ -147,28 +152,32 @@ export default class MainEntryPoint {
           .catch(err => Logger.error(err, "Error with bluetooth status"));
 
           const FIRMWARE = "raspberrypi-bootloader";
-          const upgradable: () => Promise<boolean> = () => {
+          const fn_upgradable: () => Promise<Upgradable> = () => {
             return new Apt().list()
-            .then(result => (result || "").split("\n").filter(s => s.indexOf(FIRMWARE) >= 0))
-            .then(bootlader => (bootlader||"").indexOf("upgradable") >= 0)
+            .then(result => (result || "").split("\n").find(s => s.indexOf(FIRMWARE) >= 0))
+            .then(bootlader => ({
+              upgradable: (bootlader||"").indexOf("upgradable") >= 0,
+              version: bootlader || ""
+            }))
           }
 
-          upgradable()
-          .then(result => {
-            console.log("upgradable", {result});
+          fn_upgradable()
+          .then(({upgradable, version}) => {
+            console.log("upgradable", {upgradable, version});
             Logger.data({
-              is_latest: !!(!result),
+              is_latest: upgradable,
+              version,
               option: FIRMWARE
             });
 
-            if(!result) {
+            if(!upgradable) {
               return true;
             } else {
               return new Apt().install(FIRMWARE)
-              .then(() => upgradable())
-              .then(latest => {
-                Logger.data({ is_latest: !result, option: FIRMWARE, upgrade: !result });
-                return latest;
+              .then(() => fn_upgradable())
+              .then(({upgradable, version}) => {
+                Logger.data({ is_latest: !upgradable, version, option: FIRMWARE, upgrade: upgradable });
+                return upgradable;
               })
             }
           })
