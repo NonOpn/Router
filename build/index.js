@@ -166,7 +166,7 @@ class MainEntryPoint {
                     fn_upgradable()
                         .then(({ upgradable, version }) => {
                         console.log("upgradable", { upgradable, version });
-                        index_js_1.Logger.data({ upgradable, version, option: FIRMWARE });
+                        index_js_1.Logger.data({ upgradable, apt: version, option: FIRMWARE });
                         if (!upgradable) {
                             return true;
                         }
@@ -174,7 +174,7 @@ class MainEntryPoint {
                             return new index_1.Apt().install(FIRMWARE)
                                 .then(() => fn_upgradable())
                                 .then(({ upgradable, version }) => {
-                                index_js_1.Logger.data({ upgradable, version, option: FIRMWARE });
+                                index_js_1.Logger.data({ upgradable, apt: version, option: FIRMWARE });
                                 return upgradable;
                             });
                         }
