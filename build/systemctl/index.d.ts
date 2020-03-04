@@ -28,6 +28,7 @@ export declare class Apt {
     command: Command;
     list: () => Promise<string>;
     install: (pack: string) => Promise<string>;
+    installs: (packs: string[]) => Promise<string>;
 }
 export declare class Which {
     command: Command;

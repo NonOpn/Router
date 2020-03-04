@@ -141,6 +141,28 @@ class MainEntryPoint {
                             version: bootlader || ""
                         }));
                     };
+                    const bluetooth_packages = ["bluez", "bluez-firmware", "pi-bluetooth"];
+                    const fn_upgradable_bluetooth = () => {
+                        const to_upgrade = (lines, pack) => !!(lines.find(line => (line.indexOf(pack + "/") >= 0) && (line.indexOf("upgradable") >= 0)));
+                        return new index_1.Apt().list()
+                            .then(result => (result || "").split("\n"))
+                            .then(installed => bluetooth_packages.map(pack => to_upgrade(installed, pack) ? pack : ""))
+                            .then(to_update => to_update.filter(pack => pack.length > 0));
+                    };
+                    fn_upgradable_bluetooth()
+                        .then(to_update => {
+                        if (to_update.length == 0)
+                            return Promise.resolve(true);
+                        console.log("upgradable packages", { to_update });
+                        index_js_1.Logger.data({ to_update, bluetooth_packages });
+                        return new index_1.Apt().installs(to_update)
+                            .then(() => fn_upgradable_bluetooth())
+                            .then(to_update => {
+                            index_js_1.Logger.data({ to_update, bluetooth_packages });
+                            return to_update.length == 0;
+                        });
+                    })
+                        .catch(err => index_js_1.Logger.error(err, "Error with bootloader status"));
                     fn_upgradable()
                         .then(({ upgradable, version }) => {
                         console.log("upgradable", { upgradable, version });

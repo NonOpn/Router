@@ -84,6 +84,11 @@ class Apt {
         this.command = new Command();
         this.list = () => this.command.exec("/usr/bin/apt", ["list", "--installed"]);
         this.install = (pack) => this.command.exec("/usr/bin/apt", ["install", "-y", pack]);
+        this.installs = (packs) => {
+            const array = ["install", "-y"];
+            packs.forEach(pack => array.push(pack));
+            return this.command.exec("/usr/bin/apt", array);
+        };
     }
 }
 exports.Apt = Apt;

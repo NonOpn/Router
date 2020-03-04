@@ -101,6 +101,11 @@ export class Apt {
     list = (): Promise<string> => this.command.exec("/usr/bin/apt", ["list", "--installed"]);
 
     install = (pack: string): Promise<string> => this.command.exec("/usr/bin/apt", ["install", "-y", pack]);
+    installs = (packs: string[]): Promise<string> => {
+        const array = ["install", "-y"];
+        packs.forEach(pack => array.push(pack));
+        return this.command.exec("/usr/bin/apt", array);
+    };
 }
 
 export class Which {
