@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("./systemctl/index");
 const enocean_js_1 = __importDefault(require("./enocean.js"));
@@ -132,25 +132,27 @@ class MainEntryPoint {
                         });
                     })
                         .catch(err => index_js_1.Logger.error(err, "Error with bluetooth status"));
+                    const FIRMWARE = "raspberrypi-bootloader";
                     const upgradable = () => {
                         return new index_1.Apt().list()
-                            .then(result => (result || "").split("\n").filter(s => s.indexOf("raspberry-bootloader") >= 0))
+                            .then(result => (result || "").split("\n").filter(s => s.indexOf(FIRMWARE) >= 0))
                             .then(bootlader => (bootlader || "").indexOf("upgradable") >= 0);
                     };
                     upgradable()
                         .then(result => {
+                        console.log("upgradable", { result });
                         index_js_1.Logger.data({
-                            is_latest: !result,
-                            option: "raspberrypi-bootloader"
+                            is_latest: !!(!result),
+                            option: FIRMWARE
                         });
                         if (!result) {
                             return true;
                         }
                         else {
-                            return new index_1.Apt().install("raspberry-bootloader")
+                            return new index_1.Apt().install(FIRMWARE)
                                 .then(() => upgradable())
                                 .then(latest => {
-                                index_js_1.Logger.data({ is_latest: !result, option: "raspberrypi-bootloader", upgrade: !result });
+                                index_js_1.Logger.data({ is_latest: !result, option: FIRMWARE, upgrade: !result });
                                 return latest;
                             });
                         }

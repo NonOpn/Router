@@ -146,26 +146,28 @@ export default class MainEntryPoint {
           })
           .catch(err => Logger.error(err, "Error with bluetooth status"));
 
+          const FIRMWARE = "raspberrypi-bootloader";
           const upgradable: () => Promise<boolean> = () => {
             return new Apt().list()
-            .then(result => (result || "").split("\n").filter(s => s.indexOf("raspberry-bootloader") >= 0))
+            .then(result => (result || "").split("\n").filter(s => s.indexOf(FIRMWARE) >= 0))
             .then(bootlader => (bootlader||"").indexOf("upgradable") >= 0)
           }
 
           upgradable()
           .then(result => {
+            console.log("upgradable", {result});
             Logger.data({
-              is_latest: !result,
-              option: "raspberrypi-bootloader"
+              is_latest: !!(!result),
+              option: FIRMWARE
             });
 
             if(!result) {
               return true;
             } else {
-              return new Apt().install("raspberry-bootloader")
+              return new Apt().install(FIRMWARE)
               .then(() => upgradable())
               .then(latest => {
-                Logger.data({ is_latest: !result, option: "raspberrypi-bootloader", upgrade: !result });
+                Logger.data({ is_latest: !result, option: FIRMWARE, upgrade: !result });
                 return latest;
               })
             }
