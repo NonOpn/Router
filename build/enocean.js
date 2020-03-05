@@ -16,7 +16,7 @@ function isARecognizedDevice(port) {
     if (port.manufacturer !== undefined) {
         return ["ftdi", "enocean"].find(element => port.manufacturer.toLowerCase().indexOf(element) >= 0);
     }
-    return false;
+    return ["/dev/ttyAMA0", "/dev/ttyS0"].find(s => s === port.path);
 }
 class EnoceanDevice extends events_1.EventEmitter {
     constructor(port) {
