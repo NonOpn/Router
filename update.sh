@@ -55,7 +55,7 @@ if [ -f "/usr/local/node-v8.17.0/bin/node" ]; then
   ln -s /usr/local/node-v8.17.0/bin/node /usr/bin/node
   NPM=/usr/local/node-v8.17.0/bin/npm
   NODE=/usr/local/node-v8.17.0/bin/node
-  NODE_ENOCEAN="https://github.com/codlab/node-enocean#62f23eb"
+  NODE_ENOCEAN="https://github.com/codlab/node-enocean#faa8cfe"
   #BRANCH=feature/upgrade
   BRANCH=master
 
