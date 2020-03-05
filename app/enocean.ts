@@ -59,7 +59,9 @@ class EnoceanDevice extends EventEmitter {
       }else{
         this.emit("usb-state", "on");
       }
-    })
+    });
+
+    this.openDevice(this.port);
   }
 
   isOpen = () => !!this.open_device;
@@ -132,7 +134,7 @@ class EnoceanDevice extends EventEmitter {
 
       this.enocean.listen(port.comName);
     } catch(e) {
-
+      console.log(e):
     }
   }
 }
