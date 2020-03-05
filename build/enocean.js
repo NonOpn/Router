@@ -189,13 +189,19 @@ class EnoceanLoader extends events_1.EventEmitter {
                 console.log("list of found devices", ports);
                 resolve(ports.filter((port) => isARecognizedDevice(port)));
             };
-            try {
-                serialport_1.default.list(callback);
-            }
-            catch (e) {
+            const fallback = () => {
                 const list = serialport_1.default.list();
                 list.then(ports => callback(null, ports))
                     .catch(err => reject(err));
+            };
+            try {
+                const result = serialport_1.default.list(callback);
+                if (result && result.then) {
+                    result.then(fallback).catch(fallback);
+                }
+            }
+            catch (e) {
+                fallback();
             }
         });
     }

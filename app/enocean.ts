@@ -216,12 +216,19 @@ export default class EnoceanLoader extends EventEmitter {
         resolve(ports.filter((port: any) => isARecognizedDevice(port)));
       };
 
-      try {
-        SerialPort.list(callback);
-      } catch(e) {
+      const fallback = () => {
         const list: Promise<any> = SerialPort.list();
         list.then(ports => callback(null, ports))
         .catch(err => reject(err));
+      }
+
+      try {
+        const result = SerialPort.list(callback);
+        if(result && result.then) {
+          result.then(fallback).catch(fallback);
+        }
+      } catch(e) {
+        fallback();
       }
     })
   }
