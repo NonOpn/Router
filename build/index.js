@@ -225,7 +225,7 @@ class MainEntryPoint {
                     server.start();
                     snmp.connect();
                     push_web.connect();
-                    enocean.register(server);
+                    //enocean.register(server);
                     discovery_service.bind();
                     ble.start();
                     frame_manager_alert.start();
@@ -257,6 +257,7 @@ class MainEntryPoint {
                     });
                     enocean.on("frame", (frame) => {
                     });
+                    enocean.init();
                     snmp.on("log", (log) => {
                         server.emit("log", log);
                     });
