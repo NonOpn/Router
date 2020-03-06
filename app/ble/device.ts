@@ -63,13 +63,7 @@ export default class DeviceManagement {
     }
  
     onFrame(data: any): Promise<AbstractDevice|undefined> {
-        return new Promise((resolve, reject) => {
-            if(data && data.sender) {
-                this.applyData(data, (device: AbstractDevice|undefined) => resolve(device));
-            } else {
-                resolve(undefined);
-            }
-        });
+        return data && data.sender ? this.applyData(data) : Promise.resolve(undefined);
     }
 
     list(): Promise<AbstractDevice[]> {
@@ -216,11 +210,17 @@ export default class DeviceManagement {
         .then(device => this._databaseDeviceToRealDevice(device));
     }
 
-    applyData(data: any, device_callback: OnFrameCallback|undefined = undefined) {
-        if(data && data.rawFrameStr) { //for now, using only lpsfr devices
-            //rawFrameStr and rawDataStr are set
-            if(data.rawFrameStr.length === 60) { //30*2
-                const rawdata = data.rawDataStr;
+    applyData(data: any): Promise<AbstractDevice|undefined> {
+        return new Promise((resolve, reject) => {
+            const _data = data ? data : {};
+            const rawdata = _data.rawByte || _data.rawFrameStr;
+
+            if(!rawdata) {
+                resolve(undefined);
+                return;
+            }
+
+            if(rawdata.length === 60) { //30*2
                 const internal = rawdata.substring(0, 6);
 
                 const callback = () => {
@@ -251,15 +251,14 @@ export default class DeviceManagement {
                         }
     
                         if(rawdata.length > 6 && valid_device && internal === config_internal) {
-                            this.data_point_provider.savePoint(serial, config_internal, data.sender, data.rawDataStr);
+                            this.data_point_provider.savePoint(serial, config_internal, data.sender, rawdata);
                         }
 
-                        if(device_callback && device) {
-                            device_callback(device);
-                        }
+                        resolve(device);
                     })
                     .catch(err => {
                         console.log(err);
+                        reject(err);
                     });
                 };
 
@@ -267,7 +266,7 @@ export default class DeviceManagement {
                     this.data_point_provider.latestForContactair(data.sender)
                     .then(item => {
                         if(item) {
-                            this.data_point_provider.savePoint(item.serial, item.internal, data.sender, data.rawDataStr);
+                            this.data_point_provider.savePoint(item.serial, item.internal, data.sender, rawdata);
                         } else {
                             callback();
                         }
@@ -278,14 +277,20 @@ export default class DeviceManagement {
                 } else {
                     callback();
                 }
-            } else if(data.rawFrameStr.length === 48) { //24*2
+            } else if(rawdata.length === 48) { //24*2
                 /*this.agents.forEach(agent => {
                     const lpsfr = agent.getLPSFR();
                     if(lpsfr.internal === data.sender && lpsfr.type === "ellips") {
                         this.data_point_provider.savePoint(lpsfr.serial, lpsfr.internal, data.sender, data.rawDataStr);
                     }
                 })*/
+
+                resolve(undefined);
             }
+
+        });
+
+
         }
     }
 }
