@@ -211,82 +211,61 @@ export default class DeviceManagement {
     }
 
     applyData(data: any): Promise<AbstractDevice|undefined> {
-        return new Promise((resolve, reject) => {
-            const _data = data ? data : {};
-            const rawdata = _data.rawByte || _data.rawFrameStr;
+        const _data = data ? data : {};
+        const rawdata = _data.rawByte || _data.rawFrameStr;
 
-            if(!rawdata) {
-                resolve(undefined);
-                return;
-            }
+        if(!rawdata) {
+            return Promise.resolve(undefined);
+        }
 
-            if(rawdata.length === 60) { //30*2
-                const internal = FrameModel.instance.getInternalSerial(rawdata);
+        if(rawdata.length === 60) { //30*2
+            const internal = FrameModel.instance.getInternalSerial(rawdata);
+            const contactair = FrameModel.instance.getContactair(rawdata);
 
-                const callback = () => {
-                    this.getDevice(internal)
-                    .then(device => {
-                        var type: string = "";
-                        var serial = "";
-                        var config_internal = "";
-                        if(device && device.getLPSFR()) {
-                            const d: any = device.getLPSFR();
-                            serial = d.serial;
-                            type = d.type;
-                            config_internal = d.internal;
-                            if(config_internal) config_internal = config_internal.substring(0, 6);
-                        }
-                        if(!type) type = "";
-
-                        var valid_device = false;
-                        switch(type) {
-                            case "paratonair":
-                            case "comptair":
-                            case "alertairdc":
-                            case "alertairts":
-                                valid_device = true;
-                                break;
-                            default:
-                                valid_device = false;
-                        }
-    
-                        if(rawdata.length > 6 && valid_device && internal === config_internal) {
-                            this.data_point_provider.savePoint(serial, config_internal, data.sender, rawdata);
-                        }
-
-                        resolve(device);
-                    })
-                    .catch(err => {
-                        console.log(err);
-                        reject(err);
-                    });
-                };
-
-                if(internal === "ffffff") {
-                    this.data_point_provider.latestForContactair(data.sender)
-                    .then(item => {
-                        if(item) {
-                            this.data_point_provider.savePoint(item.serial, item.internal, data.sender, rawdata);
-                        } else {
-                            callback();
-                        }
-                    }).catch(err => {
-                        console.log(err);
-                        callback();
-                    });
-                } else {
-                    callback();
+            return this.getDevice(internal)
+            .then(device => {
+                if(device) return Promise.resolve(device);
+                return this.getDeviceForContactair(contactair);
+            })
+            .then(device => {
+                var type: string = "";
+                var serial = "";
+                var config_internal = "";
+                if(device && device.getLPSFR()) {
+                    const d: any = device.getLPSFR();
+                    serial = d.serial;
+                    type = d.type;
+                    config_internal = d.internal;
+                    if(config_internal) config_internal = config_internal.substring(0, 6);
                 }
-            } else if(rawdata.length === 48) { //24*2
-                /*this.agents.forEach(agent => {
-                    const lpsfr = agent.getLPSFR();
-                    if(lpsfr.internal === data.sender && lpsfr.type === "ellips") {
-                        this.data_point_provider.savePoint(lpsfr.serial, lpsfr.internal, data.sender, data.rawDataStr);
-                    }
-                })*/
+                if(!type) type = "";
 
-                resolve(undefined);
-            }
-        });
+                var valid_device = false;
+                switch(type) {
+                    case "paratonair":
+                    case "comptair":
+                    case "alertairdc":
+                    case "alertairts":
+                        valid_device = true;
+                        break;
+                    default:
+                        valid_device = false;
+                }
+
+                if(rawdata.length > 6 && valid_device && internal === config_internal) {
+                    this.data_point_provider.savePoint(serial, config_internal, data.sender, rawdata);
+                }
+
+                return device;
+            });
+        } else if(rawdata.length === 48) { //24*2
+            /*this.agents.forEach(agent => {
+                const lpsfr = agent.getLPSFR();
+                if(lpsfr.internal === data.sender && lpsfr.type === "ellips") {
+                    this.data_point_provider.savePoint(lpsfr.serial, lpsfr.internal, data.sender, data.rawDataStr);
+                }
+            })*/
+        }
+        return Promise.resolve(undefined);
     }
 }
