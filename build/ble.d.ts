@@ -1,3 +1,5 @@
+/// <reference types="node" />
+import AbstractDevice from "./snmp/abstract";
 export default class BLE {
     private _notify_frame?;
     private _characteristics;
@@ -17,7 +19,7 @@ export default class BLE {
     refreshDevices(): void;
     start(): void;
     startDelayed(): void;
-    onFrame(frame: any): void;
+    onFrame(device: AbstractDevice | undefined, frame: any): void;
     _onDeviceSeenCall(): Promise<string>;
     json(value: string): any;
     _onNetwork(value: string): Promise<boolean>;

@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
 const config_js_1 = __importDefault(require("./config/config.js"));
@@ -134,9 +134,9 @@ class PushWEB extends events_1.EventEmitter {
             errors.postJsonError(err);
         });
     }
-    onFrame(data) {
-        if (data && data.sender) {
-            this.applyData(data);
+    onFrame(device, data) {
+        if ( /*this.is_activated && */data && data.sender) {
+            this.applyData(device, data);
         }
     }
     connect() {
@@ -164,19 +164,21 @@ class PushWEB extends events_1.EventEmitter {
             }, 1 * 60 * 1000); //every 60s
         }
     }
-    applyData(data) {
+    applyData(device, data) {
         //if(!this.is_activated) return;
         var rawData = undefined;
         if (data && data.rawFrameStr) {
-            if (data.rawFrameStr.length === 60) {
+            if (data.rawFrameStr.length === 60) { //30*2
                 rawData = data.rawFrameStr; //compress30(data.rawFrameStr);
             }
-            else if (data.rawFrameStr.length === 48) {
+            else if (data.rawFrameStr.length === 48) { //24*2
                 rawData = data.rawFrameStr; //compress24(data.rawFrameStr);
             }
         }
         if (rawData) {
+            frame_model_1.default.instance.getInternalSerial(rawData);
             const to_save = frame_model_1.default.instance.from(rawData);
+            to_save.product_id = device ? device.getId() : undefined;
             Promise.all([
                 frame_model_1.default.instance.save(to_save),
                 frame_model_compress_js_1.default.instance.save(to_save)

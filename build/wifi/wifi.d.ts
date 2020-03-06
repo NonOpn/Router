@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { ExecException } from 'child_process';
 export interface WifiConfiguration {
     ssid: string;

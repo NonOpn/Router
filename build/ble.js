@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const BLESyncCharacteristic_1 = require("./ble/BLESyncCharacteristic");
 const config_1 = __importDefault(require("./config/config"));
@@ -21,7 +21,7 @@ const devices = device_model_1.default.instance;
 const BLEConstants_1 = require("./ble/BLEConstants");
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
 var id = "Routair";
-if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) {
+if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) { //0xAABBCCDD
     id += config_1.default.identity.substr(0, 5 * 2);
 }
 var seenDevices = {
@@ -392,25 +392,22 @@ class BLE {
         safeBleno_1.onBlenoEvent("advertisingStartError", (err) => console.log(err));
         safeBleno_1.onBlenoEvent("disconnect", (client) => console.log("disconnect : client ->", client));
     }
-    onFrame(frame) {
+    onFrame(device, frame) {
         if (!safeBleno_1.isBlenoAvailable) {
             console.log("disabling bluetooth... incompatible...");
             return;
         }
         console.log("sending frame");
         this._notify_frame && this._notify_frame.onFrame(frame);
-        device_management.onFrame(frame)
-            .then((device) => {
-            if (device) {
-                device.getInternalSerial()
-                    .then((internal_serial) => {
-                    if (internal_serial && !seenDevices.devices[internal_serial]) {
-                        seenDevices.devices[internal_serial] = true;
-                        seenDevices.count++;
-                    }
-                });
-            }
-        });
+        if (device) {
+            device.getInternalSerial()
+                .then((internal_serial) => {
+                if (internal_serial && !seenDevices.devices[internal_serial]) {
+                    seenDevices.devices[internal_serial] = true;
+                    seenDevices.count++;
+                }
+            });
+        }
     }
     _onDeviceSeenCall() {
         return new Promise((resolve, reject) => {

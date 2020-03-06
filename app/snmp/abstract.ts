@@ -40,6 +40,16 @@ export default class AbstractDevice {
     //this.data_point_provider = new DataPoint();
   }
 
+  json() {
+    const data = (this.getLPSFR() || {});
+    return {
+      id: this.getId(),
+      internal: data.internal,
+      serial: data.serial,
+      type: data.type,
+    }
+  }
+
   getId(): number {
     const lpsfr = this.getLPSFR();
     return lpsfr && lpsfr.id ? lpsfr.id : 0;

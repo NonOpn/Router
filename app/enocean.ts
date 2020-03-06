@@ -134,7 +134,7 @@ class EnoceanDevice extends EventEmitter {
 
       this.enocean.listen(port.comName);
     } catch(e) {
-      console.log(e):
+      console.log(e);
     }
   }
 }

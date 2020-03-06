@@ -12,6 +12,7 @@ import { Logger } from "./log/index.js";
 import Diskspace from "./system/index.js";
 import Reporter from "./log/reporter.js";
 import FrameManagerAlert from "./frame_manager_alert.js";
+import DeviceManagement from './ble/device';
 
 const wifi = Wifi.instance;
 const errors = Errors.instance;
@@ -282,10 +283,14 @@ export default class MainEntryPoint {
           });
     
           enocean.on("managed_frame", (frame: any) => {
-            ble.onFrame(frame);
+            DeviceManagement.instance.onFrame(frame)
+            .then(device => {
+              console.log("device frame := ", {device: device?device.json() : undefined});
+              ble.onFrame(device, frame);
+              push_web.onFrame(device, frame);
+            }).catch(err => Logger.error(err, "error in managed frame"));
             server.onFrame(frame);
             snmp.onFrame(frame);
-            push_web.onFrame(frame);
           });
     
           enocean.on("frame", (frame: any) => {

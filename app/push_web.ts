@@ -6,6 +6,7 @@ import FrameModel from "./push_web/frame_model";
 import push_web_config from "./config/push_web";
 import FrameModelCompress from "./push_web/frame_model_compress.js";
 import { Logger } from "./log/index.js";
+import AbstractDevice from "./snmp/abstract.js";
 
 const errors = Errors.instance;
 
@@ -138,9 +139,9 @@ export default class PushWEB extends EventEmitter {
 		})
 	}
 
-	onFrame(data: any) {
+	onFrame(device: AbstractDevice|undefined, data: any) {
 		if(/*this.is_activated && */data && data.sender) {
-			this.applyData(data);
+			this.applyData(device, data);
 		}
 	}
 
@@ -175,7 +176,7 @@ export default class PushWEB extends EventEmitter {
 		}
 	}
 
-	applyData(data: any) {
+	applyData(device: AbstractDevice|undefined, data: any) {
 		//if(!this.is_activated) return;
 		var rawData = undefined;
 
@@ -188,7 +189,9 @@ export default class PushWEB extends EventEmitter {
 		}
 
 		if(rawData) {
+			FrameModel.instance.getInternalSerial(rawData)
 			const to_save = FrameModel.instance.from(rawData);
+			to_save.product_id = device ? device.getId() : undefined;
 			Promise.all([
 				FrameModel.instance.save(to_save),
 				FrameModelCompress.instance.save(to_save)

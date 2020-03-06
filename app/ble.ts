@@ -512,7 +512,7 @@ export default class BLE {
     onBlenoEvent("disconnect", (client: any) => console.log("disconnect : client ->", client));
   }
 
-  onFrame(frame: any) {
+  onFrame(device: AbstractDevice|undefined, frame: any) {
     if(!isBlenoAvailable) {
       console.log("disabling bluetooth... incompatible...");
       return;
@@ -521,18 +521,15 @@ export default class BLE {
     console.log("sending frame");
     this._notify_frame && this._notify_frame.onFrame(frame);
 
-    device_management.onFrame(frame)
-    .then((device: AbstractDevice|undefined) => {
-      if(device) {
-        device.getInternalSerial()
-        .then((internal_serial: string|undefined) => {
-          if(internal_serial && !seenDevices.devices[internal_serial]) {
-            seenDevices.devices[internal_serial] = true;
-            seenDevices.count ++;
-          }
-        });
-      }
-    });
+    if(device) {
+      device.getInternalSerial()
+      .then((internal_serial: string|undefined) => {
+        if(internal_serial && !seenDevices.devices[internal_serial]) {
+          seenDevices.devices[internal_serial] = true;
+          seenDevices.count ++;
+        }
+      });
+    }
   }
 
   _onDeviceSeenCall(): Promise<string> {
