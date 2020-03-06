@@ -166,29 +166,23 @@ class PushWEB extends events_1.EventEmitter {
     }
     applyData(device, data) {
         //if(!this.is_activated) return;
-        var rawData = undefined;
-        if (data && data.rawFrameStr) {
-            if (data.rawFrameStr.length === 60) { //30*2
-                rawData = data.rawFrameStr; //compress30(data.rawFrameStr);
-            }
-            else if (data.rawFrameStr.length === 48) { //24*2
-                rawData = data.rawFrameStr; //compress24(data.rawFrameStr);
-            }
+        const _data = data ? data : {};
+        var rawdata = _data.rawByte || _data.rawFrameStr;
+        if (rawdata && rawdata != 48 && rawdata != 60) {
+            return;
         }
-        if (rawData) {
-            frame_model_1.default.instance.getInternalSerial(rawData);
-            const to_save = frame_model_1.default.instance.from(rawData);
-            to_save.product_id = device ? device.getId() : undefined;
-            Promise.all([
-                frame_model_1.default.instance.save(to_save),
-                frame_model_compress_js_1.default.instance.save(to_save)
-            ])
-                .then(saved => console.log(saved))
-                .catch(err => {
-                errors.postJsonError(err);
-                console.log(err);
-            });
-        }
+        frame_model_1.default.instance.getInternalSerial(rawdata);
+        const to_save = frame_model_1.default.instance.from(rawdata);
+        to_save.product_id = device ? device.getId() : undefined;
+        Promise.all([
+            frame_model_1.default.instance.save(to_save),
+            frame_model_compress_js_1.default.instance.save(to_save)
+        ])
+            .then(saved => console.log(saved))
+            .catch(err => {
+            errors.postJsonError(err);
+            console.log(err);
+        });
     }
 }
 exports.default = PushWEB;

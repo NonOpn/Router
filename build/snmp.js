@@ -38,48 +38,50 @@ class SNMP extends events_1.EventEmitter {
         }
     }
     applyData(data) {
-        if (data && data.rawFrameStr) { //for now, using only lpsfr devices
-            //rawFrameStr and rawDataStr are set
-            if (data.rawFrameStr.length === 60) { //30*2
-                const rawdata = data.rawDataStr;
-                const internal = rawdata.substring(0, 6);
-                const callback = () => {
-                    this.agents.forEach(agent => {
-                        var lpsfr = agent != undefined ? agent.getLPSFR() : {};
-                        if (rawdata.length > 6 && (lpsfr.type === "paratonair" || lpsfr.type === "comptair")) {
-                            const config_internal = lpsfr.internal.substring(0, 6);
-                            if (internal === config_internal) {
-                                this.data_point_provider.savePoint(lpsfr.serial, config_internal, data.sender, data.rawDataStr);
-                            }
-                        }
-                    });
-                };
-                if (internal === "ffffff") {
-                    this.data_point_provider.latestForContactair(data.sender)
-                        .then(item => {
-                        if (item) {
-                            this.data_point_provider.savePoint(item.serial, item.internal, data.sender, data.rawDataStr);
-                        }
-                        else {
-                            callback();
-                        }
-                    }).catch(err => {
-                        console.log(err);
-                        callback();
-                    });
-                }
-                else {
-                    callback();
-                }
-            }
-            else if (data.rawFrameStr.length === 48) { //24*2
+        const _data = data ? data : {};
+        var rawdata = _data.rawByte || _data.rawFrameStr;
+        if (!rawdata || (rawdata != 48 && rawdata != 60)) {
+            return;
+        }
+        //for now, using only lpsfr devices
+        if (rawdata.length === 60) { //30*2
+            const internal = rawdata.substring(0, 6);
+            const callback = () => {
                 this.agents.forEach(agent => {
-                    const lpsfr = agent.getLPSFR();
-                    if (lpsfr.internal === data.sender && lpsfr.type === "ellips") {
-                        this.data_point_provider.savePoint(lpsfr.serial, lpsfr.internal, data.sender, data.rawDataStr);
+                    var lpsfr = agent != undefined ? agent.getLPSFR() : {};
+                    if (rawdata.length > 6 && (lpsfr.type === "paratonair" || lpsfr.type === "comptair")) {
+                        const config_internal = lpsfr.internal.substring(0, 6);
+                        if (internal === config_internal) {
+                            this.data_point_provider.savePoint(lpsfr.serial, config_internal, data.sender, rawdata);
+                        }
                     }
                 });
+            };
+            if (internal === "ffffff") {
+                this.data_point_provider.latestForContactair(data.sender)
+                    .then(item => {
+                    if (item) {
+                        this.data_point_provider.savePoint(item.serial, item.internal, data.sender, rawdata);
+                    }
+                    else {
+                        callback();
+                    }
+                }).catch(err => {
+                    console.log(err);
+                    callback();
+                });
             }
+            else {
+                callback();
+            }
+        }
+        else if (rawdata.length === 48) { //24*2
+            this.agents.forEach(agent => {
+                const lpsfr = agent.getLPSFR();
+                if (lpsfr.internal === data.sender && lpsfr.type === "ellips") {
+                    this.data_point_provider.savePoint(lpsfr.serial, lpsfr.internal, data.sender, rawdata);
+                }
+            });
         }
     }
     connect() {
