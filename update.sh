@@ -9,7 +9,7 @@
 BRANCH=master
 NPM=/usr/bin/npm
 NODE=/usr/bin/node
-NODE_ENOCEAN="https://github.com/codlab/node-enocean#aba48a7"
+NODE_ENOCEAN="https://github.com/codlab/node-enocean#2d1ba60"
 
 if [ -f "/usr/local/node-v8.17.0/bin/node" ]; then
   echo "node available, skipping upgrade"
@@ -55,7 +55,7 @@ if [ -f "/usr/local/node-v8.17.0/bin/node" ]; then
   ln -s /usr/local/node-v8.17.0/bin/node /usr/bin/node
   NPM=/usr/local/node-v8.17.0/bin/npm
   NODE=/usr/local/node-v8.17.0/bin/node
-  NODE_ENOCEAN="https://github.com/codlab/node-enocean#aba48a7"
+  NODE_ENOCEAN="https://github.com/codlab/node-enocean#2d1ba60"
   #BRANCH=feature/upgrade
   BRANCH=master
 
