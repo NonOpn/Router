@@ -32,18 +32,26 @@ pool.query("CREATE TABLE IF NOT EXISTS Frames ("
     .catch(err => console.log(err));
 const FRAME_MODEL = "Transaction";
 function createInsertRows() {
-    var columns = ["frame", "timestamp", "sent"];
+    var columns = ["frame", "timestamp", "sent", "product_id"];
     columns = columns.map(col => "`" + col + "`");
     return "INSERT INTO Frames (" + columns.join(",") + ") VALUES ? ";
 }
 const INSERT_ROWS = createInsertRows();
-function txToJson(tx) {
+function txToJson(tx, with_alert = true) {
+    if (with_alert) {
+        return {
+            frame: tx.frame,
+            timestamp: tx.timestamp,
+            sent: tx.sent,
+            is_alert: !!tx.is_alert,
+            is_alert_disconnected: !!tx.is_alert_disconnected,
+            product_id: tx.product_id
+        };
+    }
     return {
         frame: tx.frame,
         timestamp: tx.timestamp,
         sent: tx.sent,
-        is_alert: !!tx.is_alert,
-        is_alert_disconnected: !!tx.is_alert_disconnected,
         product_id: tx.product_id
     };
 }
@@ -51,7 +59,8 @@ function txToArrayForInsert(tx) {
     return [
         tx.frame,
         tx.timestamp,
-        tx.sent
+        tx.sent,
+        tx.product_id
     ];
 }
 function manageErrorCrash(error, reject) {
@@ -239,7 +248,7 @@ class FrameModel extends abstract_js_1.default {
     save(tx) {
         return new Promise((resolve, reject) => {
             tx.timestamp = Math.floor(Date.now() / 1000);
-            const transaction = txToJson(tx);
+            const transaction = txToJson(tx, false);
             pool.queryParameters("INSERT INTO Frames SET ?", [transaction])
                 .then(() => resolve(transaction))
                 .catch(err => manageErrorCrash(err, reject));
