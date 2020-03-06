@@ -254,8 +254,8 @@ class MainEntryPoint {
                         device_1.default.instance.onFrame(frame)
                             .then(device => {
                             console.log("device frame := ", { device: device ? device.json() : undefined });
-                            ble.onFrame(device, frame);
                             push_web.onFrame(device, frame);
+                            ble.onFrame(device, frame);
                         }).catch(err => index_js_1.Logger.error(err, "error in managed frame"));
                         server.onFrame(frame);
                         snmp.onFrame(frame);

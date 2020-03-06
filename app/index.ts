@@ -286,8 +286,8 @@ export default class MainEntryPoint {
             DeviceManagement.instance.onFrame(frame)
             .then(device => {
               console.log("device frame := ", {device: device?device.json() : undefined});
-              ble.onFrame(device, frame);
               push_web.onFrame(device, frame);
+              ble.onFrame(device, frame);
             }).catch(err => Logger.error(err, "error in managed frame"));
             server.onFrame(frame);
             snmp.onFrame(frame);

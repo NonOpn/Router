@@ -140,9 +140,7 @@ export default class PushWEB extends EventEmitter {
 	}
 
 	onFrame(device: AbstractDevice|undefined, data: any) {
-		if(/*this.is_activated && */data && data.sender) {
-			this.applyData(device, data);
-		}
+		this.applyData(device, data);
 	}
 
 	private _started: boolean = false;
@@ -177,11 +175,10 @@ export default class PushWEB extends EventEmitter {
 	}
 
 	applyData(device: AbstractDevice|undefined, data: any) {
-		//if(!this.is_activated) return;
 		const _data = data ? data : {};
 		var rawdata = _data.rawByte || _data.rawFrameStr;
 
-		if(rawdata && rawdata != 48 && rawdata != 60) {
+		if(rawdata && rawdata.length != 48 && rawdata.length != 60) {
 			return;
 		}
 

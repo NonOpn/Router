@@ -135,9 +135,7 @@ class PushWEB extends events_1.EventEmitter {
         });
     }
     onFrame(device, data) {
-        if ( /*this.is_activated && */data && data.sender) {
-            this.applyData(device, data);
-        }
+        this.applyData(device, data);
     }
     connect() {
         if (this._started)
@@ -165,10 +163,9 @@ class PushWEB extends events_1.EventEmitter {
         }
     }
     applyData(device, data) {
-        //if(!this.is_activated) return;
         const _data = data ? data : {};
         var rawdata = _data.rawByte || _data.rawFrameStr;
-        if (rawdata && rawdata != 48 && rawdata != 60) {
+        if (rawdata && rawdata.length != 48 && rawdata.length != 60) {
             return;
         }
         const to_save = frame_model_1.default.instance.from(rawdata);

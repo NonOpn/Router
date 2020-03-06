@@ -41,7 +41,7 @@ class SNMP extends events_1.EventEmitter {
     applyData(data) {
         const _data = data ? data : {};
         var rawdata = _data.rawByte || _data.rawFrameStr;
-        if (!rawdata || (rawdata != 48 && rawdata != 60)) {
+        if (!rawdata || (rawdata.length != 48 && rawdata.length != 60)) {
             return;
         }
         //for now, using only lpsfr devices
