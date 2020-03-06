@@ -221,7 +221,7 @@ export default class DeviceManagement {
             }
 
             if(rawdata.length === 60) { //30*2
-                const internal = rawdata.substring(0, 6);
+                const internal = FrameModel.instance.getInternalSerial(rawdata);
 
                 const callback = () => {
                     this.getDevice(internal)
@@ -287,10 +287,6 @@ export default class DeviceManagement {
 
                 resolve(undefined);
             }
-
         });
-
-
-        }
     }
 }

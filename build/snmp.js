@@ -10,6 +10,7 @@ const data_point_1 = __importDefault(require("./database/data_point"));
 const paratonair_1 = __importDefault(require("./snmp/paratonair"));
 const alertairdc_1 = __importDefault(require("./snmp/alertairdc"));
 const ellips_1 = __importDefault(require("./snmp/ellips"));
+const frame_model_js_1 = __importDefault(require("./push_web/frame_model.js"));
 const array = {
     paratonair: paratonair_1.default,
     comptair: paratonair_1.default,
@@ -45,12 +46,12 @@ class SNMP extends events_1.EventEmitter {
         }
         //for now, using only lpsfr devices
         if (rawdata.length === 60) { //30*2
-            const internal = rawdata.substring(0, 6);
+            const internal = frame_model_js_1.default.instance.getInternalSerial(rawdata);
             const callback = () => {
                 this.agents.forEach(agent => {
                     var lpsfr = agent != undefined ? agent.getLPSFR() : {};
                     if (rawdata.length > 6 && (lpsfr.type === "paratonair" || lpsfr.type === "comptair")) {
-                        const config_internal = lpsfr.internal.substring(0, 6);
+                        const config_internal = frame_model_js_1.default.instance.getInternalSerial(rawdata);
                         if (internal === config_internal) {
                             this.data_point_provider.savePoint(lpsfr.serial, config_internal, data.sender, rawdata);
                         }

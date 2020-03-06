@@ -6,6 +6,7 @@ import DataPoint from "./database/data_point";
 import Paratonair from "./snmp/paratonair";
 import AlertairDC from "./snmp/alertairdc";
 import Ellips from "./snmp/ellips";
+import FrameModel from "./push_web/frame_model.js";
 
 const array = {
 	paratonair: Paratonair,
@@ -55,12 +56,12 @@ export default class SNMP extends EventEmitter {
 
 		//for now, using only lpsfr devices
 		if(rawdata.length === 60) { //30*2
-			const internal = rawdata.substring(0, 6);
+			const internal = FrameModel.instance.getInternalSerial(rawdata);
 			const callback = () => { //manage contactair ready v2 if not ffffff
 				this.agents.forEach(agent => {
 					var lpsfr = agent != undefined ? agent.getLPSFR() : {};
 					if(rawdata.length > 6 && (lpsfr.type === "paratonair" || lpsfr.type === "comptair")) {
-						const config_internal = lpsfr.internal.substring(0, 6);
+						const config_internal = FrameModel.instance.getInternalSerial(rawdata);
 
 						if(internal === config_internal) {
 							this.data_point_provider.savePoint(lpsfr.serial, config_internal, data.sender, rawdata);

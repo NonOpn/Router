@@ -203,7 +203,7 @@ class DeviceManagement {
                 return;
             }
             if (rawdata.length === 60) { //30*2
-                const internal = rawdata.substring(0, 6);
+                const internal = frame_model_1.default.instance.getInternalSerial(rawdata);
                 const callback = () => {
                     this.getDevice(internal)
                         .then(device => {

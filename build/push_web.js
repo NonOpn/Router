@@ -171,7 +171,6 @@ class PushWEB extends events_1.EventEmitter {
         if (rawdata && rawdata != 48 && rawdata != 60) {
             return;
         }
-        frame_model_1.default.instance.getInternalSerial(rawdata);
         const to_save = frame_model_1.default.instance.from(rawdata);
         to_save.product_id = device ? device.getId() : undefined;
         Promise.all([

@@ -185,7 +185,6 @@ export default class PushWEB extends EventEmitter {
 			return;
 		}
 
-		FrameModel.instance.getInternalSerial(rawdata)
 		const to_save = FrameModel.instance.from(rawdata);
 		to_save.product_id = device ? device.getId() : undefined;
 		Promise.all([
