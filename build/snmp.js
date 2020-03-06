@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
 const snmp_json_1 = __importDefault(require("../config/snmp.json"));
@@ -10,6 +10,7 @@ const data_point_1 = __importDefault(require("./database/data_point"));
 const paratonair_1 = __importDefault(require("./snmp/paratonair"));
 const alertairdc_1 = __importDefault(require("./snmp/alertairdc"));
 const ellips_1 = __importDefault(require("./snmp/ellips"));
+const frame_model_js_1 = __importDefault(require("./push_web/frame_model.js"));
 const array = {
     paratonair: paratonair_1.default,
     comptair: paratonair_1.default,
@@ -38,48 +39,50 @@ class SNMP extends events_1.EventEmitter {
         }
     }
     applyData(data) {
-        if (data && data.rawFrameStr) {
-            //rawFrameStr and rawDataStr are set
-            if (data.rawFrameStr.length === 60) {
-                const rawdata = data.rawDataStr;
-                const internal = rawdata.substring(0, 6);
-                const callback = () => {
-                    this.agents.forEach(agent => {
-                        var lpsfr = agent != undefined ? agent.getLPSFR() : {};
-                        if (rawdata.length > 6 && (lpsfr.type === "paratonair" || lpsfr.type === "comptair")) {
-                            const config_internal = lpsfr.internal.substring(0, 6);
-                            if (internal === config_internal) {
-                                this.data_point_provider.savePoint(lpsfr.serial, config_internal, data.sender, data.rawDataStr);
-                            }
-                        }
-                    });
-                };
-                if (internal === "ffffff") {
-                    this.data_point_provider.latestForContactair(data.sender)
-                        .then(item => {
-                        if (item) {
-                            this.data_point_provider.savePoint(item.serial, item.internal, data.sender, data.rawDataStr);
-                        }
-                        else {
-                            callback();
-                        }
-                    }).catch(err => {
-                        console.log(err);
-                        callback();
-                    });
-                }
-                else {
-                    callback();
-                }
-            }
-            else if (data.rawFrameStr.length === 48) {
+        const _data = data ? data : {};
+        var rawdata = _data.rawByte || _data.rawFrameStr;
+        if (!rawdata || (rawdata.length != 48 && rawdata.length != 60)) {
+            return;
+        }
+        //for now, using only lpsfr devices
+        if (rawdata.length === 60) { //30*2
+            const internal = frame_model_js_1.default.instance.getInternalSerial(rawdata);
+            const callback = () => {
                 this.agents.forEach(agent => {
-                    const lpsfr = agent.getLPSFR();
-                    if (lpsfr.internal === data.sender && lpsfr.type === "ellips") {
-                        this.data_point_provider.savePoint(lpsfr.serial, lpsfr.internal, data.sender, data.rawDataStr);
+                    var lpsfr = agent != undefined ? agent.getLPSFR() : {};
+                    if (rawdata.length > 6 && (lpsfr.type === "paratonair" || lpsfr.type === "comptair")) {
+                        const config_internal = frame_model_js_1.default.instance.getInternalSerial(rawdata);
+                        if (internal === config_internal) {
+                            this.data_point_provider.savePoint(lpsfr.serial, config_internal, data.sender, rawdata);
+                        }
                     }
                 });
+            };
+            if (internal === "ffffff") {
+                this.data_point_provider.latestForContactair(data.sender)
+                    .then(item => {
+                    if (item) {
+                        this.data_point_provider.savePoint(item.serial, item.internal, data.sender, rawdata);
+                    }
+                    else {
+                        callback();
+                    }
+                }).catch(err => {
+                    console.log(err);
+                    callback();
+                });
             }
+            else {
+                callback();
+            }
+        }
+        else if (rawdata.length === 48) { //24*2
+            this.agents.forEach(agent => {
+                const lpsfr = agent.getLPSFR();
+                if (lpsfr.internal === data.sender && lpsfr.type === "ellips") {
+                    this.data_point_provider.savePoint(lpsfr.serial, lpsfr.internal, data.sender, rawdata);
+                }
+            });
         }
     }
     connect() {

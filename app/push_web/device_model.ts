@@ -71,6 +71,7 @@ function manageErrorCrash(error: Error, reject?: Reject): Promise<any>|undefined
   console.log("Device crash", error);
   if(reject) {
     pool.manageErrorCrash("Device", error, reject);
+    return undefined;
   } else {
     return new Promise((resolve, reject) => pool.manageErrorCrash("Device", error, reject));
   }

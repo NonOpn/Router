@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("./systemctl/index");
 const enocean_js_1 = __importDefault(require("./enocean.js"));
@@ -17,6 +17,7 @@ const index_js_1 = require("./log/index.js");
 const index_js_2 = __importDefault(require("./system/index.js"));
 const reporter_js_1 = __importDefault(require("./log/reporter.js"));
 const frame_manager_alert_js_1 = __importDefault(require("./frame_manager_alert.js"));
+const device_1 = __importDefault(require("./ble/device"));
 const wifi = wifi_js_1.default.instance;
 const errors = errors_1.default.instance;
 const RESTART_DELAY = 180000; //restart the program after 180 000 ms
@@ -250,10 +251,14 @@ class MainEntryPoint {
                         server.emit("usb-closed");
                     });
                     enocean.on("managed_frame", (frame) => {
-                        ble.onFrame(frame);
+                        device_1.default.instance.onFrame(frame)
+                            .then(device => {
+                            console.log("device frame := ", { device: device ? device.json() : undefined });
+                            push_web.onFrame(device, frame);
+                            ble.onFrame(device, frame);
+                        }).catch(err => index_js_1.Logger.error(err, "error in managed frame"));
                         server.onFrame(frame);
                         snmp.onFrame(frame);
-                        push_web.onFrame(frame);
                     });
                     enocean.on("frame", (frame) => {
                     });

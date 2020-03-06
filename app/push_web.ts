@@ -6,6 +6,7 @@ import FrameModel from "./push_web/frame_model";
 import push_web_config from "./config/push_web";
 import FrameModelCompress from "./push_web/frame_model_compress.js";
 import { Logger } from "./log/index.js";
+import AbstractDevice from "./snmp/abstract.js";
 
 const errors = Errors.instance;
 
@@ -138,10 +139,8 @@ export default class PushWEB extends EventEmitter {
 		})
 	}
 
-	onFrame(data: any) {
-		if(/*this.is_activated && */data && data.sender) {
-			this.applyData(data);
-		}
+	onFrame(device: AbstractDevice|undefined, data: any) {
+		this.applyData(device, data);
 	}
 
 	private _started: boolean = false;
@@ -175,29 +174,24 @@ export default class PushWEB extends EventEmitter {
 		}
 	}
 
-	applyData(data: any) {
-		//if(!this.is_activated) return;
-		var rawData = undefined;
+	applyData(device: AbstractDevice|undefined, data: any) {
+		const _data = data ? data : {};
+		var rawdata = _data.rawByte || _data.rawFrameStr;
 
-		if(data && data.rawFrameStr) {
-			if(data.rawFrameStr.length === 60) { //30*2
-				rawData = data.rawFrameStr; //compress30(data.rawFrameStr);
-			} else if(data.rawFrameStr.length === 48) { //24*2
-				rawData = data.rawFrameStr; //compress24(data.rawFrameStr);
-			}
+		if(rawdata && rawdata.length != 48 && rawdata.length != 60) {
+			return;
 		}
 
-		if(rawData) {
-			const to_save = FrameModel.instance.from(rawData);
-			Promise.all([
-				FrameModel.instance.save(to_save),
-				FrameModelCompress.instance.save(to_save)
-			])
-			.then(saved => console.log(saved))
-			.catch(err => {
-				errors.postJsonError(err);
-				console.log(err);
-			})
-		}
+		const to_save = FrameModel.instance.from(rawdata);
+		to_save.product_id = device ? device.getId() : undefined;
+		Promise.all([
+			FrameModel.instance.save(to_save),
+			FrameModelCompress.instance.save(to_save)
+		])
+		.then(saved => console.log(saved))
+		.catch(err => {
+			errors.postJsonError(err);
+			console.log(err);
+		});
 	}
 }
