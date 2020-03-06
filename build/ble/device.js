@@ -85,7 +85,8 @@ class DeviceManagement {
             case TYPE_COMPTAIR:
                 return !comptair_1.default.isConnected(frame);
             default:
-                return false;
+                //add default detection
+                return !paratonair_1.default.isConnected(frame);
         }
     }
     isAlert(type, compressed_frame) {

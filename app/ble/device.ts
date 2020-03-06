@@ -96,7 +96,8 @@ export default class DeviceManagement {
             case TYPE_COMPTAIR:
                 return !Comptair.isConnected(frame);
             default:
-                return false;
+                //add default detection
+                return !Paratonair.isConnected(frame);
         }
     }
 
