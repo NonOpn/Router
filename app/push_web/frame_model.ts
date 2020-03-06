@@ -178,6 +178,7 @@ export default class FrameModel extends Abstract {
   }
 
   setDevice(index: number, product_id: number, is_alert?: boolean, is_alert_disconnect?:boolean): Promise<boolean> {
+    console.log("setDevice", {index, product_id, is_alert, is_alert_disconnect});
     return new Promise((resolve, reject) => {
       if(is_alert) {
         //it's an alert, already much more important than disconnected
@@ -284,6 +285,7 @@ export default class FrameModel extends Abstract {
     return new Promise((resolve, reject) => {
       tx.timestamp = Math.floor(Date.now()/1000);
       const transaction = txToJson(tx, false);
+      console.log("save", transaction);
       pool.queryParameters("INSERT INTO Frames SET ?", [transaction])
       .then(() => resolve(transaction))
       .catch(err => manageErrorCrash(err, reject));
