@@ -4,7 +4,6 @@ import SerialPort from "serialport";
 import Enocean from "node-enocean";
 
 import config from "./config/enocean";
-import EnoceanSend from "./enocean_send";
 
 const getByte = (telegram_byte_str: any, index: any): any => telegram_byte_str[index * 2 ] + telegram_byte_str[index * 2 + 1];
 const getEEP = (rorg: any, rorg_func: any, rorg_type: any): any => (rorg+"-"+rorg_func+"-"+rorg_type).toLowerCase()
@@ -20,7 +19,6 @@ function isARecognizedDevice(port: any) {
 
 class EnoceanDevice extends EventEmitter {
   enocean = Enocean();
-  enocean_send = new EnoceanSend();
   
   open_device: any = undefined;
   port: any|undefined;
@@ -182,11 +180,6 @@ export default class EnoceanLoader extends EventEmitter {
 
   readDevices() {
     if(!this.devices.find(device => device.isOpen())) {
-      this.listDevices()
-      .then(devices => console.log("fetched devices", devices))
-      .catch(err => console.log(err));
-
-
       if(config.enocean_endpoint != null) {
         this.openDevice({ comName: config.enocean_endpoint });
 

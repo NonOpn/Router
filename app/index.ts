@@ -89,21 +89,14 @@ export default class MainEntryPoint {
       created_domain.run(() => {
 
         new Promise((resolve) => {
-
           Reporter.instance.start();
           Diskspace.instance.usage()
           .then(usage => {
-            if(usage) {
-              Logger.identity({usage}, ["usage"]);
-            }
-            //delay the answer to prevent any issue in this session - to improve, just exploring new features
-            setTimeout(() => resolve(true), 5000);
+            if(usage) Logger.identity({usage}, ["usage"]);
           })
-          .catch(err => {
-            console.log(err);
-            //delay the answer to prevent any issue in this session - to improve, just exploring new features
-            setTimeout(() => resolve(true), 5000);
-          });
+          .catch(err => console.log(err) );
+          //delay the answer to prevent any issue in this session - to improve, just exploring new features
+          setTimeout(() => resolve(true), 5000);
         }).then(() => {
           var enocean = new EnoceanLoader();
           var server = new Server(enocean);
@@ -143,16 +136,16 @@ export default class MainEntryPoint {
             console.log("error on ssh", err);
           });
 
-          new Apt().list()
+          /*new Apt().list()
           .then(result => {
             Logger.data({
               packages: (result || "").split("\n").filter(s => s.indexOf("blue") >= 0 || s.indexOf("bootloader") >= 0),
               option: "bluetooth"
             });
           })
-          .catch(err => Logger.error(err, "Error with bluetooth status"));
+          .catch(err => Logger.error(err, "Error with bluetooth status"));*/
 
-          const FIRMWARE = "raspberrypi-bootloader";
+          /*const FIRMWARE = "raspberrypi-bootloader";
           const fn_upgradable: () => Promise<Upgradable> = () => {
             return new Apt().list()
             .then(result => (result || "").split("\n").find(s => s.indexOf(FIRMWARE) >= 0))
@@ -160,10 +153,10 @@ export default class MainEntryPoint {
               upgradable: (bootlader||"").indexOf("upgradable") >= 0,
               version: bootlader || ""
             }))
-          }
+          }*/
 
 
-          const bluetooth_packages = ["bluez","bluez-firmware","pi-bluetooth"];
+          /*const bluetooth_packages = ["bluez","bluez-firmware","pi-bluetooth"];
           const fn_upgradable_bluetooth: () => Promise<string[]> = () => {
             const to_upgrade = (lines: string[], pack: string) => !!(lines.find(line => (line.indexOf(pack+"/") >= 0) && (line.indexOf("upgradable") >= 0) ));
 
@@ -185,10 +178,9 @@ export default class MainEntryPoint {
               return to_update.length == 0;
             })
           })
-          .catch(err => Logger.error(err, "Error with bootloader status"));
+          .catch(err => Logger.error(err, "Error with bootloader status"));*/
 
-
-          fn_upgradable()
+          /*fn_upgradable()
           .then(({upgradable, version}) => {
             console.log("upgradable", {upgradable, version});
             Logger.data({ upgradable, apt: version, option: FIRMWARE });
@@ -204,17 +196,17 @@ export default class MainEntryPoint {
               })
             }
           })
-          .catch(err => Logger.error(err, "Error with bootloader status"));
+          .catch(err => Logger.error(err, "Error with bootloader status"));*/
 
-          const which = new Which();
+          /*const which = new Which();
           which.which("hciconfig")
           .then(status => {
             Logger.data({service: "which", cmd:"hciconfig", status})
           })
           .then(res => {})
-          .catch(err => Logger.error(err, "Error with hciconfig status"));
+          .catch(err => Logger.error(err, "Error with hciconfig status"));*/
 
-          exists("/bin/hciconfig")
+          /*exists("/bin/hciconfig")
           .then(ok => {
             if(ok) {
               Logger.data({service: "exists", cmd: "hciconfig", ok});
@@ -238,7 +230,7 @@ export default class MainEntryPoint {
             return bluetooth.up();
           })
           .then(res => console.log("hci dddonnnee ?"))
-          .catch(err => Logger.error(err, "Error with hciconfig exists or armv7-bluez-osmc"));
+          .catch(err => Logger.error(err, "Error with hciconfig exists or armv7-bluez-osmc"));*/
 
           const bluetooth = new Bluetooth();
           bluetooth.status()
