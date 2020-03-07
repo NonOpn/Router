@@ -11,17 +11,34 @@ NPM=/usr/bin/npm
 NODE=/usr/bin/node
 NODE_ENOCEAN="https://github.com/codlab/node-enocean#6ba3121"
 
+NPM_URL=" "
+NODE_FOLDER=" "
+MD5_VALUE=" "
+CPU_INFO=`cat /proc/cpuinfo`
+
+if grep -q '(v6l)' <<< "$CPU_INFO"; then
+  echo currently on arm v6l
+  NPM_URL="https://nodejs.org/dist/latest-v8.x/node-v8.17.0-linux-armv6l.tar.gz"
+  MD5_VALUE="45949cbdf27b6853ff7c6a67bca556a3  node.tar.gz"
+  NODE_FOLDER="node-v8.17.0-linux-armv6l"
+else
+  echo currently on not arm v6l
+  NPM_URL="https://nodejs.org/dist/latest-v8.x/node-v8.17.0-linux-armv7l.tar.gz"
+  MD5_VALUE="7eb48c81e035dab37282d3275fc9a09a  node.tar.gz"
+  NODE_FOLDER="node-v8.17.0-linux-armv7l"
+fi
+
 if [ -f "/usr/local/node-v8.17.0/bin/node" ]; then
   echo "node available, skipping upgrade"
 else
-  wget -O /tmp/node.tar.gz https://nodejs.org/dist/latest-v8.x/node-v8.17.0-linux-armv7l.tar.gz
-  echo "7eb48c81e035dab37282d3275fc9a09a  node.tar.gz" > /tmp/node.tar.gz.md5
+  wget -O /tmp/node.tar.gz $NPM_URL
+  echo $MD5_VALUE > /tmp/node.tar.gz.md5
   cd /tmp
   if md5sum -c node.tar.gz.md5; then
     sudo systemctl stop routair.service
     echo "md5 match"
     tar -xzvf node.tar.gz
-    cp -r node-v8.17.0-linux-armv7l /usr/local/node-v8.17.0
+    cp -r $NODE_FOLDER /usr/local/node-v8.17.0
     export PATH=/usr/local/node-v8.17.0/bin/:$PATH
 
     echo "reinstalling packages..."
@@ -39,7 +56,7 @@ else
   fi
 
   rm -rf /tmp/node.tar.gz
-  rm -rf /tmp/node-v8.17.0-linux-armv7l
+  rm -rf /tmp/node-*
 fi
 
 #if [ -f "/usr/local/node-v10.19.0/bin/node" ]; then
