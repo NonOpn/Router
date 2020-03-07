@@ -144,6 +144,7 @@ class BLEFrameNotify extends Characteristic {
 }
 
 class BLEWriteCharacteristic extends Characteristic {
+  static listeners: BLEWriteCharacteristic [] = [];
   _onValueRead: BLEWriteCallback;
   _tmp?: string|undefined = undefined;
 
@@ -157,7 +158,15 @@ class BLEWriteCharacteristic extends Characteristic {
     if(onValueRead) this._onValueRead = onValueRead;
     else this._onValueRead = () => new Promise(r => r(false));
 
-    setInterval(() => this.tryFlush(), 100);
+    BLEWriteCharacteristic.listeners.push(this);
+    if(BLEWriteCharacteristic.listeners.length == 1) {
+      console.log("BleWriteCharacteristic :: start trying flush");
+      setInterval(() => {
+        BLEWriteCharacteristic.listeners.forEach(listener => {
+          try { listener.tryFlush() } catch(e) { }
+        })
+      }, 100);
+    }
   }
 
   _counter = 0;
