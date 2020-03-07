@@ -9,8 +9,8 @@ export declare class RfKill {
     block(mode: ANTENNA): Promise<string>;
 }
 export declare class AptCache {
-    private exec;
-    private rpiBootloader;
+    private exec(action, service);
+    private rpiBootloader();
     isLatest(): Promise<boolean>;
     findVersion(output: string): string[] | "";
 }

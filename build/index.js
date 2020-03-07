@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("./systemctl/index");
 const enocean_js_1 = __importDefault(require("./enocean.js"));
@@ -79,17 +79,12 @@ class MainEntryPoint {
                     reporter_js_1.default.instance.start();
                     index_js_2.default.instance.usage()
                         .then(usage => {
-                        if (usage) {
+                        if (usage)
                             index_js_1.Logger.identity({ usage }, ["usage"]);
-                        }
-                        //delay the answer to prevent any issue in this session - to improve, just exploring new features
-                        setTimeout(() => resolve(true), 5000);
                     })
-                        .catch(err => {
-                        console.log(err);
-                        //delay the answer to prevent any issue in this session - to improve, just exploring new features
-                        setTimeout(() => resolve(true), 5000);
-                    });
+                        .catch(err => console.log(err));
+                    //delay the answer to prevent any issue in this session - to improve, just exploring new features
+                    setTimeout(() => resolve(true), 5000);
                 }).then(() => {
                     var enocean = new enocean_js_1.default();
                     var server = new server_js_1.default(enocean);
@@ -125,95 +120,95 @@ class MainEntryPoint {
                         .catch(err => {
                         console.log("error on ssh", err);
                     });
-                    new index_1.Apt().list()
-                        .then(result => {
-                        index_js_1.Logger.data({
-                            packages: (result || "").split("\n").filter(s => s.indexOf("blue") >= 0 || s.indexOf("bootloader") >= 0),
-                            option: "bluetooth"
-                        });
+                    /*new Apt().list()
+                    .then(result => {
+                      Logger.data({
+                        packages: (result || "").split("\n").filter(s => s.indexOf("blue") >= 0 || s.indexOf("bootloader") >= 0),
+                        option: "bluetooth"
+                      });
                     })
-                        .catch(err => index_js_1.Logger.error(err, "Error with bluetooth status"));
-                    const FIRMWARE = "raspberrypi-bootloader";
-                    const fn_upgradable = () => {
-                        return new index_1.Apt().list()
-                            .then(result => (result || "").split("\n").find(s => s.indexOf(FIRMWARE) >= 0))
-                            .then(bootlader => ({
-                            upgradable: (bootlader || "").indexOf("upgradable") >= 0,
-                            version: bootlader || ""
-                        }));
-                    };
-                    const bluetooth_packages = ["bluez", "bluez-firmware", "pi-bluetooth"];
-                    const fn_upgradable_bluetooth = () => {
-                        const to_upgrade = (lines, pack) => !!(lines.find(line => (line.indexOf(pack + "/") >= 0) && (line.indexOf("upgradable") >= 0)));
-                        return new index_1.Apt().list()
-                            .then(result => (result || "").split("\n"))
-                            .then(installed => bluetooth_packages.map(pack => to_upgrade(installed, pack) ? pack : ""))
-                            .then(to_update => to_update.filter(pack => pack.length > 0));
-                    };
+                    .catch(err => Logger.error(err, "Error with bluetooth status"));*/
+                    /*const FIRMWARE = "raspberrypi-bootloader";
+                    const fn_upgradable: () => Promise<Upgradable> = () => {
+                      return new Apt().list()
+                      .then(result => (result || "").split("\n").find(s => s.indexOf(FIRMWARE) >= 0))
+                      .then(bootlader => ({
+                        upgradable: (bootlader||"").indexOf("upgradable") >= 0,
+                        version: bootlader || ""
+                      }))
+                    }*/
+                    /*const bluetooth_packages = ["bluez","bluez-firmware","pi-bluetooth"];
+                    const fn_upgradable_bluetooth: () => Promise<string[]> = () => {
+                      const to_upgrade = (lines: string[], pack: string) => !!(lines.find(line => (line.indexOf(pack+"/") >= 0) && (line.indexOf("upgradable") >= 0) ));
+          
+                      return new Apt().list()
+                      .then(result => (result || "").split("\n"))
+                      .then(installed => bluetooth_packages.map(pack => to_upgrade(installed, pack) ? pack : ""))
+                      .then(to_update => to_update.filter(pack => pack.length > 0))
+                    }
+          
                     fn_upgradable_bluetooth()
-                        .then(to_update => {
-                        if (to_update.length == 0)
-                            return Promise.resolve(true);
-                        console.log("upgradable packages", { to_update });
-                        index_js_1.Logger.data({ to_update, bluetooth_packages });
-                        return new index_1.Apt().installs(to_update)
-                            .then(() => fn_upgradable_bluetooth())
-                            .then(to_update => {
-                            index_js_1.Logger.data({ to_update, bluetooth_packages });
-                            return to_update.length == 0;
-                        });
+                    .then(to_update => {
+                      if(to_update.length == 0) return Promise.resolve(true);
+                      console.log("upgradable packages", {to_update});
+                      Logger.data({ to_update, bluetooth_packages });
+                      return new Apt().installs(to_update)
+                      .then(() => fn_upgradable_bluetooth())
+                      .then(to_update => {
+                        Logger.data({ to_update, bluetooth_packages });
+                        return to_update.length == 0;
+                      })
                     })
-                        .catch(err => index_js_1.Logger.error(err, "Error with bootloader status"));
-                    fn_upgradable()
-                        .then(({ upgradable, version }) => {
-                        console.log("upgradable", { upgradable, version });
-                        index_js_1.Logger.data({ upgradable, apt: version, option: FIRMWARE });
-                        if (!upgradable) {
-                            return true;
-                        }
-                        else {
-                            return new index_1.Apt().install(FIRMWARE)
-                                .then(() => fn_upgradable())
-                                .then(({ upgradable, version }) => {
-                                index_js_1.Logger.data({ upgradable, apt: version, option: FIRMWARE });
-                                return upgradable;
-                            });
-                        }
+                    .catch(err => Logger.error(err, "Error with bootloader status"));*/
+                    /*fn_upgradable()
+                    .then(({upgradable, version}) => {
+                      console.log("upgradable", {upgradable, version});
+                      Logger.data({ upgradable, apt: version, option: FIRMWARE });
+          
+                      if(!upgradable) {
+                        return true;
+                      } else {
+                        return new Apt().install(FIRMWARE)
+                        .then(() => fn_upgradable())
+                        .then(({upgradable, version}) => {
+                          Logger.data({ upgradable, apt: version, option: FIRMWARE });
+                          return upgradable;
+                        })
+                      }
                     })
-                        .catch(err => index_js_1.Logger.error(err, "Error with bootloader status"));
-                    const which = new index_1.Which();
+                    .catch(err => Logger.error(err, "Error with bootloader status"));*/
+                    /*const which = new Which();
                     which.which("hciconfig")
+                    .then(status => {
+                      Logger.data({service: "which", cmd:"hciconfig", status})
+                    })
+                    .then(res => {})
+                    .catch(err => Logger.error(err, "Error with hciconfig status"));*/
+                    /*exists("/bin/hciconfig")
+                    .then(ok => {
+                      if(ok) {
+                        Logger.data({service: "exists", cmd: "hciconfig", ok});
+                        return Promise.resolve(true);
+                      } else {
+                        Logger.data({service: "does_not_exists", cmd: "hciconfig", ok});
+                        return new Apt().install("armv7-bluez-osmc")
                         .then(status => {
-                        index_js_1.Logger.data({ service: "which", cmd: "hciconfig", status });
-                    })
-                        .then(res => { })
-                        .catch(err => index_js_1.Logger.error(err, "Error with hciconfig status"));
-                    index_1.exists("/bin/hciconfig")
-                        .then(ok => {
-                        if (ok) {
-                            index_js_1.Logger.data({ service: "exists", cmd: "hciconfig", ok });
-                            return Promise.resolve(true);
-                        }
-                        else {
-                            index_js_1.Logger.data({ service: "does_not_exists", cmd: "hciconfig", ok });
-                            return new index_1.Apt().install("armv7-bluez-osmc")
-                                .then(status => {
-                                index_js_1.Logger.data({ service: "apt", cmd: "armv7-bluez-osmc", status });
-                                return which.which("hciconfig");
-                            })
-                                .then(status => {
-                                index_js_1.Logger.data({ service: "which", cmd: "hciconfig", status });
-                                return true;
-                            });
-                        }
-                    })
-                        .then(res => bluetooth.hcistatus())
+                          Logger.data({service: "apt", cmd:"armv7-bluez-osmc", status});
+                          return which.which("hciconfig")
+                        })
                         .then(status => {
-                        index_js_1.Logger.data({ service: "hciconfig", status });
-                        return bluetooth.up();
+                          Logger.data({service: "which", cmd:"hciconfig", status})
+                          return true;
+                        })
+                      }
                     })
-                        .then(res => console.log("hci dddonnnee ?"))
-                        .catch(err => index_js_1.Logger.error(err, "Error with hciconfig exists or armv7-bluez-osmc"));
+                    .then(res => bluetooth.hcistatus())
+                    .then(status => {
+                      Logger.data({service: "hciconfig", status})
+                      return bluetooth.up();
+                    })
+                    .then(res => console.log("hci dddonnnee ?"))
+                    .catch(err => Logger.error(err, "Error with hciconfig exists or armv7-bluez-osmc"));*/
                     const bluetooth = new index_1.Bluetooth();
                     bluetooth.status()
                         .then(status => {

@@ -1,14 +1,13 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
 const v4_1 = __importDefault(require("uuid/v4"));
 const serialport_1 = __importDefault(require("serialport"));
 const node_enocean_1 = __importDefault(require("node-enocean"));
 const enocean_1 = __importDefault(require("./config/enocean"));
-const enocean_send_1 = __importDefault(require("./enocean_send"));
 const getByte = (telegram_byte_str, index) => telegram_byte_str[index * 2] + telegram_byte_str[index * 2 + 1];
 const getEEP = (rorg, rorg_func, rorg_type) => (rorg + "-" + rorg_func + "-" + rorg_type).toLowerCase();
 const isFrameToSend = (rorg) => ["a5", "f6", "d5", "d2", "d1"].filter(e => e === rorg).length > 0;
@@ -22,7 +21,6 @@ class EnoceanDevice extends events_1.EventEmitter {
     constructor(port) {
         super();
         this.enocean = node_enocean_1.default();
-        this.enocean_send = new enocean_send_1.default();
         this.open_device = undefined;
         this.isOpen = () => !!this.open_device;
         this.port = port;
@@ -70,7 +68,7 @@ class EnoceanDevice extends events_1.EventEmitter {
             if (sensor_data != undefined && sensor_data.eep != undefined) {
                 eep = sensor_data.eep;
             }
-            if ((eep != undefined) || data.rawByte.length >= (6 + 7)) { //at least 6 bytes for headers and 7 to have all data
+            if ((eep != undefined) || data.rawByte.length >= (6 + 7)) {
                 var rorg = undefined;
                 if (eep == undefined) {
                     rorg = getByte(data.rawByte, 6);
@@ -158,9 +156,6 @@ class EnoceanLoader extends events_1.EventEmitter {
     }
     readDevices() {
         if (!this.devices.find(device => device.isOpen())) {
-            this.listDevices()
-                .then(devices => console.log("fetched devices", devices))
-                .catch(err => console.log(err));
             if (enocean_1.default.enocean_endpoint != null) {
                 this.openDevice({ comName: enocean_1.default.enocean_endpoint });
                 this.postNextRead();

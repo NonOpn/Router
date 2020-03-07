@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 const BLESyncCharacteristic_1 = require("./ble/BLESyncCharacteristic");
 const config_1 = __importDefault(require("./config/config"));
@@ -21,7 +21,7 @@ const devices = device_model_1.default.instance;
 const BLEConstants_1 = require("./ble/BLEConstants");
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
 var id = "Routair";
-if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) { //0xAABBCCDD
+if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) {
     id += config_1.default.identity.substr(0, 5 * 2);
 }
 var seenDevices = {

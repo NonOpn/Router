@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { EventEmitter } from "events";
 import AbstractDevice from "./snmp/abstract.js";
 export default class PushWEB extends EventEmitter {
