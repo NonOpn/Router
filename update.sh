@@ -221,6 +221,7 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
     su - nonopn -c "cd /usr/local/routair ; $NPM install --save $NODE_ENOCEAN"
     echo "executing:: $NPM install"
     su - nonopn -c "cd /usr/local/routair ; $NPM install"
+    rm /home/nonopn/rebuild
   else
     echo "no rebuild, skipping install of enocean and standard libs"
   fi
