@@ -1,11 +1,7 @@
+import { Touch } from './system/Touch';
 import Errors from "./errors";
 
 const errors = Errors.instance;
-
-interface Upgradable {
-  upgradable: boolean,
-  version: string
-}
 
 const RESTART_DELAY: number = 180000; //restart the program after 180 000 ms
 
@@ -37,7 +33,7 @@ export default class MainEntryPoint {
         console.log("oups", err);
       });
   
-      created_domain.on('error', (err: any) => {
+      created_domain.on('error', (err: Error) => {
   
         const qSilent = () => {
           setTimeout(() => {
@@ -50,11 +46,22 @@ export default class MainEntryPoint {
               killtimer.unref();
               cluster.worker.disconnect();
             } catch (er2) {
+
             }
           }, RESTART_DELAY);
         }
   
         try {
+          console.log("error :: " + err.message);
+
+          if((err.message||"").indexOf("Cannot find module") >= 0) {
+            console.log("module not found, trying to rebuild next time...");
+            const touch = new Touch();
+            touch.exec("/home/nonopn/rebuild")
+            .then((result) => console.log("touch :: " + result))
+            .catch((err: Error) => console.log(err));
+          }
+
           console.log(err);
           errors.postJsonErrorPromise(err, "main crash")
           .then(val => {

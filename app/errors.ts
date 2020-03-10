@@ -1,6 +1,6 @@
 import request from 'request';
-import config from "./config/config.js";
-import { Logger } from './log/index.js';
+import config from "./config/config";
+import { Logger } from './log/index';
 //error modification extracted from https://github.com/kgryte/utils-error-to-json
 
 interface Err {

@@ -216,10 +216,12 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   # restore the config
   cp tmp_config.json config/snmp.json
 
-  echo "executing:: $NPM install --save $NODE_ENOCEAN"
-  su - nonopn -c "cd /usr/local/routair ; $NPM install --save $NODE_ENOCEAN"
-  echo "executing:: $NPM install"
-  su - nonopn -c "cd /usr/local/routair ; $NPM install"
+  if [ -f "/home/nonopn/rebuild" ]; then
+    echo "executing:: $NPM install --save $NODE_ENOCEAN"
+    su - nonopn -c "cd /usr/local/routair ; $NPM install --save $NODE_ENOCEAN"
+    echo "executing:: $NPM install"
+    su - nonopn -c "cd /usr/local/routair ; $NPM install"
+  fi
 
   # stop services
   systemctl stop routair.service

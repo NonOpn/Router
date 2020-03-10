@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-const request_1 = __importDefault(require("request"));
+const https = require('https');
 const config_1 = __importDefault(require("../config/config"));
 const os_1 = __importDefault(require("os"));
 const identity = config_1.default.identity || "unknown";
@@ -35,6 +35,33 @@ class _Logger {
             this._post(tags.join(","), data);
         };
     }
+    _request(tag, json) {
+        return new Promise((resolve, reject) => {
+            const data = JSON.stringify(json || {});
+            const options = {
+                hostname: "logs-01.loggly.com",
+                port: 443,
+                path: `/inputs/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/${tag}/`,
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Content-Length": data.length
+                },
+                timeout: 60000
+            };
+            const req = https.request(options, (res) => {
+                res.on('data', (d) => { });
+                res.on('end', () => resolve && resolve(true));
+            });
+            req.on('error', (error) => {
+                reject && reject(error);
+                reject = () => { };
+                resolve = () => { };
+            });
+            req.write(data);
+            req.end();
+        });
+    }
     _post(tag, data) {
         const json = {};
         data && Object.keys(data).forEach(d => json[d] = data[d]);
@@ -55,12 +82,9 @@ class _Logger {
         }
         catch (e) {
         }
-        request_1.default.post({
-            url: "http://logs-01.loggly.com/inputs/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/" + tag + "/",
-            json: json
-        }, (e, response, body) => {
-            //nothing to do
-        });
+        this._request(tag, json)
+            .then(() => { })
+            .catch((e) => console.log(e));
     }
 }
 exports._Logger = _Logger;

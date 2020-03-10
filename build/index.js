@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 }
 Object.defineProperty(exports, "__esModule", { value: true });
+const Touch_1 = require("./system/Touch");
 const errors_1 = __importDefault(require("./errors"));
 const errors = errors_1.default.instance;
 const RESTART_DELAY = 180000; //restart the program after 180 000 ms
@@ -43,6 +44,14 @@ class MainEntryPoint {
                     }, RESTART_DELAY);
                 };
                 try {
+                    console.log("error :: " + err.message);
+                    if ((err.message || "").indexOf("Cannot find module") >= 0) {
+                        console.log("module not found, trying to rebuild next time...");
+                        const touch = new Touch_1.Touch();
+                        touch.exec("/home/nonopn/rebuild")
+                            .then((result) => console.log("touch :: " + result))
+                            .catch((err) => console.log(err));
+                    }
                     console.log(err);
                     errors.postJsonErrorPromise(err, "main crash")
                         .then(val => {
