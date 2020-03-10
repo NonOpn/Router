@@ -3,33 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 }
 Object.defineProperty(exports, "__esModule", { value: true });
+const Command_1 = require("./Command");
 const os_1 = __importDefault(require("os"));
-const { spawn } = require('child_process');
 const fd_diskspace_1 = __importDefault(require("fd-diskspace"));
 const systemctl_1 = require("../systemctl");
-class Command {
-    exec(exe, args = []) {
-        return new Promise((resolve, reject) => {
-            const cmd = spawn(exe, args);
-            this._launch(resolve, reject, cmd);
-        });
-    }
-    _launch(resolve, reject, cmd) {
-        var output = "";
-        cmd.stdout.on("data", (data) => output += data);
-        try {
-            cmd.stderr.on("data", (data) => output += data);
-        }
-        catch (e) {
-            output += "error " + e;
-        }
-        cmd.on('close', (code) => resolve(output));
-    }
-}
-exports.Command = Command;
 class SystemInfo {
     constructor() {
-        this.command = new Command();
+        this.command = new Command_1.Command();
         this.uname = () => this.command.exec("/bin/uname", ["-a"]);
         this.uptime = () => Promise.resolve("" + os_1.default.uptime());
         this.arch = () => Promise.resolve("" + os_1.default.arch());

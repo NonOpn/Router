@@ -1,5 +1,4 @@
-import { Command } from "../system";
-
+import { Command } from './../system/Command';
 const { spawn } = require('child_process');
 const fs = require('fs')
 

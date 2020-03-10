@@ -1,23 +1,23 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const system_1 = require("../system");
+const Command_1 = require("./../system/Command");
 const { spawn } = require('child_process');
 const fs = require('fs');
 class RfKill {
     list() {
-        return new system_1.Command().exec('/bin/rfkill', ["list"]);
+        return new Command_1.Command().exec('/bin/rfkill', ["list"]);
     }
     unblock(mode) {
-        return new system_1.Command().exec('/bin/rfkill', ["unblock", mode]);
+        return new Command_1.Command().exec('/bin/rfkill', ["unblock", mode]);
     }
     block(mode) {
-        return new system_1.Command().exec('/bin/rfkill', ["block", mode]);
+        return new Command_1.Command().exec('/bin/rfkill', ["block", mode]);
     }
 }
 exports.RfKill = RfKill;
 class AptCache {
     exec(action, service) {
-        return new system_1.Command().exec('/usr/bin/apt-cache', [action, service]);
+        return new Command_1.Command().exec('/usr/bin/apt-cache', [action, service]);
     }
     rpiBootloader() {
         return this.exec("show", "raspberrypi-bootloader")
@@ -47,7 +47,7 @@ class AptCache {
 exports.AptCache = AptCache;
 class Systemctl {
     exec(action, service) {
-        return new system_1.Command().exec('/bin/systemctl', [action, service]);
+        return new Command_1.Command().exec('/bin/systemctl', [action, service]);
     }
 }
 exports.Systemctl = Systemctl;
@@ -62,7 +62,7 @@ class MySQL {
 exports.MySQL = MySQL;
 class Apt {
     constructor() {
-        this.command = new system_1.Command();
+        this.command = new Command_1.Command();
         this.list = () => this.command.exec("/usr/bin/apt", ["list", "--installed"]);
         this.install = (pack) => this.command.exec("/usr/bin/apt", ["install", "-y", pack]);
         this.installs = (packs) => {
@@ -75,14 +75,14 @@ class Apt {
 exports.Apt = Apt;
 class Which {
     constructor() {
-        this.command = new system_1.Command();
+        this.command = new Command_1.Command();
         this.which = (cmd) => this.command.exec("/usr/bin/which", [cmd]);
     }
 }
 exports.Which = Which;
 class Bluetooth {
     constructor() {
-        this.command = new system_1.Command();
+        this.command = new Command_1.Command();
         this.status = () => this.systemctl.exec("status", "bluetooth");
         this.start = () => this.systemctl.exec("start", "bluetooth");
         this.restart = () => this.systemctl.exec("restart", "bluetooth");

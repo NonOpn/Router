@@ -4,10 +4,6 @@ export interface Space {
     used: number;
     percent: number;
 }
-export declare class Command {
-    exec(exe: string, args?: string[]): Promise<string>;
-    _launch(resolve: any, reject: any, cmd: any): void;
-}
 export declare class SystemInfo {
     private command;
     static instance: SystemInfo;

@@ -1,4 +1,4 @@
-import { Command } from "../system";
+import { Command } from './../system/Command';
 export declare type ANTENNA = "bluetooth" | "wifi";
 export declare class RfKill {
     list(): Promise<string>;
