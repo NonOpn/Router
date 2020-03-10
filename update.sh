@@ -160,6 +160,42 @@ fi
 echo "using $NPM"
 echo "using $NODE"
 
+
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# VARIABLE STATES
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+echo EXPECTED_V8_FOLDER $EXPECTED_V8_FOLDER
+echo EXPECTED_V8_NODE_BIN $EXPECTED_V8_NODE_BIN
+echo EXPECTED_V8_NPM_BIN $EXPECTED_V8_NPM_BIN
+echo NPM_URL_V8_V6L $NPM_URL_V8_V6L
+echo NODE_FOLDER_V8_V6L $NODE_FOLDER_V8_V6L
+echo MD5_VALUE_V8_V6L_REPAIR $MD5_VALUE_V8_V6L_REPAIR
+echo MD5_VALUE_V8_V6L_TMP $MD5_VALUE_V8_V6L_TMP
+echo NPM_URL_V8_V7L $NPM_URL_V8_V7L
+echo NODE_FOLDER_V8_V7L $NODE_FOLDER_V8_V7L
+echo MD5_VALUE_V8_V7L_REPAIR $MD5_VALUE_V8_V7L_REPAIR
+echo MD5_VALUE_V8_V7L_TMP $MD5_VALUE_V8_V7L_TMP
+echo BRANCH $BRANCH
+echo NPM $NPM
+echo NODE $NODE
+echo NODE_ENOCEAN $NODE_ENOCEAN
+echo NPM_URL $NPM_URL
+echo NODE_FOLDER $NODE_FOLDER
+echo MD5_VALUE $MD5_VALUE
+echo MD5_VALUE_REPAIR $MD5_VALUE_REPAIR
+echo CPU_INFO $CPU_INFO
+echo NEED_DL $NEED_DL
+echo EXPECTED_PATH $EXPECTED_PATH
+echo EXPECTED_PATH_MD5 $EXPECTED_PATH_MD5
+
+
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# CHECK FOR ANY UPDATE
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   echo "online, check for updates"
   cd /usr/local/routair
