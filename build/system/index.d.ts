@@ -17,6 +17,9 @@ export declare class SystemInfo {
     release: () => Promise<string>;
     version: () => Promise<string>;
     platform: () => Promise<string>;
+    cpuinfo: () => Promise<string>;
+    isv6l(): Promise<boolean>;
+    canBeRepaired(): Promise<boolean>;
 }
 export declare class Diskspace {
     private du;

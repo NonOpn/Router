@@ -213,12 +213,14 @@ class BLEPrimarySystemService extends PrimaryService {
         new BLEAsyncDescriptionCharacteristic("0002", () => diskspace.diskspace().then(space => ""+space.size)),
         new BLEAsyncDescriptionCharacteristic("0003", () => diskspace.diskspace().then(space => ""+space.used)),
         new BLEAsyncDescriptionCharacteristic("0004", () => diskspace.diskspace().then(space => ""+space.percent)),
-        new BLEAsyncDescriptionCharacteristic("0005", () => SystemInfo.instance.uname()),
-        new BLEAsyncDescriptionCharacteristic("0006", () => SystemInfo.instance.uptime()),
-        new BLEAsyncDescriptionCharacteristic("0007", () => SystemInfo.instance.arch()),
-        new BLEAsyncDescriptionCharacteristic("0008", () => SystemInfo.instance.release()),
-        new BLEAsyncDescriptionCharacteristic("0009", () => SystemInfo.instance.version()),
-        new BLEAsyncDescriptionCharacteristic("000A", () => SystemInfo.instance.platform())
+        new BLEAsyncDescriptionCharacteristic("0101", () => SystemInfo.instance.uname()),
+        new BLEAsyncDescriptionCharacteristic("0102", () => SystemInfo.instance.uptime()),
+        new BLEAsyncDescriptionCharacteristic("0103", () => SystemInfo.instance.arch()),
+        new BLEAsyncDescriptionCharacteristic("0104", () => SystemInfo.instance.release()),
+        new BLEAsyncDescriptionCharacteristic("0105", () => SystemInfo.instance.version()),
+        new BLEAsyncDescriptionCharacteristic("0106", () => SystemInfo.instance.platform()),
+        new BLEAsyncDescriptionCharacteristic("0201", () => SystemInfo.instance.canBeRepaired()),
+        new BLEAsyncDescriptionCharacteristic("0202", () => SystemInfo.instance.isv6l())
       ]
     });
   }

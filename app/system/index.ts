@@ -1,7 +1,7 @@
 import os from "os";
 const { spawn } = require('child_process');
 import fd from "fd-diskspace";
-import { DU } from "../systemctl";
+import { DU, exists } from "../systemctl";
 
 export interface Space {
     free: number;
@@ -39,7 +39,7 @@ export class SystemInfo {
     private command = new Command();
     public static instance = new SystemInfo();
 
-    uname = (): Promise<string> => this.command.exec("uname", ["-a"]);
+    uname = (): Promise<string> => this.command.exec("/bin/uname", ["-a"]);
 
     uptime = (): Promise<string> => Promise.resolve("" + os.uptime());
 
@@ -50,6 +50,21 @@ export class SystemInfo {
     version = (): Promise<string> => Promise.resolve("" + process.version);
 
     platform = (): Promise<string> => Promise.resolve("" + process.platform);
+
+    cpuinfo = (): Promise<string> => this.command.exec("/bin/cat", ["/proc/cpuinfo"]);
+
+    isv6l(): Promise<boolean> {
+        return this.cpuinfo()
+        .then(cpuinfo => !!(cpuinfo && cpuinfo.indexOf('(v6l)') >= 0));
+    }
+
+    canBeRepaired(): Promise<boolean> {
+        return this.isv6l()
+        .then(isv6l => {
+            const tar = isv6l ? "node-v8.17.0-linux-armv6l.tar.gz" : "node-v8.17.0-linux-armv7l.tar.gz";
+            return exists(`/home/nonopn/${tar}`);
+        });
+    }
 
 }
 
