@@ -1,7 +1,4 @@
-export declare class Command {
-    exec(exe: string, args?: string[]): Promise<string>;
-    _launch(resolve: any, reject: any, cmd: any): void;
-}
+import { Command } from "../system";
 export declare type ANTENNA = "bluetooth" | "wifi";
 export declare class RfKill {
     list(): Promise<string>;

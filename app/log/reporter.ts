@@ -1,5 +1,5 @@
 import { MySQL } from "../systemctl";
-import Diskspace from "../system";
+import { Diskspace } from "../system";
 import { Logger } from ".";
 
 export default class Reporter {

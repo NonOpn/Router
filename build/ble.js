@@ -11,12 +11,12 @@ const visualisation_1 = __importDefault(require("./config/visualisation"));
 const wifi_js_1 = __importDefault(require("./wifi/wifi.js"));
 const device_1 = __importDefault(require("./ble/device"));
 const network_1 = __importDefault(require("./network"));
-const system_1 = __importDefault(require("./system"));
+const system_1 = require("./system");
 const safeBleno_1 = require("./ble/safeBleno");
 const device_management = device_1.default.instance;
 const wifi = wifi_js_1.default.instance;
 const network = network_1.default.instance;
-const diskspace = system_1.default.instance;
+const diskspace = system_1.Diskspace.instance;
 const devices = device_model_1.default.instance;
 const BLEConstants_1 = require("./ble/BLEConstants");
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
@@ -152,7 +152,13 @@ class BLEPrimarySystemService extends safeBleno_1.PrimaryService {
                 new BLEAsyncDescriptionCharacteristic("0001", () => diskspace.diskspace().then(space => "" + space.free)),
                 new BLEAsyncDescriptionCharacteristic("0002", () => diskspace.diskspace().then(space => "" + space.size)),
                 new BLEAsyncDescriptionCharacteristic("0003", () => diskspace.diskspace().then(space => "" + space.used)),
-                new BLEAsyncDescriptionCharacteristic("0004", () => diskspace.diskspace().then(space => "" + space.percent))
+                new BLEAsyncDescriptionCharacteristic("0004", () => diskspace.diskspace().then(space => "" + space.percent)),
+                new BLEAsyncDescriptionCharacteristic("0005", () => system_1.SystemInfo.instance.uname()),
+                new BLEAsyncDescriptionCharacteristic("0006", () => system_1.SystemInfo.instance.uptime()),
+                new BLEAsyncDescriptionCharacteristic("0007", () => system_1.SystemInfo.instance.arch()),
+                new BLEAsyncDescriptionCharacteristic("0008", () => system_1.SystemInfo.instance.release()),
+                new BLEAsyncDescriptionCharacteristic("0009", () => system_1.SystemInfo.instance.version()),
+                new BLEAsyncDescriptionCharacteristic("000A", () => system_1.SystemInfo.instance.platform())
             ]
         });
     }

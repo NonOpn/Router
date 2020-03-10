@@ -1,10 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-}
 Object.defineProperty(exports, "__esModule", { value: true });
 const systemctl_1 = require("../systemctl");
-const system_1 = __importDefault(require("../system"));
+const system_1 = require("../system");
 const _1 = require(".");
 class Reporter {
     constructor() {
@@ -19,7 +16,7 @@ class Reporter {
         setInterval(() => this._report(), 15 * 60 * 1000);
     }
     _report() {
-        system_1.default.instance.diskspace()
+        system_1.Diskspace.instance.diskspace()
             .then(space => {
             if (space) {
                 _1.Logger.identity(space, ["space"]);

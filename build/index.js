@@ -14,7 +14,7 @@ const wifi_js_1 = __importDefault(require("./wifi/wifi.js"));
 const errors_1 = __importDefault(require("./errors"));
 const systemctl_1 = require("./systemctl");
 const index_js_1 = require("./log/index.js");
-const index_js_2 = __importDefault(require("./system/index.js"));
+const index_js_2 = require("./system/index.js");
 const reporter_js_1 = __importDefault(require("./log/reporter.js"));
 const frame_manager_alert_js_1 = __importDefault(require("./frame_manager_alert.js"));
 const device_1 = __importDefault(require("./ble/device"));
@@ -77,7 +77,7 @@ class MainEntryPoint {
             created_domain.run(() => {
                 new Promise((resolve) => {
                     reporter_js_1.default.instance.start();
-                    index_js_2.default.instance.usage()
+                    index_js_2.Diskspace.instance.usage()
                         .then(usage => {
                         if (usage)
                             index_js_1.Logger.identity({ usage }, ["usage"]);

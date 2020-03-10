@@ -9,7 +9,7 @@ import Wifi from "./wifi/wifi.js";
 import Errors from "./errors";
 import { SSH } from "./systemctl";
 import { Logger } from "./log/index.js";
-import Diskspace from "./system/index.js";
+import { Diskspace } from "./system/index.js";
 import Reporter from "./log/reporter.js";
 import FrameManagerAlert from "./frame_manager_alert.js";
 import DeviceManagement from './ble/device';
