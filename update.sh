@@ -6,6 +6,30 @@
 #alternatively, you can use crontab -e to add this script launched
 #e.g. 0 */3 * * * /usr/local/routair
 
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# CONSTANTS FOR NodeJS V8.17.0
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+EXPECTED_V8_FOLDER="/usr/local/node-v8.17.0"
+EXPECTED_V8_NODE_BIN="$EXPECTED_V8_FOLDER/bin/node"
+EXPECTED_V8_NPM_BIN="$EXPECTED_V8_FOLDER/bin/npm"
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# CONSTANTS FOR NodeJS V8.17.0 FOR V6L AND V7L
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+NPM_URL_V8_V6L="https://nodejs.org/dist/latest-v8.x/node-v8.17.0-linux-armv6l.tar.gz"
+NODE_FOLDER_V8_V6L="node-v8.17.0-linux-armv6l"
+MD5_VALUE_V8_V6L_REPAIR="45949cbdf27b6853ff7c6a67bca556a3  $NODE_FOLDER_V8_V6L.tar.gz"
+MD5_VALUE_V8_V6L_TMP="45949cbdf27b6853ff7c6a67bca556a3  node.tar.gz"
+
+NPM_URL_V8_V7L="https://nodejs.org/dist/latest-v8.x/node-v8.17.0-linux-armv7l.tar.gz"
+NODE_FOLDER_V8_V7L="node-v8.17.0-linux-armv7l"
+MD5_VALUE_V8_V7L_REPAIR="7eb48c81e035dab37282d3275fc9a09a  $NODE_FOLDER_V8_V7L.tar.gz"
+MD5_VALUE_V8_V7L_TMP="7eb48c81e035dab37282d3275fc9a09a  node.tar.gz"
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# HOLDING VALUES
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 BRANCH=master
 NPM=/usr/bin/npm
 NODE=/usr/bin/node
@@ -14,41 +38,88 @@ NODE_ENOCEAN="https://github.com/codlab/node-enocean#6ba3121"
 NPM_URL=" "
 NODE_FOLDER=" "
 MD5_VALUE=" "
+MD5_VALUE_REPAIR=" "
 CPU_INFO=`cat /proc/cpuinfo`
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# CHECK FOR ARM FLAVOR
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 if grep -q '(v6l)' <<< "$CPU_INFO"; then
   echo currently on arm v6l
-  NPM_URL="https://nodejs.org/dist/latest-v8.x/node-v8.17.0-linux-armv6l.tar.gz"
-  MD5_VALUE="45949cbdf27b6853ff7c6a67bca556a3  node.tar.gz"
-  NODE_FOLDER="node-v8.17.0-linux-armv6l"
+  NPM_URL=$NPM_URL_V8_V6L
+  MD5_VALUE=$MD5_VALUE_V8_V6L_TMP
+  MD5_VALUE_REPAIR=$MD5_VALUE_V8_V6L_REPAIR
+  NODE_FOLDER=$NODE_FOLDER_V8_V6L
 else
   echo currently on not arm v6l
-  NPM_URL="https://nodejs.org/dist/latest-v8.x/node-v8.17.0-linux-armv7l.tar.gz"
-  MD5_VALUE="7eb48c81e035dab37282d3275fc9a09a  node.tar.gz"
-  NODE_FOLDER="node-v8.17.0-linux-armv7l"
+  NPM_URL=$NPM_URL_V8_V7L
+  MD5_VALUE=$MD5_VALUE_V8_V7L_TMP
+  MD5_VALUE_REPAIR=$MD5_VALUE_V8_V7L_REPAIR
+  NODE_FOLDER=$NODE_FOLDER_V8_V7L
 fi
 
-if [ -f "/usr/local/node-v8.17.0/bin/node" ]; then
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# DOWNLOAD REPAIR NodeJS for future helper
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+NEED_DL=true
+EXPECTED_PATH="/home/nonopn/$NODE_FOLDER.tar.gz"
+EXPECTED_PATH_MD5="$EXPECTED_PATH.md5"
+
+# write the md5 files
+echo "$MD5_VALUE to /tmp/node.tar.gz.md5"
+echo $MD5_VALUE > /tmp/node.tar.gz.md5
+echo "$MD5_VALUE_REPAIR to $EXPECTED_PATH_MD5"
+echo $MD5_VALUE_REPAIR > $EXPECTED_PATH_MD5
+
+
+# check if the local nodejs repairable package is here and valid
+cd /home/nonopn
+if [ -f "$EXPECTED_PATH" ]; then
+  if md5sum -c "$EXPECTED_PATH_MD5"; then
+    NEED_DL=false
+  else
+    NEED_DL=true
+  fi
+else
+  NEED_DL=true
+fi
+
+# if a dl is needed, download and check it
+cd /tmp
+if [ "$NEED_DL" = true ]; then
+  wget -O /tmp/node.tar.gz $NPM_URL
+  if md5sum -c /tmp/node.tar.gz.md5; then
+    echo "md5 match"
+    cp /tmp/node.tar.gz $EXPECTED_PATH
+  fi
+else
+  echo 
+fi
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# UPGRADE TO NodeJS v8.17.0
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+if [ -f "$EXPECTED_V8_NODE_BIN" ]; then
   echo "node available, skipping upgrade"
 else
-  wget -O /tmp/node.tar.gz $NPM_URL
-  echo $MD5_VALUE > /tmp/node.tar.gz.md5
   cd /tmp
-  if md5sum -c node.tar.gz.md5; then
+  wget -O /tmp/node.tar.gz $NPM_URL
+  if md5sum -c /tmp/node.tar.gz.md5; then
     echo "md5 match"
-    tar -xzvf node.tar.gz
-    cp -r $NODE_FOLDER /usr/local/node-v8.17.0
+    tar -xzf node.tar.gz
+    cp -r $NODE_FOLDER $EXPECTED_V8_FOLDER
     export PATH=/usr/local/node-v8.17.0/bin/:$PATH
+    echo $PATH
     sudo systemctl stop routair.service
 
     echo "reinstalling packages..."
     cd /usr/local/routair
     rm -rf node_modules
-    NPM=/usr/local/node-v8.17.0/bin/npm
-    NODE=/usr/local/node-v8.17.0/bin/node
+    NPM=$EXPECTED_V8_NPM_BIN
+    NODE=$EXPECTED_V8_NODE_BIN
     rm /usr/bin/npm /usr/bin/node
-    ln -s /usr/local/node-v8.17.0/bin/npm /usr/bin/npm
-    ln -s /usr/local/node-v8.17.0/bin/node /usr/bin/node
+    ln -s $EXPECTED_V8_NPM_BIN /usr/bin/npm
+    ln -s $EXPECTED_V8_NODE_BIN /usr/bin/node
 
     su - nonopn -c "cd /usr/local/routair ; $NPM install"
   else
@@ -59,19 +130,15 @@ else
   rm -rf /tmp/node-*
 fi
 
-#if [ -f "/usr/local/node-v10.19.0/bin/node" ]; then
-#  rm /usr/bin/npm /usr/bin/node
-#  ln -s /usr/local/node-v10.19.0/bin/npm /usr/bin/npm
-#  ln -s /usr/local/node-v10.19.0/bin/node /usr/bin/node
-#  NPM=/usr/local/node-v10.19.0/bin/node
-#fi
-
-if [ -f "/usr/local/node-v8.17.0/bin/node" ]; then
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# If NodeJS v8.17.0 or v7.7.2
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+if [ -f "$EXPECTED_V8_NODE_BIN" ]; then
   rm /usr/bin/npm /usr/bin/node
-  ln -s /usr/local/node-v8.17.0/bin/npm /usr/bin/npm
-  ln -s /usr/local/node-v8.17.0/bin/node /usr/bin/node
-  NPM=/usr/local/node-v8.17.0/bin/npm
-  NODE=/usr/local/node-v8.17.0/bin/node
+  ln -s $EXPECTED_V8_NPM_BIN /usr/bin/npm
+  ln -s $EXPECTED_V8_NODE_BIN /usr/bin/node
+  NPM=$EXPECTED_V8_NPM_BIN
+  NODE=$EXPECTED_V8_NODE_BIN
   NODE_ENOCEAN="https://github.com/codlab/node-enocean#6ba3121"
   #BRANCH=feature/upgrade
   BRANCH=master
