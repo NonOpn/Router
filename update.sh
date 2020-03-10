@@ -144,6 +144,7 @@ if [ -f "$EXPECTED_V8_NODE_BIN" ]; then
   BRANCH=master
 
   # in case, update service
+  cd /usr/local/routair
   cp systemd/routair.8.17.0.service /etc/systemd/system/routair.service
   systemctl daemon-reload
 
