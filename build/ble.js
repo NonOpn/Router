@@ -159,8 +159,8 @@ class BLEPrimarySystemService extends safeBleno_1.PrimaryService {
                 new BLEAsyncDescriptionCharacteristic("0104", () => system_1.SystemInfo.instance.release()),
                 new BLEAsyncDescriptionCharacteristic("0105", () => system_1.SystemInfo.instance.version()),
                 new BLEAsyncDescriptionCharacteristic("0106", () => system_1.SystemInfo.instance.platform()),
-                new BLEAsyncDescriptionCharacteristic("0201", () => system_1.SystemInfo.instance.canBeRepaired()),
-                new BLEAsyncDescriptionCharacteristic("0202", () => system_1.SystemInfo.instance.isv6l())
+                new BLEAsyncDescriptionCharacteristic("0201", () => system_1.SystemInfo.instance.canBeRepaired().then(result => result ? "true" : "false")),
+                new BLEAsyncDescriptionCharacteristic("0202", () => system_1.SystemInfo.instance.isv6l().then(result => result ? "true" : "false"))
             ]
         });
     }

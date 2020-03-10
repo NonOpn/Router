@@ -219,8 +219,8 @@ class BLEPrimarySystemService extends PrimaryService {
         new BLEAsyncDescriptionCharacteristic("0104", () => SystemInfo.instance.release()),
         new BLEAsyncDescriptionCharacteristic("0105", () => SystemInfo.instance.version()),
         new BLEAsyncDescriptionCharacteristic("0106", () => SystemInfo.instance.platform()),
-        new BLEAsyncDescriptionCharacteristic("0201", () => SystemInfo.instance.canBeRepaired()),
-        new BLEAsyncDescriptionCharacteristic("0202", () => SystemInfo.instance.isv6l())
+        new BLEAsyncDescriptionCharacteristic("0201", () => SystemInfo.instance.canBeRepaired().then(result => result ? "true":"false")),
+        new BLEAsyncDescriptionCharacteristic("0202", () => SystemInfo.instance.isv6l().then(result => result ? "true":"false"))
       ]
     });
   }
