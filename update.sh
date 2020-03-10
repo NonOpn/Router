@@ -35,11 +35,11 @@ else
   echo $MD5_VALUE > /tmp/node.tar.gz.md5
   cd /tmp
   if md5sum -c node.tar.gz.md5; then
-    sudo systemctl stop routair.service
     echo "md5 match"
     tar -xzvf node.tar.gz
     cp -r $NODE_FOLDER /usr/local/node-v8.17.0
     export PATH=/usr/local/node-v8.17.0/bin/:$PATH
+    sudo systemctl stop routair.service
 
     echo "reinstalling packages..."
     cd /usr/local/routair
