@@ -69,7 +69,7 @@ class MainEntryPoint {
                 }
             });
             created_domain.run(() => {
-                const App = require("./app");
+                const App = require("./app").App;
                 const app = new App();
                 app.start();
             });
