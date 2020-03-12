@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
 const snmp_json_1 = __importDefault(require("../config/snmp.json"));
@@ -45,7 +45,7 @@ class SNMP extends events_1.EventEmitter {
             return;
         }
         //for now, using only lpsfr devices
-        if (rawdata.length === 60) {
+        if (rawdata.length === 60) { //30*2
             const internal = frame_model_js_1.default.instance.getInternalSerial(rawdata);
             const callback = () => {
                 this.agents.forEach(agent => {
@@ -76,7 +76,7 @@ class SNMP extends events_1.EventEmitter {
                 callback();
             }
         }
-        else if (rawdata.length === 48) {
+        else if (rawdata.length === 48) { //24*2
             this.agents.forEach(agent => {
                 const lpsfr = agent.getLPSFR();
                 if (lpsfr.internal === data.sender && lpsfr.type === "ellips") {

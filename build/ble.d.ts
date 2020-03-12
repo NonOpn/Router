@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import AbstractDevice from "./snmp/abstract";
 export default class BLE {
     private _notify_frame?;
