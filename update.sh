@@ -217,6 +217,7 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   cp tmp_config.json config/snmp.json
 
   if [ -f "/home/nonopn/rebuild" ]; then
+    rm -rf /usr/local/routair/node_modules
     echo "executing:: $NPM install --save $NODE_ENOCEAN"
     su - nonopn -c "cd /usr/local/routair ; $NPM install --save $NODE_ENOCEAN"
     echo "executing:: $NPM install"
