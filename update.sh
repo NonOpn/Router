@@ -216,6 +216,8 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   # restore the config
   cp tmp_config.json config/snmp.json
 
+  sh /usr/local/routair/scripts/repair.sh
+
   if [ -f "/home/nonopn/rebuild" ]; then
     rm -rf /usr/local/routair/node_modules
     echo "executing:: $NPM install --save $NODE_ENOCEAN"
