@@ -162,6 +162,18 @@ class Cat {
     }
 }
 exports.Cat = Cat;
+class Network {
+    constructor() {
+        this.cmd = new Command_1.Command();
+    }
+    ifup(interf) {
+        return this.cmd.exec("/sbin/ifup", [interf, "--force"]).then(() => true);
+    }
+    ifdown(interf) {
+        return this.cmd.exec("/sbin/ifdown", [interf, "--force"]).then(() => true);
+    }
+}
+exports.Network = Network;
 class MysqlAdmin {
     exec(command, user, password) {
         return new Promise((resolve, reject) => {

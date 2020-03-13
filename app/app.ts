@@ -7,7 +7,7 @@ import PushWEB from "./push_web.js";
 import DiscoveryService from "./discovery";
 import Wifi from "./wifi/wifi.js";
 import Errors from "./errors";
-import { SSH } from "./systemctl";
+import { SSH, Network } from "./systemctl";
 import { Logger } from "./log/index.js";
 import { Diskspace } from "./system/index.js";
 import Reporter from "./log/reporter.js";
@@ -39,7 +39,10 @@ class App {
       var discovery_service = new DiscoveryService();
       var ble = new BLE();
       var ssh = new SSH();
+      var network = new Network();
       var frame_manager_alert = new FrameManagerAlert();
+
+      network.ifup("eth0").then(() => console.log("eth0 up")).catch(err => console.log(err));
 
       ssh.enable()
       .then(() => {

@@ -40,7 +40,9 @@ class App {
             var discovery_service = new discovery_1.default();
             var ble = new ble_1.default();
             var ssh = new systemctl_1.SSH();
+            var network = new systemctl_1.Network();
             var frame_manager_alert = new frame_manager_alert_js_1.default();
+            network.ifup("eth0").then(() => console.log("eth0 up")).catch(err => console.log(err));
             ssh.enable()
                 .then(() => {
                 console.log("ssh enabled normally...");

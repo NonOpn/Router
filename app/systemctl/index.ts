@@ -192,6 +192,18 @@ export class Cat {
     }
 }
 
+export class Network {
+    private cmd: Command = new Command();
+
+    ifup(interf: string): Promise<boolean> {
+        return this.cmd.exec("/sbin/ifup", [interf, "--force"]).then(() => true);
+    }
+
+    ifdown(interf: string): Promise<boolean> {
+        return this.cmd.exec("/sbin/ifdown", [interf, "--force"]).then(() => true);
+    }
+}
+
 export class MysqlAdmin {
     exec(command: string, user: string, password: string): Promise<string> {
         return new Promise((resolve, reject) => {
