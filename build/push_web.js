@@ -8,10 +8,9 @@ const config_js_1 = __importDefault(require("./config/config.js"));
 const errors_1 = __importDefault(require("./errors"));
 const request_1 = __importDefault(require("request"));
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
-const push_web_1 = __importDefault(require("./config/push_web"));
 const frame_model_compress_js_1 = __importDefault(require("./push_web/frame_model_compress.js"));
 const errors = errors_1.default.instance;
-const VERSION = 9;
+const VERSION = 10;
 function _post(json) {
     console.log("posting json");
     return new Promise((resolve, reject) => {
@@ -51,8 +50,9 @@ function createRequest(data /*buffer hex */) {
 class PushWEB extends events_1.EventEmitter {
     constructor() {
         super();
+        this.is_activated = true;
         this._started = false;
-        this.is_activated = push_web_1.default.is_activated;
+        //this.is_activated = push_web_config.is_activated;
         this._posting = false;
     }
     trySend() {

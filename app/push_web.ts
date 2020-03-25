@@ -10,7 +10,7 @@ import AbstractDevice from "./snmp/abstract.js";
 
 const errors = Errors.instance;
 
-const VERSION = 9;
+const VERSION = 10;
 
 function _post(json: any) {
 	console.log("posting json");
@@ -49,12 +49,12 @@ function createRequest(data: Buffer /*buffer hex */) {
 }
 
 export default class PushWEB extends EventEmitter {
-	is_activated: boolean;
+	is_activated: boolean = true;
 	_posting: boolean;
 
 	constructor() {
 		super();
-		this.is_activated = push_web_config.is_activated;
+		//this.is_activated = push_web_config.is_activated;
 		this._posting = false;
 	}
 
