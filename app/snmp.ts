@@ -1,12 +1,22 @@
 import { EventEmitter } from "events";
 
-import config from "../config/snmp.json";
 import snmp from 'snmpjs';
 import DataPoint from "./database/data_point";
 import Paratonair from "./snmp/paratonair";
 import AlertairDC from "./snmp/alertairdc";
 import Ellips from "./snmp/ellips";
-import FrameModel from "./push_web/frame_model.js";
+import FrameModel from "./push_web/frame_model";
+import { Logger } from "./log";
+
+var config: any = null;
+try {
+	config = require("../config/snmp.json");
+} catch (e) {
+  console.log(e);
+  config = null;
+  Logger.error(e, "Erreur while importing snmp configuration");
+}
+
 
 const array = {
 	paratonair: Paratonair,

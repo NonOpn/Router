@@ -4,13 +4,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
-const snmp_json_1 = __importDefault(require("../config/snmp.json"));
 const snmpjs_1 = __importDefault(require("snmpjs"));
 const data_point_1 = __importDefault(require("./database/data_point"));
 const paratonair_1 = __importDefault(require("./snmp/paratonair"));
 const alertairdc_1 = __importDefault(require("./snmp/alertairdc"));
 const ellips_1 = __importDefault(require("./snmp/ellips"));
-const frame_model_js_1 = __importDefault(require("./push_web/frame_model.js"));
+const frame_model_1 = __importDefault(require("./push_web/frame_model"));
+const log_1 = require("./log");
+var config = null;
+try {
+    config = require("../config/snmp.json");
+}
+catch (e) {
+    console.log(e);
+    config = null;
+    log_1.Logger.error(e, "Erreur while importing snmp configuration");
+}
 const array = {
     paratonair: paratonair_1.default,
     comptair: paratonair_1.default,
@@ -46,12 +55,12 @@ class SNMP extends events_1.EventEmitter {
         }
         //for now, using only lpsfr devices
         if (rawdata.length === 60) { //30*2
-            const internal = frame_model_js_1.default.instance.getInternalSerial(rawdata);
+            const internal = frame_model_1.default.instance.getInternalSerial(rawdata);
             const callback = () => {
                 this.agents.forEach(agent => {
                     var lpsfr = agent != undefined ? agent.getLPSFR() : {};
                     if (rawdata.length > 6 && (lpsfr.type === "paratonair" || lpsfr.type === "comptair")) {
-                        const config_internal = frame_model_js_1.default.instance.getInternalSerial(rawdata);
+                        const config_internal = frame_model_1.default.instance.getInternalSerial(rawdata);
                         if (internal === config_internal) {
                             this.data_point_provider.savePoint(lpsfr.serial, config_internal, data.sender, rawdata);
                         }
@@ -88,7 +97,7 @@ class SNMP extends events_1.EventEmitter {
     connect() {
         this.agent = snmpjs_1.default.createAgent();
         var mib = [{
-                oid: snmp_json_1.default.router_oid + ".1",
+                oid: config.router_oid + ".1",
                 handler: (prq) => {
                     var val = snmpjs_1.default.data.createData({
                         type: "OctetString",
@@ -98,7 +107,7 @@ class SNMP extends events_1.EventEmitter {
                 }
             },
             {
-                oid: snmp_json_1.default.router_oid + ".2",
+                oid: config.router_oid + ".2",
                 handler: (prq) => {
                     var val = snmpjs_1.default.data.createData({
                         type: "OctetString",
@@ -107,7 +116,7 @@ class SNMP extends events_1.EventEmitter {
                     snmpjs_1.default.provider.readOnlyScalar(prq, val);
                 }
             }];
-        snmp_json_1.default.agents.forEach((conf) => {
+        config.agents.forEach((conf) => {
             try {
                 const instance = instantiate(conf);
                 instance.asMib().forEach((sub_mib) => {
