@@ -47,6 +47,11 @@ function createRequestRaw(raw: any): any {
 	};
 }
 
+interface RequestFrames {
+	data: any,
+	id?: number
+}
+
 export default class PushWEB extends EventEmitter {
 	is_activated: boolean = true;
 	_posting: boolean;
@@ -72,25 +77,26 @@ export default class PushWEB extends EventEmitter {
 						console.log("finished");
 						this._posting = false;
 					} else {
-						const to_frames = [];
+						const to_frames:RequestFrames[] = [];
 						const json = createRequestRaw("");
-						var id = -1;
 
 						while(to_frames.length < 30 && i < frames.length) {
-							to_frames.push(createRequestRaw(frames[i].frame).data);
-							id = frames[i].id || -1;
+							to_frames.push({data: createRequestRaw(frames[i].frame).data, id: frames[i].id });
 							i++;
+						}
+
+						if(frames.length > 0) {
+							json.id = frames[frames.length - 1].id || -1;
 						}
 
 						json.data = to_frames.join(",");
 						//const frame = frames[i];
 						//const json = createRequestRaw(frame.frame); //createRequest(hex);
 						json.remaining = frames.length - i;
-						json.id = id;
 	
 						_post(json)
 						.then(body => {
-							return FrameModel.instance.setSent(frame.id || 0, true);
+							return Promise.all(to_frames.map(frame => FrameModel.instance.setSent(frame.id || 0, true)));
 						})
 						.then(saved => {
 							callback(i+1);
