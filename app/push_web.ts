@@ -72,11 +72,21 @@ export default class PushWEB extends EventEmitter {
 						console.log("finished");
 						this._posting = false;
 					} else {
-						const frame = frames[i];
-						//const hex = Buffer.from(frame.frame, "hex");
-						const json = createRequestRaw(frame.frame); //createRequest(hex);
+						const to_frames = [];
+						const json = createRequestRaw("");
+						var id = -1;
+
+						while(to_frames.length < 5 && i < frames.length) {
+							to_frames.push(createRequestRaw(frames[i].frame).data);
+							id = frames[i].id || -1;
+							i++;
+						}
+
+						json.data = to_frames.join(",");
+						//const frame = frames[i];
+						//const json = createRequestRaw(frame.frame); //createRequest(hex);
 						json.remaining = frames.length - i;
-						json.id = frame.id;
+						json.id = id;
 	
 						_post(json)
 						.then(body => {
