@@ -7,6 +7,7 @@ import push_web_config from "./config/push_web";
 import FrameModelCompress from "./push_web/frame_model_compress.js";
 import { Logger } from "./log/index.js";
 import AbstractDevice from "./snmp/abstract.js";
+import NetworkInfo from "./network/index.js";
 
 const errors = Errors.instance;
 
@@ -15,11 +16,14 @@ const VERSION = 10;
 function _post(json: any) {
 	console.log("posting json");
 	return new Promise((resolve, reject) => {
+		const gprs = NetworkInfo.instance.isGPRS();
+		console.log("gprs mode ?", gprs);
+		var url = "https://contact-platform.com/api/ping";
+		if(gprs) {
+			url = "http://contact-platform.com/api/ping";
+		}
 		try {
-			request.post({
-				url: "https://contact-platform.com/api/ping",
-				json: json
-			}, (e: any, response: any, body: any) => {
+			request.post({ url, json }, (e: any, response: any, body: any) => {
 				console.log("answer obtained ", e);
 				if(e) {
 					reject(e);
@@ -65,20 +69,8 @@ export default class PushWEB extends EventEmitter {
 				const callback = (i: number) => {
 					console.log("callback called with " + i);
 					if(null == frames || i >= frames.length) {
-						_post({
-							host: config.identity,
-							version: VERSION,
-							fnished: true
-						})
-						.then(body => {
-							console.log("finished");
-							this._posting = false;
-						})
-						.catch(err => {
-							console.log("finished with network err");
-							this._posting = false;
-							errors.postJsonError(err);
-						});
+						console.log("finished");
+						this._posting = false;
 					} else {
 						const frame = frames[i];
 						//const hex = Buffer.from(frame.frame, "hex");

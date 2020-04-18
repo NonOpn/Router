@@ -9,16 +9,20 @@ const errors_1 = __importDefault(require("./errors"));
 const request_1 = __importDefault(require("request"));
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
 const frame_model_compress_js_1 = __importDefault(require("./push_web/frame_model_compress.js"));
+const index_js_1 = __importDefault(require("./network/index.js"));
 const errors = errors_1.default.instance;
 const VERSION = 10;
 function _post(json) {
     console.log("posting json");
     return new Promise((resolve, reject) => {
+        const gprs = index_js_1.default.instance.isGPRS();
+        console.log("gprs mode ?", gprs);
+        var url = "https://contact-platform.com/api/ping";
+        if (gprs) {
+            url = "http://contact-platform.com/api/ping";
+        }
         try {
-            request_1.default.post({
-                url: "https://contact-platform.com/api/ping",
-                json: json
-            }, (e, response, body) => {
+            request_1.default.post({ url, json }, (e, response, body) => {
                 console.log("answer obtained ", e);
                 if (e) {
                     reject(e);
@@ -63,20 +67,8 @@ class PushWEB extends events_1.EventEmitter {
                 const callback = (i) => {
                     console.log("callback called with " + i);
                     if (null == frames || i >= frames.length) {
-                        _post({
-                            host: config_js_1.default.identity,
-                            version: VERSION,
-                            fnished: true
-                        })
-                            .then(body => {
-                            console.log("finished");
-                            this._posting = false;
-                        })
-                            .catch(err => {
-                            console.log("finished with network err");
-                            this._posting = false;
-                            errors.postJsonError(err);
-                        });
+                        console.log("finished");
+                        this._posting = false;
                     }
                     else {
                         const frame = frames[i];
