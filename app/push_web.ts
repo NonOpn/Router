@@ -89,7 +89,7 @@ export default class PushWEB extends EventEmitter {
 							json.id = frames[frames.length - 1].id || -1;
 						}
 
-						json.data = to_frames.join(",");
+						json.data = to_frames.map(frame => frame.data).join(",");
 						//const frame = frames[i];
 						//const json = createRequestRaw(frame.frame); //createRequest(hex);
 						json.remaining = frames.length - i;
