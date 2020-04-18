@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const request_1 = __importDefault(require("request"));
 const config_1 = __importDefault(require("./config/config"));
 const index_1 = require("./log/index");
+const network_1 = __importDefault(require("./network"));
 var CTORS = [
     { error: TypeError, name: 'TypeError' },
     { error: SyntaxError, name: 'SyntaxError' },
@@ -50,13 +51,13 @@ function toJSON(err) {
 }
 class Errors {
     postJsonError(err, reason = undefined) {
-        index_1.Logger.error(toJSON(err), reason);
+        !network_1.default.instance.isGPRS() && index_1.Logger.error(toJSON(err), reason);
         this.postJsonErrorPromise(err)
             .then(val => console.log("val posted"))
             .catch(err => console.log("err obtained"));
     }
     postJsonErrorPromise(err, reason = undefined) {
-        index_1.Logger.error(toJSON(err), reason);
+        !network_1.default.instance.isGPRS() && index_1.Logger.error(toJSON(err), reason);
         return new Promise((resolve, reject) => {
             if (err) {
                 request_1.default.post({

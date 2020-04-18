@@ -6,13 +6,13 @@ import SNMP from "./snmp.js";
 import PushWEB from "./push_web.js";
 import DiscoveryService from "./discovery";
 import Wifi from "./wifi/wifi.js";
-import Errors from "./errors";
 import { SSH, Network } from "./systemctl";
 import { Logger } from "./log/index.js";
 import { Diskspace } from "./system/index.js";
 import Reporter from "./log/reporter.js";
 import FrameManagerAlert from "./frame_manager_alert.js";
 import DeviceManagement from './ble/device';
+import NetworkInfo from './network';
 
 const wifi = Wifi.instance;
 
@@ -24,11 +24,6 @@ class App {
   start() {
     new Promise((resolve) => {
       Reporter.instance.start();
-      Diskspace.instance.usage()
-      .then(usage => {
-        if(usage) Logger.identity({usage}, ["usage"]);
-      })
-      .catch(err => console.log(err) );
       //delay the answer to prevent any issue in this session - to improve, just exploring new features
       setTimeout(() => resolve(true), 5000);
     }).then(() => {
@@ -59,11 +54,13 @@ class App {
       const bluetooth = new Bluetooth();
       bluetooth.status()
       .then(status => {
-        Logger.data({service: "bluetooth", status})
+        if(!NetworkInfo.instance.isGPRS()) {
+          Logger.data({service: "bluetooth", status})
+        }
         return bluetooth.start();
       })
       .then(res => {})
-      .catch(err => Logger.error(err, "Error with bluetooth status"));
+      .catch(err => !NetworkInfo.instance.isGPRS() && Logger.error(err, "Error with bluetooth status"));
 
       wifi.start();
       server.start();
@@ -81,11 +78,9 @@ class App {
         .then(service => {
           return npm()
           .then(path => new Rebuild().exec("bluetooth-hci-socket", path))
-          .then(rebuild => Logger.data({rebuild}))
-          .catch(() => "")
-          .then(rebuild => Logger.data({service, rebuild}));
+          .catch(() => "");
         })
-        .catch(err => Logger.error(err));
+        .catch(err => !NetworkInfo.instance.isGPRS() && Logger.error(err));
       }
 
       enocean.on("usb-open", (port: any) => {
@@ -104,7 +99,7 @@ class App {
           console.log("device frame := ", {device: device?device.json() : undefined});
           push_web.onFrame(device, frame);
           ble.onFrame(device, frame);
-        }).catch(err => Logger.error(err, "error in managed frame"));
+        }).catch(err => !NetworkInfo.instance.isGPRS() && Logger.error(err, "error in managed frame"));
         server.onFrame(frame);
         snmp.onFrame(frame);
       });

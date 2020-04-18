@@ -7,6 +7,7 @@ const mysql_1 = __importDefault(require("mysql"));
 const mysql_js_1 = __importDefault(require("../config/mysql.js"));
 const index_js_1 = require("../log/index.js");
 const systemctl_1 = require("../systemctl");
+const index_js_2 = __importDefault(require("../network/index.js"));
 class Pool {
     constructor() {
         this.can_post_error = true;
@@ -27,10 +28,7 @@ class Pool {
             this.sent_mysql_status--;
             if (this.sent_mysql_status <= 0) {
                 this.mysql.status()
-                    .then(status => {
-                    console.log("mysql status := ");
-                    console.log(status);
-                    index_js_1.Logger.identity({ from: "trySendMysqlStatus", mysql: status });
+                    .then(() => {
                     this.sent_mysql_status = 20;
                     resolve(true);
                 })
@@ -70,17 +68,23 @@ class Pool {
         else if (error && error.code === "HA_ERR_NOT_A_TABLE") {
             console.log("not a table... try repair", { error });
             this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
-            index_js_1.Logger.data({ repair: table_name, use_frm: true });
+            if (!index_js_2.default.instance.isGPRS()) {
+                index_js_1.Logger.data({ repair: table_name, use_frm: true });
+            }
         }
         else if (error && error.code === "HA_ERR_CRASHED_ON_REPAIR") {
             console.log("crashed on auto repair... try repair", { error });
             this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
-            index_js_1.Logger.data({ repair: table_name });
+            if (!index_js_2.default.instance.isGPRS()) {
+                index_js_1.Logger.data({ repair: table_name });
+            }
         }
         else if (error && error.code === "ER_CRASHED_ON_USAGE") {
             console.log("crashed... try repair", { error });
             this.repair("REPAIR TABLE " + table_name, error, reject);
-            index_js_1.Logger.data({ repair: table_name });
+            if (!index_js_2.default.instance.isGPRS()) {
+                index_js_1.Logger.data({ repair: table_name });
+            }
         }
         else if (error && error.code === "ECONNREFUSED") {
             console.log("trying starting...", { error });
@@ -89,32 +93,24 @@ class Pool {
                 .then(can_be_done => {
                 if (can_be_done) {
                     //restart the MySQL instance if possible and report the state
-                    const callback = (done) => { index_js_1.Logger.data({ restart: "mysql", done }); reject(error); };
-                    this.mysql.restart().then(() => callback(true))
-                        .catch(err => {
-                        callback(false);
-                        reject(error);
-                    });
+                    const callback = () => reject(error);
+                    this.mysql.restart().then(() => callback())
+                        .catch(() => callback());
                 }
             });
         }
         else if (error && error.code == "ER_CON_COUNT_ERROR") {
             console.log("maximum host reached, flushing...", { error });
             //restart the MySQL instance if possible and report the state
-            const callback = (done) => { index_js_1.Logger.identity({ max_connection: "max", restart: "mysql", done }); reject(error); };
+            const callback = () => reject(error);
             this.mysqladmin.exec("flush-hosts", mysql_js_1.default.user || "", mysql_js_1.default.password || "")
                 .then(() => {
-                index_js_1.Logger.identity({ max_connection: "max", done: "flush-hosts" });
                 reject(error);
-                console.log("flush-hosts done, will also flush cat");
-                new systemctl_1.Cat().exec("/etc/mysql/my.cnf").then(content => index_js_1.Logger.identity({ content })).catch(err => { });
+                new systemctl_1.Cat().exec("/etc/mysql/my.cnf").catch(err => { });
                 return this.mysql.restart();
             })
-                .then(() => callback(true))
-                .catch(err => {
-                callback(false);
-                reject(error);
-            });
+                .then(() => callback())
+                .catch(() => callback());
         }
         else {
             //Logger.error(error, "in pool call for table := " + table_name);
@@ -123,9 +119,9 @@ class Pool {
         }
     }
     tryPostingSQLState() {
-        if (this.can_post_error) {
+        if (this.can_post_error && !index_js_2.default.instance.list().find(i => i.name === "eth1")) {
             this.can_post_error = false;
-            new systemctl_1.Cat().exec("/etc/mysql/my.cnf").then(content => index_js_1.Logger.identity({ content })).catch(err => { });
+            new systemctl_1.Cat().exec("/etc/mysql/my.cnf").catch(err => { });
             //allow in 10min
             setTimeout(() => this.can_post_error = true, 10 * 60 * 1000);
         }

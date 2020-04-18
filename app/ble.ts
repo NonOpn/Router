@@ -346,6 +346,7 @@ export default class BLE {
   private _ble_service: BLEPrimaryService;
   private _system_service: BLEPrimarySystemService;
   private _eth0_service: BLEPrimaryNetworkService;
+  private _eth1_service: BLEPrimaryNetworkService;
   private _wlan0_service: BLEPrimaryNetworkService;
   private _services: any[];
   private _services_uuid: string[];
@@ -373,6 +374,7 @@ export default class BLE {
       this._eth0_service = new BLEPrimaryNetworkService("bee6","eth0", ["eth0", "en1"]);
       this._wlan0_service = new BLEPrimaryNetworkService("bee7","wlan0", ["wlan0", "en0"]);
       this._system_service = new BLEPrimarySystemService("bee8");
+      this._eth1_service = new BLEPrimaryNetworkService("bee9","eth1", ["eth1", "gprs"]);
   
       return;
     }
@@ -397,10 +399,12 @@ export default class BLE {
     this._eth0_service = new BLEPrimaryNetworkService("bee6","eth0", ["eth0", "en1"]);
     this._wlan0_service = new BLEPrimaryNetworkService("bee7","wlan0", ["wlan0", "en0"]);
     this._system_service = new BLEPrimarySystemService("bee8");
+    this._eth1_service = new BLEPrimaryNetworkService("bee9","eth1", ["eth1"]);
 
     this._services = [
       this._ble_service,
       this._eth0_service,
+      this._eth1_service,
       this._wlan0_service,
       this._system_service
     ]

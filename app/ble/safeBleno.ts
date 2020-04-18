@@ -1,4 +1,5 @@
 import { Logger } from "../log";
+import NetworkInfo from "../network";
 
 var bleno: any = null;
 var needRepair: boolean = false;
@@ -7,7 +8,7 @@ try {
 } catch (e) {
   console.log(e);
   bleno = null;
-  Logger.error(e, "Erreur while importing ble");
+  !NetworkInfo.instance.isGPRS() && Logger.error(e, "Erreur while importing ble");
 
   if(e && e.toString) {
       const message = e.toString();
@@ -17,11 +18,8 @@ try {
 
 
 try {
-    if(!!bleno) {
-        Logger.data({ble:true, needRepair});
-    } else {
+    if(!bleno) {
         needRepair = true;
-        Logger.data({ble:false, needRepair});
     }
 } catch(e) {
 

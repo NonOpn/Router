@@ -282,6 +282,7 @@ class BLE {
             this._eth0_service = new BLEPrimaryNetworkService("bee6", "eth0", ["eth0", "en1"]);
             this._wlan0_service = new BLEPrimaryNetworkService("bee7", "wlan0", ["wlan0", "en0"]);
             this._system_service = new BLEPrimarySystemService("bee8");
+            this._eth1_service = new BLEPrimaryNetworkService("bee9", "eth1", ["eth1", "gprs"]);
             return;
         }
         //this._notify_frame = new BLEFrameNotify("0102", "Notify");
@@ -302,9 +303,11 @@ class BLE {
         this._eth0_service = new BLEPrimaryNetworkService("bee6", "eth0", ["eth0", "en1"]);
         this._wlan0_service = new BLEPrimaryNetworkService("bee7", "wlan0", ["wlan0", "en0"]);
         this._system_service = new BLEPrimarySystemService("bee8");
+        this._eth1_service = new BLEPrimaryNetworkService("bee9", "eth1", ["eth1"]);
         this._services = [
             this._ble_service,
             this._eth0_service,
+            this._eth1_service,
             this._wlan0_service,
             this._system_service
         ];

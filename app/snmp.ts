@@ -7,6 +7,7 @@ import AlertairDC from "./snmp/alertairdc";
 import Ellips from "./snmp/ellips";
 import FrameModel from "./push_web/frame_model";
 import { Logger } from "./log";
+import NetworkInfo from "./network";
 
 var config: any = null;
 try {
@@ -14,7 +15,7 @@ try {
 } catch (e) {
   console.log(e);
   config = null;
-  Logger.error(e, "Erreur while importing snmp configuration");
+  !NetworkInfo.instance.isGPRS() && Logger.error(e, "Erreur while importing snmp configuration");
 }
 
 

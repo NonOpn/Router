@@ -13,10 +13,10 @@ const discovery_1 = __importDefault(require("./discovery"));
 const wifi_js_1 = __importDefault(require("./wifi/wifi.js"));
 const systemctl_1 = require("./systemctl");
 const index_js_1 = require("./log/index.js");
-const index_js_2 = require("./system/index.js");
 const reporter_js_1 = __importDefault(require("./log/reporter.js"));
 const frame_manager_alert_js_1 = __importDefault(require("./frame_manager_alert.js"));
 const device_1 = __importDefault(require("./ble/device"));
+const network_1 = __importDefault(require("./network"));
 const wifi = wifi_js_1.default.instance;
 class App {
     constructor() {
@@ -24,12 +24,6 @@ class App {
     start() {
         new Promise((resolve) => {
             reporter_js_1.default.instance.start();
-            index_js_2.Diskspace.instance.usage()
-                .then(usage => {
-                if (usage)
-                    index_js_1.Logger.identity({ usage }, ["usage"]);
-            })
-                .catch(err => console.log(err));
             //delay the answer to prevent any issue in this session - to improve, just exploring new features
             setTimeout(() => resolve(true), 5000);
         }).then(() => {
@@ -57,11 +51,13 @@ class App {
             const bluetooth = new index_1.Bluetooth();
             bluetooth.status()
                 .then(status => {
-                index_js_1.Logger.data({ service: "bluetooth", status });
+                if (!network_1.default.instance.isGPRS()) {
+                    index_js_1.Logger.data({ service: "bluetooth", status });
+                }
                 return bluetooth.start();
             })
                 .then(res => { })
-                .catch(err => index_js_1.Logger.error(err, "Error with bluetooth status"));
+                .catch(err => !network_1.default.instance.isGPRS() && index_js_1.Logger.error(err, "Error with bluetooth status"));
             wifi.start();
             server.start();
             snmp.connect();
@@ -76,11 +72,9 @@ class App {
                     .then(service => {
                     return index_1.npm()
                         .then(path => new index_1.Rebuild().exec("bluetooth-hci-socket", path))
-                        .then(rebuild => index_js_1.Logger.data({ rebuild }))
-                        .catch(() => "")
-                        .then(rebuild => index_js_1.Logger.data({ service, rebuild }));
+                        .catch(() => "");
                 })
-                    .catch(err => index_js_1.Logger.error(err));
+                    .catch(err => !network_1.default.instance.isGPRS() && index_js_1.Logger.error(err));
             }
             enocean.on("usb-open", (port) => {
                 console.log("device opened and ready");
@@ -96,7 +90,7 @@ class App {
                     console.log("device frame := ", { device: device ? device.json() : undefined });
                     push_web.onFrame(device, frame);
                     ble.onFrame(device, frame);
-                }).catch(err => index_js_1.Logger.error(err, "error in managed frame"));
+                }).catch(err => !network_1.default.instance.isGPRS() && index_js_1.Logger.error(err, "error in managed frame"));
                 server.onFrame(frame);
                 snmp.onFrame(frame);
             });

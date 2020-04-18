@@ -43,11 +43,6 @@ function createRequestRaw(raw: any): any {
 	};
 }
 
-function createRequest(data: Buffer /*buffer hex */) {
-	const base64 = data.toString("base64");
-	return { host: config.identity, version: VERSION, data: base64 };
-}
-
 export default class PushWEB extends EventEmitter {
 	is_activated: boolean = true;
 	_posting: boolean;

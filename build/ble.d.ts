@@ -6,6 +6,7 @@ export default class BLE {
     private _ble_service;
     private _system_service;
     private _eth0_service;
+    private _eth1_service;
     private _wlan0_service;
     private _services;
     private _services_uuid;

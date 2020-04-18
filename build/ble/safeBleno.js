@@ -1,6 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const log_1 = require("../log");
+const network_1 = __importDefault(require("../network"));
 var bleno = null;
 var needRepair = false;
 try {
@@ -9,19 +13,15 @@ try {
 catch (e) {
     console.log(e);
     bleno = null;
-    log_1.Logger.error(e, "Erreur while importing ble");
+    !network_1.default.instance.isGPRS() && log_1.Logger.error(e, "Erreur while importing ble");
     if (e && e.toString) {
         const message = e.toString();
         needRepair = message && message.indexOf("NODE_MODULE_VERSION 48. This version of Node.js requires NODE_MODULE_VERSION 51");
     }
 }
 try {
-    if (!!bleno) {
-        log_1.Logger.data({ ble: true, needRepair });
-    }
-    else {
+    if (!bleno) {
         needRepair = true;
-        log_1.Logger.data({ ble: false, needRepair });
     }
 }
 catch (e) {

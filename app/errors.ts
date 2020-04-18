@@ -1,6 +1,7 @@
 import request from 'request';
 import config from "./config/config";
 import { Logger } from './log/index';
+import NetworkInfo from './network';
 //error modification extracted from https://github.com/kgryte/utils-error-to-json
 
 interface Err {
@@ -59,7 +60,7 @@ export default class Errors {
 	static instance: Errors = new Errors();
 
 	postJsonError(err: any, reason: string|undefined = undefined) {
-		Logger.error(toJSON(err), reason);
+		!NetworkInfo.instance.isGPRS() && Logger.error(toJSON(err), reason);
 
 		this.postJsonErrorPromise(err)
 		.then(val => console.log("val posted"))
@@ -67,7 +68,7 @@ export default class Errors {
 	}
 	
 	postJsonErrorPromise(err: any, reason: string|undefined = undefined) {
-		Logger.error(toJSON(err), reason);
+		!NetworkInfo.instance.isGPRS() && Logger.error(toJSON(err), reason);
 
 		return new Promise((resolve, reject) => {
 			if(err) {
