@@ -76,7 +76,7 @@ export default class PushWEB extends EventEmitter {
 						const json = createRequestRaw("");
 						var id = -1;
 
-						while(to_frames.length < 5 && i < frames.length) {
+						while(to_frames.length < 30 && i < frames.length) {
 							to_frames.push(createRequestRaw(frames[i].frame).data);
 							id = frames[i].id || -1;
 							i++;
