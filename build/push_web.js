@@ -51,16 +51,28 @@ class PushWEB extends events_1.EventEmitter {
     constructor() {
         super();
         this.is_activated = true;
+        this._number_to_skip = 0;
         this._started = false;
         //this.is_activated = push_web_config.is_activated;
         this._posting = false;
     }
     trySend() {
+        if (index_js_1.default.instance.isGPRS() && this._number_to_skip > 0) {
+            this._number_to_skip--;
+            if (this._number_to_skip < 0)
+                this._number_to_skip = 0;
+            return;
+        }
+        this._number_to_skip = 4;
+        this.trySendOk();
+    }
+    trySendOk() {
         try {
             if (this._posting || !this.is_activated)
                 return;
             this._posting = true;
             console.log("try send to send frames");
+            //TODO for GPRS, when getting unsent, only get the last non alert + every alerts in the steps
             frame_model_1.default.instance.getUnsent()
                 .then((frames) => {
                 console.log("frames ? " + frames);

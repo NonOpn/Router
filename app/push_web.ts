@@ -55,6 +55,7 @@ interface RequestFrames {
 export default class PushWEB extends EventEmitter {
 	is_activated: boolean = true;
 	_posting: boolean;
+	_number_to_skip = 0;
 
 	constructor() {
 		super();
@@ -63,11 +64,23 @@ export default class PushWEB extends EventEmitter {
 	}
 
 	trySend() {
+		if(NetworkInfo.instance.isGPRS() && this._number_to_skip > 0) {
+			this._number_to_skip --;
+			if(this._number_to_skip < 0) this._number_to_skip = 0;
+			return;
+		}
+
+		this._number_to_skip = 4;
+		this.trySendOk();
+	}
+
+	trySendOk() {
 		try {
 			if(this._posting || !this.is_activated) return;
 			this._posting = true;
 			console.log("try send to send frames");
-	
+
+			//TODO for GPRS, when getting unsent, only get the last non alert + every alerts in the steps
 			FrameModel.instance.getUnsent()
 			.then((frames) => {
 				console.log("frames ? " + frames);
