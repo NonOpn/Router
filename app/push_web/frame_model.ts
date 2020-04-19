@@ -254,9 +254,11 @@ export default class FrameModel extends Abstract {
     });
   }
 
+  getMaximumUnsent = () => 400;
+
   getUnsent(): Promise<Transaction[]> {
     return new Promise((resolve, reject) => {
-      pool.query("SELECT * FROM Frames WHERE sent = 0 LIMIT 100")
+      pool.queryParameters("SELECT * FROM Frames WHERE sent = 0 LIMIT ?", [this.getMaximumUnsent()])
       .then(results => resolve(results))
       .catch(err => manageErrorCrash(err, reject));
     });

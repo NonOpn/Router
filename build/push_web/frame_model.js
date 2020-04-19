@@ -69,6 +69,7 @@ function manageErrorCrash(error, reject) {
 class FrameModel extends abstract_js_1.default {
     constructor() {
         super();
+        this.getMaximumUnsent = () => 400;
     }
     getModelName() {
         return FRAME_MODEL;
@@ -225,7 +226,7 @@ class FrameModel extends abstract_js_1.default {
     }
     getUnsent() {
         return new Promise((resolve, reject) => {
-            pool.query("SELECT * FROM Frames WHERE sent = 0 LIMIT 100")
+            pool.queryParameters("SELECT * FROM Frames WHERE sent = 0 LIMIT ?", [this.getMaximumUnsent()])
                 .then(results => resolve(results))
                 .catch(err => manageErrorCrash(err, reject));
         });
@@ -257,6 +258,6 @@ class FrameModel extends abstract_js_1.default {
         });
     }
 }
-FrameModel.instance = new FrameModel();
 exports.default = FrameModel;
+FrameModel.instance = new FrameModel();
 //# sourceMappingURL=frame_model.js.map

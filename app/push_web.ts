@@ -93,7 +93,7 @@ export default class PushWEB extends EventEmitter {
 						const to_frames:RequestFrames[] = [];
 						const json = createRequestRaw("");
 
-						while(to_frames.length < 30 && i < frames.length) {
+						while(to_frames.length < 240 && i < frames.length) {
 							to_frames.push({data: createRequestRaw(frames[i].frame).data, id: frames[i].id });
 							i++;
 						}
@@ -106,7 +106,7 @@ export default class PushWEB extends EventEmitter {
 						//const frame = frames[i];
 						//const json = createRequestRaw(frame.frame); //createRequest(hex);
 						json.remaining = frames.length - i;
-						json.gprs = NetworkInfo.instance.isGPRS();
+						json.gprs = !!NetworkInfo.instance.isGPRS();
 	
 						_post(json)
 						.then(body => {
