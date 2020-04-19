@@ -96,6 +96,7 @@ class PushWEB extends events_1.EventEmitter {
                         //const frame = frames[i];
                         //const json = createRequestRaw(frame.frame); //createRequest(hex);
                         json.remaining = frames.length - i;
+                        json.gprs = index_js_1.default.instance.isGPRS();
                         _post(json)
                             .then(body => {
                             return Promise.all(to_frames.map(frame => frame_model_1.default.instance.setSent(frame.id || 0, true)));

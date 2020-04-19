@@ -106,6 +106,7 @@ export default class PushWEB extends EventEmitter {
 						//const frame = frames[i];
 						//const json = createRequestRaw(frame.frame); //createRequest(hex);
 						json.remaining = frames.length - i;
+						json.gprs = NetworkInfo.instance.isGPRS();
 	
 						_post(json)
 						.then(body => {
