@@ -210,6 +210,7 @@ if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
   # pull the update
 
   echo "reset the local repo at $BRANCH"
+  rm package-lock.json
   git checkout .
   git fetch --all
   git reset --hard origin/$BRANCH
