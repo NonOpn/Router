@@ -1,9 +1,12 @@
+import FrameModel, { Transaction } from './../push_web/frame_model';
 import { DataPointModel } from '../database/data_point';
 import DataPoint from "../database/data_point";
 import snmp from "snmpjs";
+import { TYPE } from '../ble/device';
 
 export interface Filter {
-  serial: string;
+  key: string,
+  value: string;
 }
 
 export interface CallbackOID {
@@ -37,10 +40,19 @@ export default class AbstractDevice {
     //this.data_point_provider = new DataPoint();
   }
 
+  json() {
+    const data = (this.getLPSFR() || {});
+    return {
+      id: this.getId(),
+      internal: data.internal,
+      serial: data.serial,
+      type: data.type,
+    }
+  }
+
   getId(): number {
     const lpsfr = this.getLPSFR();
-    if(lpsfr && lpsfr.id) return lpsfr.id;
-    return 0;
+    return lpsfr && lpsfr.id ? lpsfr.id : 0;
   }
 
   getUUID(): string {
@@ -57,8 +69,13 @@ export default class AbstractDevice {
     return this._getPromiseCharacteristic("internal");
   }
 
-  getType(): Promise<number> {
+  getType(): Promise<string> {
     return this._getPromiseCharacteristic("type");
+  }
+
+  setType(type?: string): Promise<boolean> {
+    if(!type) return new Promise(r => r(true));
+    return this._setPromiseCharacteristic("type", type || "paratonair");
   }
 
   _getPromiseCharacteristic(name: string): Promise<any> {
@@ -68,15 +85,31 @@ export default class AbstractDevice {
     })
   }
 
+  _setPromiseCharacteristic(name: string, value: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      if(this.params && this.params.lpsfr) this.params.lpsfr[name] = value;
+      resolve(true);
+    })
+  }
+
   getSyncInternalSerial(): string|undefined {
     return this.params && this.params.lpsfr ? this.params.lpsfr.internal : undefined;
   }
 
-  getConnectedStateString(item: DataPointModel): string {
+  getConnectedStateString(item: DataPointModel|undefined): string {
     return "not_implemented";
   }
 
-  getImpactedString(item: DataPointModel): string {
+  getImpactedString(item: DataPointModel|undefined): string {
+    return "not_implemented";
+  }
+
+  
+  getAdditionnalInfo1String(item: DataPointModel|undefined): string {
+    return "not_implemented";
+  }
+
+  getAdditionnalInfo2String(item: DataPointModel|undefined): string {
     return "not_implemented";
   }
 
@@ -84,8 +117,38 @@ export default class AbstractDevice {
     return this.params.lpsfr;
   }
 
-  getLatest(): Promise<DataPointModel> {
-    return this.data_point_provider.findLatestWithParams(this.getStandardFilter());
+  getLatest(): Promise<DataPointModel|undefined> {
+    const filter: Filter = this.getStandardFilter();
+    return this.data_point_provider.findMatching(filter.key, filter.value);
+  }
+
+  getLatestFrames(): Promise<Transaction[]> {
+    return FrameModel.instance.lasts(this.getId(), 5);
+  }
+
+  getFormattedLatestFrames(): Promise<any[]> {
+    return Promise.reject("invalid");
+  }
+
+  getLatestFramesAsString(): Promise<string> {
+    return this.getFormattedLatestFrames()
+    .then(array => JSON.stringify(array))
+    .catch(err => { console.log(err); return JSON.stringify({error: true}); })
+  }
+
+  getAdditionnalInfo1(): Promise<string> {
+    return this.getLatest()
+    .then(item => this.getAdditionnalInfo1String(item));
+  }
+
+  getAdditionnalInfo2(): Promise<string> {
+    return this.getLatest()
+    .then(item => this.getAdditionnalInfo2String(item));
+  }
+
+  getLatests(): Promise<string> {
+    return this.getLatest()
+    .then(item => this.getAdditionnalInfo2String(item));
   }
 
   getConnectedState(): Promise<string> {

@@ -1,18 +1,12 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const enocean_js_1 = __importDefault(require("./enocean.js"));
-const server_js_1 = __importDefault(require("./server.js"));
-const ble_1 = __importDefault(require("./ble"));
-const snmp_js_1 = __importDefault(require("./snmp.js"));
-const push_web_js_1 = __importDefault(require("./push_web.js"));
-const discovery_1 = __importDefault(require("./discovery"));
-const wifi_js_1 = __importDefault(require("./wifi/wifi.js"));
+const Touch_1 = require("./system/Touch");
 const errors_1 = __importDefault(require("./errors"));
-const wifi = wifi_js_1.default.instance;
 const errors = errors_1.default.instance;
+const RESTART_DELAY = 180000; //restart the program after 180 000 ms
 class MainEntryPoint {
     constructor() {
     }
@@ -37,21 +31,29 @@ class MainEntryPoint {
                 const qSilent = () => {
                     setTimeout(() => {
                         try {
-                            // make sure we close down within 30 seconds
+                            // make sure we close down within RESTART_DELAY milliseconds
                             const killtimer = setTimeout(() => {
                                 process.exit(1);
-                            }, 30000);
+                            }, RESTART_DELAY);
                             // But don't keep the process open just for that!
                             killtimer.unref();
                             cluster.worker.disconnect();
                         }
                         catch (er2) {
                         }
-                    }, 30000);
+                    }, RESTART_DELAY);
                 };
                 try {
+                    console.log("error :: " + err.message);
+                    if ((err.message || "").indexOf("Cannot find module") >= 0) {
+                        console.log("module not found, trying to rebuild next time...");
+                        const touch = new Touch_1.Touch();
+                        touch.exec("/home/nonopn/rebuild")
+                            .then((result) => console.log("touch :: " + result))
+                            .catch((err) => console.log(err));
+                    }
                     console.log(err);
-                    errors.postJsonErrorPromise(err)
+                    errors.postJsonErrorPromise(err, "main crash")
                         .then(val => {
                         console.log("post done, quit");
                         qSilent();
@@ -67,38 +69,9 @@ class MainEntryPoint {
                 }
             });
             created_domain.run(() => {
-                var enocean = new enocean_js_1.default();
-                var server = new server_js_1.default(enocean);
-                var snmp = new snmp_js_1.default();
-                var push_web = new push_web_js_1.default();
-                var discovery_service = new discovery_1.default();
-                var ble = new ble_1.default();
-                wifi.start();
-                server.start();
-                snmp.connect();
-                push_web.connect();
-                enocean.register(server);
-                discovery_service.bind();
-                ble.start();
-                enocean.on("usb-open", (port) => {
-                    console.log("device opened and ready");
-                    server.emit("usb-open");
-                });
-                enocean.on("usb-closed", (port_instantiated) => {
-                    console.log("device removed");
-                    server.emit("usb-closed");
-                });
-                enocean.on("managed_frame", (frame) => {
-                    ble.onFrame(frame);
-                    server.onFrame(frame);
-                    snmp.onFrame(frame);
-                    push_web.onFrame(frame);
-                });
-                enocean.on("frame", (frame) => {
-                });
-                snmp.on("log", (log) => {
-                    server.emit("log", log);
-                });
+                const App = require("./app").App;
+                const app = new App();
+                app.start();
             });
         }
     }

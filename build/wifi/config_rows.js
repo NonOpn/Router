@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const pool_1 = __importDefault(require("../push_web/pool"));
 const abstract_js_1 = __importDefault(require("../database/abstract.js"));
@@ -19,9 +19,8 @@ function createInsertRows() {
     columns = columns.map(function (col) {
         return "`" + col + "`";
     });
-    return "INSERT INTO ConfigRows (" + columns.join(",") + ") VALUES ? ";
+    return "INSERT INTO ConfigRows (" + columns.join(",") + ") VALUES (?,?) ";
 }
-const INSERT_ROWS = createInsertRows();
 class ConfigRows extends abstract_js_1.default {
     getModelName() {
         return MODEL;
@@ -63,7 +62,7 @@ class ConfigRows extends abstract_js_1.default {
                         .catch(err => reject(err));
                 }
                 else {
-                    pool.queryParameters("INSERT INTO ConfigRows SET ?", [this.array(key, value)])
+                    pool.queryParameters(createInsertRows(), [key, value])
                         .then(() => resolve({ key, value }))
                         .catch(err => reject(err)); //TODO standardize pool error management
                 }

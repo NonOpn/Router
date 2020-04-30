@@ -3,6 +3,7 @@ import config from "network-config";
 
 export interface Interface {
   name: string|undefined;
+  ip_address?: string|undefined;
 }
 
 export interface InterfaceCallback {
@@ -26,7 +27,11 @@ export default class NetworkInfo {
   }
 
   list(): Interface[] {
-    return this._list;
+    return this._list.filter(i => !!i);
+  }
+
+  isGPRS() {
+    return this.list().find(i => i.name === "eth1");
   }
 
   interf(interf: string): Interface|undefined {

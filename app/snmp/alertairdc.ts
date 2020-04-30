@@ -1,5 +1,7 @@
 import AbstractDevice, { Filter, OID } from "./abstract";
 import os from "os";
+import { DataPointModel } from "../database/data_point";
+import FrameModelCompress from "../push_web/frame_model_compress";
 
 export default class AlertairDC extends AbstractDevice {
   constructor(params: any) {
@@ -9,28 +11,52 @@ export default class AlertairDC extends AbstractDevice {
 
   getStandardFilter(): Filter {
     return {
-      serial: this.params.lpsfr.serial
+      key: "serial",
+      value: this.params.lpsfr.serial
     };
   }
 
-  getConnectedStateString(item: any): string {
-    if(!item || !item.data) return " ";
-    const buffer = new Buffer(item.data, "hex");
-    if(buffer.length >= 16) {
+  static isConnected(frame: string) {
+    if(!frame || frame.length == 0) return false;
+    const buffer = new Buffer(frame, "hex");
+    if(buffer.length >= 10) {
       const disconnect = (buffer[9] & 2) === 2;
-      if(disconnect) return "disconnect";
+      if(disconnect) return false;
     }
-    return "connected";
+    return true;
   }
 
-  getImpactedString(item: any): string {
-    if(!item || !item.data) return " ";
-    const buffer = new Buffer(item.data, "hex");
-    if(buffer.length >= 16) {
-      const disconnect = (buffer[9] & 1) === 0;
-      if(disconnect) return "circuit_disconnect";
+  static isCircuitDisconnect(frame: string) {
+    if(!frame || frame.length == 0) return false;
+    const buffer = new Buffer(frame, "hex");
+    if(buffer.length >= 10) {
+      const striken = (buffer[9] & 1) === 0;
+      if(striken) return true;
     }
-    return "circuit_normal";
+    return false;
+  }
+
+  getConnectedStateString(item: DataPointModel|undefined): string {
+    const connected = item ? AlertairDC.isConnected(item.data) : false;
+    return connected ? "connected" : "disconnect";
+  }
+
+  getImpactedString(item: DataPointModel|undefined): string {
+    const circuit_disconnected = item ? AlertairDC.isCircuitDisconnect(item.data) : false;
+    return circuit_disconnected ? "circuit_disconnect" : "circuit_normal";
+  }
+
+  getFormattedLatestFrames(): Promise<any[]> {
+    return this.getLatestFrames()
+    .then(transactions => transactions.map(transaction => {
+      const compressed = FrameModelCompress.instance.getFrameWithoutHeader(transaction.frame);
+      return {
+        d: transaction.timestamp,
+        c: !!AlertairDC.isConnected(compressed),
+        a: !!AlertairDC.isCircuitDisconnect(compressed),
+        s: !!transaction.sent
+      }
+    }))
   }
 
   asMib(): OID[] {

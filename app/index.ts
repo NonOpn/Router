@@ -1,14 +1,9 @@
-import EnoceanLoader from "./enocean.js";
-import Server from "./server.js";
-import BLE from "./ble";
-import SNMP from "./snmp.js";
-import PushWEB from "./push_web.js";
-import DiscoveryService from "./discovery";
-import Wifi from "./wifi/wifi.js";
+import { Touch } from './system/Touch';
 import Errors from "./errors";
 
-const wifi = Wifi.instance;
 const errors = Errors.instance;
+
+const RESTART_DELAY: number = 180000; //restart the program after 180 000 ms
 
 export default class MainEntryPoint {
   constructor() {
@@ -38,26 +33,37 @@ export default class MainEntryPoint {
         console.log("oups", err);
       });
   
-      created_domain.on('error', (err: any) => {
+      created_domain.on('error', (err: Error) => {
   
         const qSilent = () => {
           setTimeout(() => {
             try {
-              // make sure we close down within 30 seconds
+              // make sure we close down within RESTART_DELAY milliseconds
               const killtimer = setTimeout(() => {
                 process.exit(1);
-              }, 30000);
+              }, RESTART_DELAY);
               // But don't keep the process open just for that!
               killtimer.unref();
               cluster.worker.disconnect();
             } catch (er2) {
+
             }
-          }, 30000);
+          }, RESTART_DELAY);
         }
   
         try {
+          console.log("error :: " + err.message);
+
+          if((err.message||"").indexOf("Cannot find module") >= 0) {
+            console.log("module not found, trying to rebuild next time...");
+            const touch = new Touch();
+            touch.exec("/home/nonopn/rebuild")
+            .then((result) => console.log("touch :: " + result))
+            .catch((err: Error) => console.log(err));
+          }
+
           console.log(err);
-          errors.postJsonErrorPromise(err)
+          errors.postJsonErrorPromise(err, "main crash")
           .then(val => {
             console.log("post done, quit");
             qSilent();
@@ -73,44 +79,10 @@ export default class MainEntryPoint {
       });
   
       created_domain.run(() => {
-        var enocean = new EnoceanLoader();
-        var server = new Server(enocean);
-        var snmp = new SNMP();
-        var push_web = new PushWEB();
-        var discovery_service = new DiscoveryService();
-        var ble = new BLE();
-  
-        wifi.start();
-        server.start();
-        snmp.connect();
-        push_web.connect();
-        enocean.register(server);
-        discovery_service.bind();
-        ble.start();
-  
-        enocean.on("usb-open", (port: any) => {
-          console.log("device opened and ready");
-          server.emit("usb-open");
-        });
-  
-        enocean.on("usb-closed", (port_instantiated: any) => {
-          console.log("device removed");
-          server.emit("usb-closed");
-        });
-  
-        enocean.on("managed_frame", (frame: any) => {
-          ble.onFrame(frame);
-          server.onFrame(frame);
-          snmp.onFrame(frame);
-          push_web.onFrame(frame);
-        });
-  
-        enocean.on("frame", (frame: any) => {
-        });
-  
-        snmp.on("log", (log: any) => {
-          server.emit("log", log);
-        });
+        const App = require("./app").App;
+
+        const app = new App();
+        app.start();
       });
     }
   }

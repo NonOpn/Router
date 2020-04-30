@@ -1,11 +1,23 @@
 import { EventEmitter } from "events";
 
-import config from "../config/snmp.json";
 import snmp from 'snmpjs';
 import DataPoint from "./database/data_point";
 import Paratonair from "./snmp/paratonair";
 import AlertairDC from "./snmp/alertairdc";
 import Ellips from "./snmp/ellips";
+import FrameModel from "./push_web/frame_model";
+import { Logger } from "./log";
+import NetworkInfo from "./network";
+
+var config: any = null;
+try {
+	config = require("../config/snmp.json");
+} catch (e) {
+  console.log(e);
+  config = null;
+  !NetworkInfo.instance.isGPRS() && Logger.error(e, "Erreur while importing snmp configuration");
+}
+
 
 const array = {
 	paratonair: Paratonair,
@@ -46,51 +58,52 @@ export default class SNMP extends EventEmitter {
 	}
 	
 	applyData(data: any) {
-		if(data && data.rawFrameStr) { //for now, using only lpsfr devices
-			//rawFrameStr and rawDataStr are set
-			if(data.rawFrameStr.length === 60) { //30*2
-				const rawdata = data.rawDataStr;
-				const internal = rawdata.substring(0, 6);
-				const callback = () => { //manage contactair ready v2 if not ffffff
-					this.agents.forEach(agent => {
-						var lpsfr = agent != undefined ? agent.getLPSFR() : {};
-						if(rawdata.length > 6 && (lpsfr.type === "paratonair" || lpsfr.type === "comptair")) {
-							const config_internal = lpsfr.internal.substring(0, 6);
-	
-							if(internal === config_internal) {
-								console.log("having internal correct");
-								this.data_point_provider.savePoint(lpsfr.serial, config_internal, data.sender, data.rawDataStr);
-							}
-						}
-					});
-				}
-	
-				if(internal === "ffffff") {
-					console.log("having a ffffff serial, disconnected or impacted", data.sender);
-					this.data_point_provider.latestForContactair(data.sender)
-					.then(item => {
-						if(item) {
-							this.data_point_provider.savePoint(item.serial, item.internal, data.sender, data.rawDataStr);
-							console.log("saving to "+item.serial+" "+item.internal+" "+data.sender+" "+data.rawDataStr);
-						} else {
-							callback();
-						}
-					}).catch(err => {
-						console.log(err);
-						callback();
-					});
-				} else {
-					callback();
-				}
-	
-			} else if(data.rawFrameStr.length === 48) { //24*2
+		const _data = data ? data : {};
+		var rawdata = _data.rawByte || _data.rawFrameStr;
+
+		if(!rawdata || (rawdata.length != 48 && rawdata.length != 60)) {
+			return;
+		}
+
+		//for now, using only lpsfr devices
+		if(rawdata.length === 60) { //30*2
+			const internal = FrameModel.instance.getInternalSerial(rawdata);
+			const callback = () => { //manage contactair ready v2 if not ffffff
 				this.agents.forEach(agent => {
-					const lpsfr = agent.getLPSFR();
-					if(lpsfr.internal === data.sender && lpsfr.type === "ellips") {
-						this.data_point_provider.savePoint(lpsfr.serial, lpsfr.internal, data.sender, data.rawDataStr);
+					var lpsfr = agent != undefined ? agent.getLPSFR() : {};
+					if(rawdata.length > 6 && (lpsfr.type === "paratonair" || lpsfr.type === "comptair")) {
+						const config_internal = FrameModel.instance.getInternalSerial(rawdata);
+
+						if(internal === config_internal) {
+							this.data_point_provider.savePoint(lpsfr.serial, config_internal, data.sender, rawdata);
+						}
 					}
-				})
+				});
 			}
+
+			if(internal === "ffffff") {
+				this.data_point_provider.latestForContactair(data.sender)
+				.then(item => {
+					if(item) {
+						this.data_point_provider.savePoint(item.serial, item.internal, data.sender, rawdata);
+					} else {
+						callback();
+					}
+				}).catch(err => {
+					console.log(err);
+					callback();
+				});
+			} else {
+				callback();
+			}
+
+		} else if(rawdata.length === 48) { //24*2
+			this.agents.forEach(agent => {
+				const lpsfr = agent.getLPSFR();
+				if(lpsfr.internal === data.sender && lpsfr.type === "ellips") {
+					this.data_point_provider.savePoint(lpsfr.serial, lpsfr.internal, data.sender, rawdata);
+				}
+			})
 		}
 	}
 	

@@ -1,12 +1,11 @@
 import express from "express";
 import { EventEmitter } from "events";
-import basicAuth from "basic-auth-connect";
 import socketio from "socket.io";
 import Setup from "setup";
 import api_v1 from "./server/api/api_v1";
 import api_public from "./server/api/api_public";
 import bodyParser from 'body-parser';
-import config from "../config/visualisation.js";
+import config from "./config/visualisation.js";
 
 import Wifi from "./wifi/wifi";
 import EnoceanLoader from "./enocean";
@@ -70,7 +69,6 @@ function manageNewNetworkData(intface: any, data: any) {
     var config = setup.network.config(conf);
 
     setup.network.save(config);
-    console.log("saved", config);
     return true;
   }
   return false;
@@ -86,7 +84,8 @@ export default class Server extends EventEmitter  {
     this.enocean_manager = enocean_manager;
 
     io.on("connection", function (socket: any){
-      enocean_manager.register(socket);
+      //TODO restore capability to have frame in real time ?
+      //enocean_manager.register(socket);
 
       const net = (type: any, data: any) => {
         try{

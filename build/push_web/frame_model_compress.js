@@ -1,10 +1,11 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const pool_1 = __importDefault(require("./pool"));
 const abstract_js_1 = __importDefault(require("../database/abstract.js"));
+const frame_model_1 = __importDefault(require("./frame_model"));
 const pool = pool_1.default.instance;
 pool.query("CREATE TABLE IF NOT EXISTS FramesCompress ("
     + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
@@ -15,14 +16,17 @@ pool.query("CREATE TABLE IF NOT EXISTS FramesCompress ("
     + "`product_id` INTEGER,"
     + "`striken` TINYINT(1) DEFAULT 0,"
     + "`connected` TINYINT(1) DEFAULT 0,"
+    + "`is_alert` TINYINT(1) DEFAULT NULL,"
     + "KEY `timestamp` (`timestamp`)"
     + ")ENGINE=MyISAM;")
     .then(() => pool.query("ALTER TABLE FramesCompress ADD COLUMN `product_id` INTEGER", true))
     .then(() => pool.query("ALTER TABLE FramesCompress ADD COLUMN `striken` INTEGER", true))
     .then(() => pool.query("ALTER TABLE FramesCompress ADD COLUMN `connected` INTEGER", true))
+    .then(() => pool.query("ALTER TABLE FramesCompress ADD COLUMN `is_alert` TINYINT(1) DEFAULT NULL", true))
     .then(() => pool.query("ALTER TABLE FramesCompress ADD INDEX `product_id` (`product_id`);", true))
     .then(() => pool.query("ALTER TABLE FramesCompress ADD INDEX `striken` (`striken`);", true))
     .then(() => pool.query("ALTER TABLE FramesCompress ADD INDEX `connected` (`connected`);", true))
+    .then(() => pool.query("ALTER TABLE FramesCompress ADD INDEX `is_alert` (`is_alert`);", true))
     .then(() => console.log("finished"))
     .catch(err => console.log(err));
 const FRAME_MODEL = "Transaction";
@@ -69,6 +73,13 @@ class FrameModelCompress extends abstract_js_1.default {
                 .catch(err => manageErrorCrash(err, reject));
         });
     }
+    invalidateAlerts(product_id) {
+        return new Promise((resolve, reject) => {
+            pool.queryParameters("UPDATE FramesCompress SET is_alert = NULL WHERE product_id = ? AND is_alert IS NOT NULL", [product_id])
+                .then(results => resolve(true))
+                .catch(err => manageErrorCrash(err, reject));
+        });
+    }
     getRelevantByte(frame) {
         var compressed = this.getCompressedFrame(frame);
         if (compressed && compressed.length > 0) {
@@ -76,19 +87,21 @@ class FrameModelCompress extends abstract_js_1.default {
         }
         return "00";
     }
-    getCompressedFrame(frame) {
+    getFrameWithoutHeader(frame) {
         if (frame && frame.length > 14 + 20 + 8)
-            return frame.substring(14 + 6, 14 + 20);
+            return frame.substring(14, 14 + 20 + 8);
         return frame;
     }
+    //ffffff - ffffff0000000b - 01824a - 995a01
+    getCompressedFrame(frame) {
+        return frame_model_1.default.instance.getCompressedFrame(frame);
+    }
     getInternalSerial(frame) {
-        return frame.substring(14 + 0, 14 + 6);
+        return frame_model_1.default.instance.getInternalSerial(frame);
     }
     getContactair(frame) {
         //ffffffffffff0000000b01824a995a01
-        if (frame.length > 14 + 20 + 8)
-            return frame.substring(14 + 20, 14 + 20 + 8);
-        return "";
+        return frame_model_1.default.instance.getContactair(frame);
     }
     getMinFrame() {
         return new Promise((resolve, reject) => {
@@ -97,7 +110,6 @@ class FrameModelCompress extends abstract_js_1.default {
                 var index = 0;
                 if (result && result.length > 0)
                     index = result[0].m;
-                console.log("getMinFrame", result);
                 resolve(index);
             })
                 .catch(err => manageErrorCrash(err, reject));
@@ -110,7 +122,6 @@ class FrameModelCompress extends abstract_js_1.default {
                 var index = 0;
                 if (result && result.length > 0)
                     index = result[0].m;
-                console.log("getMaxFrame", result);
                 resolve(index);
             })
                 .catch(err => manageErrorCrash(err, reject));
@@ -125,11 +136,9 @@ class FrameModelCompress extends abstract_js_1.default {
     }
     start() {
         if (!this._syncing) {
-            console.log("start migrating...");
             this._syncing = true;
             var index = 0;
             var callback = (from) => {
-                console.log("callback sync with " + from);
                 pool.queryParameters("SELECT * FROM Frames WHERE id >= ? ORDER BY id LIMIT 500", [from])
                     .then((results) => {
                     if (results && results.length > 0) {
@@ -189,7 +198,6 @@ class FrameModelCompress extends abstract_js_1.default {
             const contactair = this.getContactair(tx.frame);
             const data = this.getRelevantByte(tx.frame);
             var cache = { data: null, timeout: 11 };
-            console.log("managing frame := " + contactair + " data:=" + data);
             if (!this._contactair_cache[contactair]) {
                 this._contactair_cache[contactair] = cache;
             }
@@ -204,7 +212,6 @@ class FrameModelCompress extends abstract_js_1.default {
             if (cache.data && cache.data == data && cache.timeout > 0) {
                 //now set the new cache for this round
                 this._contactair_cache[contactair] = cache;
-                console.log("don't save the frame for " + contactair + " already known for this round, remaining " + cache.timeout);
                 resolve(transaction);
                 return;
             }

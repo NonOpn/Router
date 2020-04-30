@@ -1,10 +1,10 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const frame_model_1 = __importDefault(require("../../push_web/frame_model"));
 const express_1 = __importDefault(require("express"));
+const frame_model_1 = __importDefault(require("../../push_web/frame_model"));
 const wifi_1 = __importDefault(require("../../wifi/wifi"));
 const router = express_1.default.Router();
 const frame_model = frame_model_1.default.instance;

@@ -1,4 +1,3 @@
-import { Transaction } from './frame_model_compress';
 import { Device } from './device_model';
 import Abstract from "../database/abstract.js";
 export interface Transaction {
@@ -12,7 +11,9 @@ export default class FrameModelCompress extends Abstract {
     constructor();
     getModelName(): string;
     hasData(device: Device, timestamp_in_past: number): Promise<any[]>;
+    invalidateAlerts(product_id: number): Promise<boolean>;
     getRelevantByte(frame: string): string;
+    getFrameWithoutHeader(frame: string): string;
     getCompressedFrame(frame: string): string;
     getInternalSerial(frame: string): string;
     getContactair(frame: string): string;

@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const network_1 = __importDefault(require("network"));
 const network_config_1 = __importDefault(require("network-config"));
@@ -17,7 +17,10 @@ class NetworkInfo {
         });
     }
     list() {
-        return this._list;
+        return this._list.filter(i => !!i);
+    }
+    isGPRS() {
+        return this.list().find(i => i.name === "eth1");
     }
     interf(interf) {
         if (this._list) {

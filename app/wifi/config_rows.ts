@@ -1,6 +1,5 @@
 import Pool from "../push_web/pool";
 import Abstract from "../database/abstract.js";
-import { Reject } from "../promise";
 
 const pool: Pool = Pool.instance;
 
@@ -19,10 +18,8 @@ function createInsertRows(): string {
   columns = columns.map(function(col) {
     return "`"+col+"`";
   });
-  return "INSERT INTO ConfigRows ("+columns.join(",")+") VALUES ? ";
+  return "INSERT INTO ConfigRows ("+columns.join(",")+") VALUES (?,?) ";
 }
-
-const INSERT_ROWS = createInsertRows();
 
 export interface Config {
   key: string;
@@ -75,7 +72,7 @@ export default class ConfigRows extends Abstract {
           .then(result => resolve(result))
           .catch(err => reject(err));
         } else {
-          pool.queryParameters("INSERT INTO ConfigRows SET ?", [this.array(key, value)])
+          pool.queryParameters(createInsertRows(), [key, value])
           .then(() => resolve({key, value}))
           .catch(err => reject(err)); //TODO standardize pool error management
         }

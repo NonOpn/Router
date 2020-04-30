@@ -1,5 +1,5 @@
 import dgram from "dgram";
-import config from "../config/config";
+import config from "./config/config";
 
 var server = dgram.createSocket("udp4");
 

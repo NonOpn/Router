@@ -1,8 +1,9 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const frame_model_1 = __importDefault(require("./../push_web/frame_model"));
 const data_point_1 = __importDefault(require("../database/data_point"));
 const snmpjs_1 = __importDefault(require("snmpjs"));
 class AbstractDevice {
@@ -20,11 +21,18 @@ class AbstractDevice {
         this.snmp = snmpjs_1.default;
         //this.data_point_provider = new DataPoint();
     }
+    json() {
+        const data = (this.getLPSFR() || {});
+        return {
+            id: this.getId(),
+            internal: data.internal,
+            serial: data.serial,
+            type: data.type,
+        };
+    }
     getId() {
         const lpsfr = this.getLPSFR();
-        if (lpsfr && lpsfr.id)
-            return lpsfr.id;
-        return 0;
+        return lpsfr && lpsfr.id ? lpsfr.id : 0;
     }
     getUUID() {
         var uuid = this.getId().toString(16);
@@ -42,12 +50,24 @@ class AbstractDevice {
     getType() {
         return this._getPromiseCharacteristic("type");
     }
+    setType(type) {
+        if (!type)
+            return new Promise(r => r(true));
+        return this._setPromiseCharacteristic("type", type || "paratonair");
+    }
     _getPromiseCharacteristic(name) {
         return new Promise((resolve, reject) => {
             if (this.params && this.params.lpsfr)
                 resolve(this.params.lpsfr[name]);
             else
                 resolve("");
+        });
+    }
+    _setPromiseCharacteristic(name, value) {
+        return new Promise((resolve, reject) => {
+            if (this.params && this.params.lpsfr)
+                this.params.lpsfr[name] = value;
+            resolve(true);
         });
     }
     getSyncInternalSerial() {
@@ -59,11 +79,41 @@ class AbstractDevice {
     getImpactedString(item) {
         return "not_implemented";
     }
+    getAdditionnalInfo1String(item) {
+        return "not_implemented";
+    }
+    getAdditionnalInfo2String(item) {
+        return "not_implemented";
+    }
     getLPSFR() {
         return this.params.lpsfr;
     }
     getLatest() {
-        return this.data_point_provider.findLatestWithParams(this.getStandardFilter());
+        const filter = this.getStandardFilter();
+        return this.data_point_provider.findMatching(filter.key, filter.value);
+    }
+    getLatestFrames() {
+        return frame_model_1.default.instance.lasts(this.getId(), 5);
+    }
+    getFormattedLatestFrames() {
+        return Promise.reject("invalid");
+    }
+    getLatestFramesAsString() {
+        return this.getFormattedLatestFrames()
+            .then(array => JSON.stringify(array))
+            .catch(err => { console.log(err); return JSON.stringify({ error: true }); });
+    }
+    getAdditionnalInfo1() {
+        return this.getLatest()
+            .then(item => this.getAdditionnalInfo1String(item));
+    }
+    getAdditionnalInfo2() {
+        return this.getLatest()
+            .then(item => this.getAdditionnalInfo2String(item));
+    }
+    getLatests() {
+        return this.getLatest()
+            .then(item => this.getAdditionnalInfo2String(item));
     }
     getConnectedState() {
         return this.getLatest()

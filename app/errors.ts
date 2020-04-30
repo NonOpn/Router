@@ -1,9 +1,15 @@
 import request from 'request';
+import config from "./config/config";
+import { Logger } from './log/index';
+import NetworkInfo from './network';
 //error modification extracted from https://github.com/kgryte/utils-error-to-json
 
 interface Err {
   error: TypeErrorConstructor;
   name: string;
+  code?: number;
+  errno?: number;
+  syscall?: any;
 }
 
 var CTORS = [
@@ -24,12 +30,9 @@ function typeName( error: Error ) {
   return name;
 }
 
-function toJSON( err: any ) {
+function toJSON( err: Err|any ) {
 	var keys, out: any, i;
 
-	if ( !(err instanceof Error) ) {
-		throw new TypeError( 'invalid input argument. Must provide an error object. Value: `' + err + '`.' );
-	}
 	out = {};
 
 	out.type = typeName(err);
@@ -41,6 +44,13 @@ function toJSON( err: any ) {
 	if (err.errno) out.errno = err.errno;
 	if (err.syscall) out.syscall = err.syscall;
 
+	if(config) {
+		out.config = {
+			identity: config.identity,
+			version: config.version
+		};
+	}
+
 	keys = Object.keys(err);
 	keys.forEach(key => (out[key] = err[key]));
 	return out;
@@ -49,31 +59,35 @@ function toJSON( err: any ) {
 export default class Errors {
 	static instance: Errors = new Errors();
 
-	postJsonError(err: any) {
+	postJsonError(err: any, reason: string|undefined = undefined) {
+		!NetworkInfo.instance.isGPRS() && Logger.error(toJSON(err), reason);
+
 		this.postJsonErrorPromise(err)
 		.then(val => console.log("val posted"))
 		.catch(err => console.log("err obtained"));
 	}
 	
-	postJsonErrorPromise(err: any) {
+	postJsonErrorPromise(err: any, reason: string|undefined = undefined) {
+		!NetworkInfo.instance.isGPRS() && Logger.error(toJSON(err), reason);
+
 		return new Promise((resolve, reject) => {
 			if(err) {
-	  		request.post({
-	  			url: "https://contact-platform.com/api/ping",
-	  			json: {
-	  				error: toJSON(err),
+				request.post({
+					url: "https://contact-platform.com/api/ping",
+					json: {
+						error: toJSON(err),
 						version: "999"
-	  			}
-	  		}, (e: any, response: any, body: any) => {
-					var code = response ? response.statusCode : 200;
-					if(e || code < 200 || code > 299) {
-						console.log("store error");
-					} else {
-						console.log("error manager");
 					}
-					resolve(err);
-	  		});
-	  	} else {
+				}, (e: any, response: any, body: any) => {
+						var code = response ? response.statusCode : 200;
+						if(e || code < 200 || code > 299) {
+							console.log("store error");
+						} else {
+							console.log("error manager");
+						}
+						resolve(err);
+				});
+			} else {
 				resolve(err);
 			}
 		})

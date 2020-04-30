@@ -4,7 +4,7 @@ import hostapd from 'wireless-tools/hostapd';
 import udhcpd from 'wireless-tools/udhcpd';
 import wpa_supplicant from 'wireless-tools/wpa_supplicant';
 import ConfigRows, { Config } from './config_rows';
-import config from "../../config/wifi.js";
+import config from "../config/wifi.js";
 
 const config_rows = new ConfigRows();
 
@@ -32,7 +32,7 @@ export interface HostAPConfiguration {
   wpa_passphrase: string;
 }
 
-interface Callback {
+export interface Callback {
   (err: ExecException|null|string, stdout?: string, stderr?: string): void;
 }
 

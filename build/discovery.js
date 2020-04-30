@@ -1,10 +1,10 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const dgram_1 = __importDefault(require("dgram"));
-const config_1 = __importDefault(require("../config/config"));
+const config_1 = __importDefault(require("./config/config"));
 var server = dgram_1.default.createSocket("udp4");
 server.on("message", function (message, rinfo) {
     try {

@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const events_1 = require("events");
@@ -10,7 +10,7 @@ const setup_1 = __importDefault(require("setup"));
 const api_v1_1 = __importDefault(require("./server/api/api_v1"));
 const api_public_1 = __importDefault(require("./server/api/api_public"));
 const body_parser_1 = __importDefault(require("body-parser"));
-const visualisation_js_1 = __importDefault(require("../config/visualisation.js"));
+const visualisation_js_1 = __importDefault(require("./config/visualisation.js"));
 const wifi_1 = __importDefault(require("./wifi/wifi"));
 const app = express_1.default();
 const setup = setup_1.default();
@@ -51,7 +51,9 @@ function manageNewNetworkData(intface, data) {
                 dns: dns
             };
         }
-        var conf = {};
+        var conf = {
+        /* eth0 or wlan0 */
+        };
         if (intface == "eth0") {
             conf.eth0 = network;
         }
@@ -60,7 +62,6 @@ function manageNewNetworkData(intface, data) {
         }
         var config = setup.network.config(conf);
         setup.network.save(config);
-        console.log("saved", config);
         return true;
     }
     return false;
@@ -70,7 +71,8 @@ class Server extends events_1.EventEmitter {
         super();
         this.enocean_manager = enocean_manager;
         io.on("connection", function (socket) {
-            enocean_manager.register(socket);
+            //TODO restore capability to have frame in real time ?
+            //enocean_manager.register(socket);
             const net = (type, data) => {
                 try {
                     const result = manageNewNetworkData(type, data);
@@ -119,6 +121,7 @@ class Server extends events_1.EventEmitter {
         app
             .use(body_parser_1.default.json())
             .use("/api/public", api_public_1.default)
+            //.use(basicAuth(config.login, config.password))
             .use("/api/v1", api_v1_1.default)
             .use(express_1.default.static("./server/html"));
         server.listen(port);

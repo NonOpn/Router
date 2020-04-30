@@ -1,10 +1,11 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const abstract_1 = __importDefault(require("./abstract"));
 const os_1 = __importDefault(require("os"));
+const frame_model_compress_1 = __importDefault(require("../push_web/frame_model_compress"));
 class AlertairDC extends abstract_1.default {
     constructor(params) {
         super();
@@ -12,30 +13,51 @@ class AlertairDC extends abstract_1.default {
     }
     getStandardFilter() {
         return {
-            serial: this.params.lpsfr.serial
+            key: "serial",
+            value: this.params.lpsfr.serial
         };
     }
-    getConnectedStateString(item) {
-        if (!item || !item.data)
-            return " ";
-        const buffer = new Buffer(item.data, "hex");
-        if (buffer.length >= 16) {
+    static isConnected(frame) {
+        if (!frame || frame.length == 0)
+            return false;
+        const buffer = new Buffer(frame, "hex");
+        if (buffer.length >= 10) {
             const disconnect = (buffer[9] & 2) === 2;
             if (disconnect)
-                return "disconnect";
+                return false;
         }
-        return "connected";
+        return true;
+    }
+    static isCircuitDisconnect(frame) {
+        if (!frame || frame.length == 0)
+            return false;
+        const buffer = new Buffer(frame, "hex");
+        if (buffer.length >= 10) {
+            const striken = (buffer[9] & 1) === 0;
+            if (striken)
+                return true;
+        }
+        return false;
+    }
+    getConnectedStateString(item) {
+        const connected = item ? AlertairDC.isConnected(item.data) : false;
+        return connected ? "connected" : "disconnect";
     }
     getImpactedString(item) {
-        if (!item || !item.data)
-            return " ";
-        const buffer = new Buffer(item.data, "hex");
-        if (buffer.length >= 16) {
-            const disconnect = (buffer[9] & 1) === 0;
-            if (disconnect)
-                return "circuit_disconnect";
-        }
-        return "circuit_normal";
+        const circuit_disconnected = item ? AlertairDC.isCircuitDisconnect(item.data) : false;
+        return circuit_disconnected ? "circuit_disconnect" : "circuit_normal";
+    }
+    getFormattedLatestFrames() {
+        return this.getLatestFrames()
+            .then(transactions => transactions.map(transaction => {
+            const compressed = frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame);
+            return {
+                d: transaction.timestamp,
+                c: !!AlertairDC.isConnected(compressed),
+                a: !!AlertairDC.isCircuitDisconnect(compressed),
+                s: !!transaction.sent
+            };
+        }));
     }
     asMib() {
         return [

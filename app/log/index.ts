@@ -1,0 +1,97 @@
+const https = require('https');
+import config from "../config/config";
+import os from "os";
+
+const identity = config.identity ||  "unknown";
+
+export class _Logger {
+
+    _request(tag: string,json: any) {
+        return new Promise((resolve, reject) => {
+            const data = JSON.stringify(json || {});
+
+            const options = {
+                hostname: "logs-01.loggly.com",
+                port: 443,
+                path: `/inputs/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/${tag}/`,
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Content-Length": data.length
+                },
+                timeout: 60000
+            }
+
+            const req = https.request(options, (res) => {
+                res.on('data', (d: any) => { });
+
+                res.on('end', () => resolve && resolve(true));
+            })
+
+            req.on('error', (error: Error) => {
+                reject && reject(error);
+                reject = () =>  {};
+                resolve = () =>  {};
+            })
+
+            req.write(data)
+            req.end();
+        });
+    }
+    _post(tag: string, data: any) {
+        const json: any = {};
+        data && Object.keys(data).forEach(d => json[d] = data[d]);
+        json.version = "1.0";
+        data.host = config.identity;
+
+        try {
+            json.process = {
+                os: {
+                    arch: os.arch(),
+                    platform: os.platform(),
+                    release: os.release(),
+                    type: os.type(),
+                    uptime: os.uptime()
+                },
+                platform: process.platform,
+                version: process.version
+            };
+        }catch(e) {
+
+        }
+
+        this._request(tag, json)
+        .then(() => {})
+        .catch((e: Error) => console.log(e));
+    }
+
+    error = (error: any, reason: string|undefined = undefined) => {
+        const output = {str: "", stack: null, message:"", code:0, process:{
+            platform:"",
+            version: ""
+        }, reason:""};
+        try {
+            if(error) {
+                Object.keys(error).map(k => output[k] = error[k]);
+                output.stack = error.stack;
+                output.str = error.toString();
+                output.message = error.message;
+                output.code = error.code;
+            }
+        }catch(e) {
+
+        }
+        reason && (output.reason = reason);
+        this._post("error", output);
+    }
+
+    data = (data: any) => this._post("data", data);
+    identity = (data: any, tags:string[] = []) => {
+        identity && data && (data.identity = identity);
+
+        tags.push(identity); //set at least the identity in a tag
+        this._post(tags.join(","), data);
+    }
+}
+
+export const Logger = new _Logger;

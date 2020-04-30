@@ -1,5 +1,6 @@
 import { DataPointModel } from './../database/data_point';
 import AbstractDevice, { Filter, OID } from "./abstract";
+import FrameModelCompress from '../push_web/frame_model_compress';
 
 export default class Ellips extends AbstractDevice {
   constructor(params: any) {
@@ -9,11 +10,12 @@ export default class Ellips extends AbstractDevice {
 
   getStandardFilter(): Filter {
     return {
-      serial: this.params.lpsfr.serial
+      key: "serial",
+      value: this.params.lpsfr.serial
     };
   }
 
-  getConnectedStateString(item: DataPointModel): string {
+  getConnectedStateString(item: DataPointModel|undefined): string {
     if(!item || !item.data) return " ";
     const buffer = new Buffer(item.data, "hex");
     if(buffer.length >= 4) {
@@ -23,7 +25,7 @@ export default class Ellips extends AbstractDevice {
     return "connected";
   }
 
-  getImpactedString(item: DataPointModel): string {
+  getImpactedString(item: DataPointModel|undefined): string {
     if(!item || !item.data) return " ";
     const buffer = new Buffer(item.data, "hex");
     if(buffer.length >= 4) {
