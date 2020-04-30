@@ -7,7 +7,7 @@ import Wifi from "./wifi/wifi.js";
 import DeviceManagement, { TYPE } from "./ble/device";
 import AbstractDevice from "./snmp/abstract";
 import NetworkInfo from "./network";
-import Diskspace from "./system";
+import { Diskspace, SystemInfo } from "./system";
 import { Characteristic, BLECallback, BLEWriteCallback, PrimaryService, isBlenoAvailable, startAdvertising, setServices, onBlenoEvent, stopAdvertising, mtu, needBluetoothRepair } from "./ble/safeBleno";
 
 const device_management = DeviceManagement.instance;
@@ -212,7 +212,17 @@ class BLEPrimarySystemService extends PrimaryService {
         new BLEAsyncDescriptionCharacteristic("0001", () => diskspace.diskspace().then(space => ""+space.free)),
         new BLEAsyncDescriptionCharacteristic("0002", () => diskspace.diskspace().then(space => ""+space.size)),
         new BLEAsyncDescriptionCharacteristic("0003", () => diskspace.diskspace().then(space => ""+space.used)),
-        new BLEAsyncDescriptionCharacteristic("0004", () => diskspace.diskspace().then(space => ""+space.percent))
+        new BLEAsyncDescriptionCharacteristic("0004", () => diskspace.diskspace().then(space => ""+space.percent)),
+        new BLEAsyncDescriptionCharacteristic("0101", () => SystemInfo.instance.uname()),
+        new BLEAsyncDescriptionCharacteristic("0102", () => SystemInfo.instance.uptime()),
+        new BLEAsyncDescriptionCharacteristic("0103", () => SystemInfo.instance.arch()),
+        new BLEAsyncDescriptionCharacteristic("0104", () => SystemInfo.instance.release()),
+        new BLEAsyncDescriptionCharacteristic("0105", () => SystemInfo.instance.version()),
+        new BLEAsyncDescriptionCharacteristic("0106", () => SystemInfo.instance.platform()),
+        new BLEAsyncDescriptionCharacteristic("0201", () => SystemInfo.instance.canBeRepaired().then(result => result ? "true":"false")),
+        new BLEAsyncDescriptionCharacteristic("0202", () => SystemInfo.instance.isv6l().then(result => result ? "true":"false")),
+        new BLEAsyncDescriptionCharacteristic("0203", () => Promise.resolve(false/*can be repaired in offline mode*/)),
+        new BLEAsyncDescriptionCharacteristic("0204", () => Promise.resolve(false/*can repair database*/)),
       ]
     });
   }
@@ -336,6 +346,7 @@ export default class BLE {
   private _ble_service: BLEPrimaryService;
   private _system_service: BLEPrimarySystemService;
   private _eth0_service: BLEPrimaryNetworkService;
+  private _eth1_service: BLEPrimaryNetworkService;
   private _wlan0_service: BLEPrimaryNetworkService;
   private _services: any[];
   private _services_uuid: string[];
@@ -363,6 +374,7 @@ export default class BLE {
       this._eth0_service = new BLEPrimaryNetworkService("bee6","eth0", ["eth0", "en1"]);
       this._wlan0_service = new BLEPrimaryNetworkService("bee7","wlan0", ["wlan0", "en0"]);
       this._system_service = new BLEPrimarySystemService("bee8");
+      this._eth1_service = new BLEPrimaryNetworkService("bee9","eth1", ["eth1", "gprs"]);
   
       return;
     }
@@ -387,10 +399,12 @@ export default class BLE {
     this._eth0_service = new BLEPrimaryNetworkService("bee6","eth0", ["eth0", "en1"]);
     this._wlan0_service = new BLEPrimaryNetworkService("bee7","wlan0", ["wlan0", "en0"]);
     this._system_service = new BLEPrimarySystemService("bee8");
+    this._eth1_service = new BLEPrimaryNetworkService("bee9","eth1", ["eth1"]);
 
     this._services = [
       this._ble_service,
       this._eth0_service,
+      this._eth1_service,
       this._wlan0_service,
       this._system_service
     ]
@@ -512,7 +526,7 @@ export default class BLE {
     onBlenoEvent("disconnect", (client: any) => console.log("disconnect : client ->", client));
   }
 
-  onFrame(frame: any) {
+  onFrame(device: AbstractDevice|undefined, frame: any) {
     if(!isBlenoAvailable) {
       console.log("disabling bluetooth... incompatible...");
       return;
@@ -521,18 +535,15 @@ export default class BLE {
     console.log("sending frame");
     this._notify_frame && this._notify_frame.onFrame(frame);
 
-    device_management.onFrame(frame)
-    .then((device: AbstractDevice|undefined) => {
-      if(device) {
-        device.getInternalSerial()
-        .then((internal_serial: string|undefined) => {
-          if(internal_serial && !seenDevices.devices[internal_serial]) {
-            seenDevices.devices[internal_serial] = true;
-            seenDevices.count ++;
-          }
-        });
-      }
-    });
+    if(device) {
+      device.getInternalSerial()
+      .then((internal_serial: string|undefined) => {
+        if(internal_serial && !seenDevices.devices[internal_serial]) {
+          seenDevices.devices[internal_serial] = true;
+          seenDevices.count ++;
+        }
+      });
+    }
   }
 
   _onDeviceSeenCall(): Promise<string> {

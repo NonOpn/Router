@@ -1,23 +1,61 @@
+import { Command } from './../system/Command';
 const { spawn } = require('child_process');
 const fs = require('fs')
 
-export class Systemctl {
 
-    exec(action: string, service: string): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const ssh = spawn('/bin/systemctl', [action, service]);
-            this._launch(resolve, reject, ssh);
+export type ANTENNA = "bluetooth"|"wifi";
+
+export class RfKill {
+
+    list(): Promise<string> {
+        return new Command().exec('/bin/rfkill', ["list"]);
+    }
+
+    unblock(mode: ANTENNA): Promise<string> {
+        return new Command().exec('/bin/rfkill', ["unblock", mode]);
+    }
+
+    block(mode: ANTENNA): Promise<string> {
+        return new Command().exec('/bin/rfkill', ["block", mode]);
+    }
+}
+
+export class AptCache {
+    private exec(action: string, service: string): Promise<string> {
+        return new Command().exec('/usr/bin/apt-cache', [action, service]);
+    }
+
+    private rpiBootloader() {
+        return this.exec("show", "raspberrypi-bootloader")
+        .then(output => {
+            if(!output || output.length < 30) throw "invalid bootloader info"
+            return output;
+        })
+    }
+
+    isLatest() {
+        return this.rpiBootloader().then(output => {
+            const version = this.findVersion(output);
+            return version.indexOf("1.20170703-1") >= 0;
         });
     }
 
-    _launch(resolve: any, reject: any, ssh: any) {
-        var output = "";
-
-        ssh.stdout.on("data", (data: any) => output += data);
-
-        ssh.on('close', (code: any) => resolve(output));
+    findVersion(output: string) {
+        if(output && output.length > 0) {
+            var spl = output.split("\n");
+            if(spl.length > 0) {
+                const version = spl.filter(s => s.indexOf("Version:") == 0);
+                return version;
+            }
+        }
+        return "";
     }
+}
 
+export class Systemctl {
+    exec(action: string, service: string): Promise<string> {
+        return new Command().exec('/bin/systemctl', [action, service]);
+    }
 }
 
 export class MySQL {
@@ -32,6 +70,44 @@ export class MySQL {
     start = (): Promise<string> => this.systemctl.exec("start", "mysql");
 
     restart = (): Promise<string> => this.systemctl.exec("restart", "mysql");
+}
+
+export class Apt {
+    command: Command = new Command();
+
+    list = (): Promise<string> => this.command.exec("/usr/bin/apt", ["list", "--installed"]);
+
+    install = (pack: string): Promise<string> => this.command.exec("/usr/bin/apt", ["install", "-y", pack]);
+    installs = (packs: string[]): Promise<string> => {
+        const array = ["install", "-y"];
+        packs.forEach(pack => array.push(pack));
+        return this.command.exec("/usr/bin/apt", array);
+    };
+}
+
+export class Which {
+    command: Command = new Command();
+
+    which = (cmd: string): Promise<string> => this.command.exec("/usr/bin/which", [cmd]);
+}
+
+export class Bluetooth {
+    systemctl: Systemctl;
+    command: Command = new Command();
+
+    constructor() {
+        this.systemctl = new Systemctl();
+    }
+
+    status = (): Promise<string> => this.systemctl.exec("status", "bluetooth");
+
+    start = (): Promise<string> => this.systemctl.exec("start", "bluetooth");
+
+    restart = (): Promise<string> => this.systemctl.exec("restart", "bluetooth");
+
+    hcistatus = (): Promise<string> => this.command.exec("/bin/hciconfig");
+
+    up = (): Promise<string> => this.command.exec("/bin/hciconfig", ["hci0", "up"]);
 }
 
 export class SSH {
@@ -113,6 +189,18 @@ export class Cat {
                 resolve(output);
             });
         });
+    }
+}
+
+export class Network {
+    private cmd: Command = new Command();
+
+    ifup(interf: string): Promise<boolean> {
+        return this.cmd.exec("/sbin/ifup", [interf, "--force"]).then(() => true);
+    }
+
+    ifdown(interf: string): Promise<boolean> {
+        return this.cmd.exec("/sbin/ifdown", [interf, "--force"]).then(() => true);
     }
 }
 

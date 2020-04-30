@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const pool_1 = __importDefault(require("./pool"));
 const abstract_js_1 = __importDefault(require("../database/abstract.js"));
@@ -58,6 +58,7 @@ function manageErrorCrash(error, reject) {
     console.log("Device crash", error);
     if (reject) {
         pool.manageErrorCrash("Device", error, reject);
+        return undefined;
     }
     else {
         return new Promise((resolve, reject) => pool.manageErrorCrash("Device", error, reject));

@@ -3,6 +3,8 @@ import config from "../config/mysql.js";
 import { Resolve, Reject } from "../promise.jsx";
 import { Logger } from "../log/index.js";
 import { MySQL, Cat, MysqlAdmin } from "../systemctl";
+import { networkInterfaces } from "os";
+import NetworkInfo from "../network/index.js";
 
 export default class Pool {
   static instance: Pool = new Pool();
@@ -34,10 +36,7 @@ export default class Pool {
 
       if(this.sent_mysql_status <= 0) {
         this.mysql.status()
-        .then(status => {
-          console.log("mysql status := ");
-          console.log(status);
-          Logger.identity({from: "trySendMysqlStatus", mysql: status});
+        .then(() => {
           this.sent_mysql_status = 20;
           resolve(true);
         })
@@ -79,15 +78,21 @@ export default class Pool {
     } else if(error && error.code === "HA_ERR_NOT_A_TABLE") {
       console.log("not a table... try repair", {error});
       this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
-      Logger.data({repair: table_name, use_frm: true});
+      if(!NetworkInfo.instance.isGPRS()) {
+        Logger.data({repair: table_name, use_frm: true});
+      }
     } else if(error && error.code === "HA_ERR_CRASHED_ON_REPAIR") {
       console.log("crashed on auto repair... try repair", {error});
       this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
-      Logger.data({repair: table_name});
+      if(!NetworkInfo.instance.isGPRS()) {
+        Logger.data({repair: table_name});
+      }
     } else if(error && error.code === "ER_CRASHED_ON_USAGE") {
       console.log("crashed... try repair", {error});
       this.repair("REPAIR TABLE " + table_name, error, reject);
-      Logger.data({repair: table_name});
+      if(!NetworkInfo.instance.isGPRS()) {
+        Logger.data({repair: table_name});
+      }
     } else if(error && error.code === "ECONNREFUSED") {
       console.log("trying starting...", {error});
       //send status to see what happens
@@ -95,31 +100,24 @@ export default class Pool {
       .then(can_be_done => {
         if(can_be_done) {
           //restart the MySQL instance if possible and report the state
-          const callback = (done: boolean) => { Logger.data({restart: "mysql", done}); reject(error); }
-          this.mysql.restart().then(() => callback(true))
-          .catch(err => {
-            callback(false);
-            reject(error);
-          });
+          const callback = () => reject(error);
+          this.mysql.restart().then(() => callback())
+          .catch(() => callback());
         }
       })
     } else if(error && error.code == "ER_CON_COUNT_ERROR") {
       console.log("maximum host reached, flushing...", {error});
       //restart the MySQL instance if possible and report the state
-      const callback = (done: boolean) => { Logger.identity({max_connection: "max", restart: "mysql", done}); reject(error); }
+      const callback = () => reject(error);
       this.mysqladmin.exec("flush-hosts", config.user || "", config.password || "")
       .then(() => {
-        Logger.identity({max_connection: "max", done: "flush-hosts"}); reject(error);
-        console.log("flush-hosts done, will also flush cat");
-        new Cat().exec("/etc/mysql/my.cnf").then(content => Logger.identity({content})).catch(err => {});
+        reject(error);
+        new Cat().exec("/etc/mysql/my.cnf").catch(err => {});
 
         return this.mysql.restart()
       })
-      .then(() => callback(true))
-      .catch(err => {
-        callback(false);
-        reject(error);
-      });
+      .then(() => callback())
+      .catch(() => callback());
     } else {
       //Logger.error(error, "in pool call for table := " + table_name);
 
@@ -130,10 +128,10 @@ export default class Pool {
 
   private can_post_error: boolean = true;
   private tryPostingSQLState() {
-    if(this.can_post_error) {
+    if(this.can_post_error && !NetworkInfo.instance.list().find(i => i.name === "eth1")) {
       this.can_post_error = false;
 
-      new Cat().exec("/etc/mysql/my.cnf").then(content => Logger.identity({content})).catch(err => {});
+      new Cat().exec("/etc/mysql/my.cnf").catch(err => {});
 
       //allow in 10min
       setTimeout(() => this.can_post_error = true, 10 * 60 * 1000);

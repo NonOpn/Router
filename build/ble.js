@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const BLESyncCharacteristic_1 = require("./ble/BLESyncCharacteristic");
 const config_1 = __importDefault(require("./config/config"));
@@ -11,17 +11,17 @@ const visualisation_1 = __importDefault(require("./config/visualisation"));
 const wifi_js_1 = __importDefault(require("./wifi/wifi.js"));
 const device_1 = __importDefault(require("./ble/device"));
 const network_1 = __importDefault(require("./network"));
-const system_1 = __importDefault(require("./system"));
+const system_1 = require("./system");
 const safeBleno_1 = require("./ble/safeBleno");
 const device_management = device_1.default.instance;
 const wifi = wifi_js_1.default.instance;
 const network = network_1.default.instance;
-const diskspace = system_1.default.instance;
+const diskspace = system_1.Diskspace.instance;
 const devices = device_model_1.default.instance;
 const BLEConstants_1 = require("./ble/BLEConstants");
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
 var id = "Routair";
-if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) {
+if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) { //0xAABBCCDD
     id += config_1.default.identity.substr(0, 5 * 2);
 }
 var seenDevices = {
@@ -152,7 +152,17 @@ class BLEPrimarySystemService extends safeBleno_1.PrimaryService {
                 new BLEAsyncDescriptionCharacteristic("0001", () => diskspace.diskspace().then(space => "" + space.free)),
                 new BLEAsyncDescriptionCharacteristic("0002", () => diskspace.diskspace().then(space => "" + space.size)),
                 new BLEAsyncDescriptionCharacteristic("0003", () => diskspace.diskspace().then(space => "" + space.used)),
-                new BLEAsyncDescriptionCharacteristic("0004", () => diskspace.diskspace().then(space => "" + space.percent))
+                new BLEAsyncDescriptionCharacteristic("0004", () => diskspace.diskspace().then(space => "" + space.percent)),
+                new BLEAsyncDescriptionCharacteristic("0101", () => system_1.SystemInfo.instance.uname()),
+                new BLEAsyncDescriptionCharacteristic("0102", () => system_1.SystemInfo.instance.uptime()),
+                new BLEAsyncDescriptionCharacteristic("0103", () => system_1.SystemInfo.instance.arch()),
+                new BLEAsyncDescriptionCharacteristic("0104", () => system_1.SystemInfo.instance.release()),
+                new BLEAsyncDescriptionCharacteristic("0105", () => system_1.SystemInfo.instance.version()),
+                new BLEAsyncDescriptionCharacteristic("0106", () => system_1.SystemInfo.instance.platform()),
+                new BLEAsyncDescriptionCharacteristic("0201", () => system_1.SystemInfo.instance.canBeRepaired().then(result => result ? "true" : "false")),
+                new BLEAsyncDescriptionCharacteristic("0202", () => system_1.SystemInfo.instance.isv6l().then(result => result ? "true" : "false")),
+                new BLEAsyncDescriptionCharacteristic("0203", () => Promise.resolve(false /*can be repaired in offline mode*/)),
+                new BLEAsyncDescriptionCharacteristic("0204", () => Promise.resolve(false /*can repair database*/)),
             ]
         });
     }
@@ -272,6 +282,7 @@ class BLE {
             this._eth0_service = new BLEPrimaryNetworkService("bee6", "eth0", ["eth0", "en1"]);
             this._wlan0_service = new BLEPrimaryNetworkService("bee7", "wlan0", ["wlan0", "en0"]);
             this._system_service = new BLEPrimarySystemService("bee8");
+            this._eth1_service = new BLEPrimaryNetworkService("bee9", "eth1", ["eth1", "gprs"]);
             return;
         }
         //this._notify_frame = new BLEFrameNotify("0102", "Notify");
@@ -292,9 +303,11 @@ class BLE {
         this._eth0_service = new BLEPrimaryNetworkService("bee6", "eth0", ["eth0", "en1"]);
         this._wlan0_service = new BLEPrimaryNetworkService("bee7", "wlan0", ["wlan0", "en0"]);
         this._system_service = new BLEPrimarySystemService("bee8");
+        this._eth1_service = new BLEPrimaryNetworkService("bee9", "eth1", ["eth1"]);
         this._services = [
             this._ble_service,
             this._eth0_service,
+            this._eth1_service,
             this._wlan0_service,
             this._system_service
         ];
@@ -392,25 +405,22 @@ class BLE {
         safeBleno_1.onBlenoEvent("advertisingStartError", (err) => console.log(err));
         safeBleno_1.onBlenoEvent("disconnect", (client) => console.log("disconnect : client ->", client));
     }
-    onFrame(frame) {
+    onFrame(device, frame) {
         if (!safeBleno_1.isBlenoAvailable) {
             console.log("disabling bluetooth... incompatible...");
             return;
         }
         console.log("sending frame");
         this._notify_frame && this._notify_frame.onFrame(frame);
-        device_management.onFrame(frame)
-            .then((device) => {
-            if (device) {
-                device.getInternalSerial()
-                    .then((internal_serial) => {
-                    if (internal_serial && !seenDevices.devices[internal_serial]) {
-                        seenDevices.devices[internal_serial] = true;
-                        seenDevices.count++;
-                    }
-                });
-            }
-        });
+        if (device) {
+            device.getInternalSerial()
+                .then((internal_serial) => {
+                if (internal_serial && !seenDevices.devices[internal_serial]) {
+                    seenDevices.devices[internal_serial] = true;
+                    seenDevices.count++;
+                }
+            });
+        }
     }
     _onDeviceSeenCall() {
         return new Promise((resolve, reject) => {

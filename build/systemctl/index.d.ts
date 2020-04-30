@@ -1,6 +1,18 @@
+import { Command } from './../system/Command';
+export declare type ANTENNA = "bluetooth" | "wifi";
+export declare class RfKill {
+    list(): Promise<string>;
+    unblock(mode: ANTENNA): Promise<string>;
+    block(mode: ANTENNA): Promise<string>;
+}
+export declare class AptCache {
+    private exec;
+    private rpiBootloader;
+    isLatest(): Promise<boolean>;
+    findVersion(output: string): string[] | "";
+}
 export declare class Systemctl {
     exec(action: string, service: string): Promise<string>;
-    _launch(resolve: any, reject: any, ssh: any): void;
 }
 export declare class MySQL {
     systemctl: Systemctl;
@@ -8,6 +20,26 @@ export declare class MySQL {
     status: () => Promise<string>;
     start: () => Promise<string>;
     restart: () => Promise<string>;
+}
+export declare class Apt {
+    command: Command;
+    list: () => Promise<string>;
+    install: (pack: string) => Promise<string>;
+    installs: (packs: string[]) => Promise<string>;
+}
+export declare class Which {
+    command: Command;
+    which: (cmd: string) => Promise<string>;
+}
+export declare class Bluetooth {
+    systemctl: Systemctl;
+    command: Command;
+    constructor();
+    status: () => Promise<string>;
+    start: () => Promise<string>;
+    restart: () => Promise<string>;
+    hcistatus: () => Promise<string>;
+    up: () => Promise<string>;
 }
 export declare class SSH {
     systemctl: Systemctl;
@@ -31,6 +63,11 @@ export declare class DU {
 }
 export declare class Cat {
     exec(filepath: string): Promise<string>;
+}
+export declare class Network {
+    private cmd;
+    ifup(interf: string): Promise<boolean>;
+    ifdown(interf: string): Promise<boolean>;
 }
 export declare class MysqlAdmin {
     exec(command: string, user: string, password: string): Promise<string>;

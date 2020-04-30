@@ -1,11 +1,12 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const request_1 = __importDefault(require("request"));
-const config_js_1 = __importDefault(require("./config/config.js"));
-const index_js_1 = require("./log/index.js");
+const config_1 = __importDefault(require("./config/config"));
+const index_1 = require("./log/index");
+const network_1 = __importDefault(require("./network"));
 var CTORS = [
     { error: TypeError, name: 'TypeError' },
     { error: SyntaxError, name: 'SyntaxError' },
@@ -38,10 +39,10 @@ function toJSON(err) {
         out.errno = err.errno;
     if (err.syscall)
         out.syscall = err.syscall;
-    if (config_js_1.default) {
+    if (config_1.default) {
         out.config = {
-            identity: config_js_1.default.identity,
-            version: config_js_1.default.version
+            identity: config_1.default.identity,
+            version: config_1.default.version
         };
     }
     keys = Object.keys(err);
@@ -50,13 +51,13 @@ function toJSON(err) {
 }
 class Errors {
     postJsonError(err, reason = undefined) {
-        index_js_1.Logger.error(toJSON(err), reason);
+        !network_1.default.instance.isGPRS() && index_1.Logger.error(toJSON(err), reason);
         this.postJsonErrorPromise(err)
             .then(val => console.log("val posted"))
             .catch(err => console.log("err obtained"));
     }
     postJsonErrorPromise(err, reason = undefined) {
-        index_js_1.Logger.error(toJSON(err), reason);
+        !network_1.default.instance.isGPRS() && index_1.Logger.error(toJSON(err), reason);
         return new Promise((resolve, reject) => {
             if (err) {
                 request_1.default.post({

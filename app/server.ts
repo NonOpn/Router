@@ -84,7 +84,8 @@ export default class Server extends EventEmitter  {
     this.enocean_manager = enocean_manager;
 
     io.on("connection", function (socket: any){
-      enocean_manager.register(socket);
+      //TODO restore capability to have frame in real time ?
+      //enocean_manager.register(socket);
 
       const net = (type: any, data: any) => {
         try{

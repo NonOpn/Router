@@ -29,6 +29,7 @@ export default class FrameModel extends Abstract {
     isLastDisconnectedState(product_id: number, before_index: number): Promise<boolean>;
     beforeForDevice(device: Device, timestamp: number): Promise<Transaction[]>;
     before(timestamp: number): Promise<Transaction[]>;
+    getMaximumUnsent: () => number;
     getUnsent(): Promise<Transaction[]>;
     saveMultiple(txs: Transaction[]): Promise<Transaction[]>;
     save(tx: Transaction): Promise<Transaction>;

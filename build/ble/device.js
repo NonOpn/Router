@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const device_model_1 = __importDefault(require("../push_web/device_model"));
 const paratonair_1 = __importDefault(require("../snmp/paratonair"));
@@ -51,19 +51,13 @@ class DeviceManagement {
         return VALID_TYPES.find(t => type == t) || "unassigned";
     }
     onFrame(data) {
-        return new Promise((resolve, reject) => {
-            if (data && data.sender) {
-                this.applyData(data, (device) => resolve(device));
-            }
-            else {
-                resolve(undefined);
-            }
-        });
+        return data && data.sender ? this.applyData(data) : Promise.resolve(undefined);
     }
     list() {
         return model_devices.list()
             .then(devices => devices ? devices : [])
             .then(devices => devices.map(device => this._databaseDeviceToRealDevice(device)))
+            //.then(devices => devices.filter(device => undefined != device));
             .then(devices => {
             const array = [];
             devices.forEach(d => { if (undefined != d)
@@ -84,7 +78,8 @@ class DeviceManagement {
             case TYPE_COMPTAIR:
                 return !comptair_1.default.isConnected(frame);
             default:
-                return false;
+                //add default detection
+                return !paratonair_1.default.isConnected(frame);
         }
     }
     isAlert(type, compressed_frame) {
@@ -199,77 +194,61 @@ class DeviceManagement {
         })
             .then(device => this._databaseDeviceToRealDevice(device));
     }
-    applyData(data, device_callback = undefined) {
-        if (data && data.rawFrameStr) {
-            //rawFrameStr and rawDataStr are set
-            if (data.rawFrameStr.length === 60) {
-                const rawdata = data.rawDataStr;
-                const internal = rawdata.substring(0, 6);
-                const callback = () => {
-                    this.getDevice(internal)
-                        .then(device => {
-                        var type = "";
-                        var serial = "";
-                        var config_internal = "";
-                        if (device && device.getLPSFR()) {
-                            const d = device.getLPSFR();
-                            serial = d.serial;
-                            type = d.type;
-                            config_internal = d.internal;
-                            if (config_internal)
-                                config_internal = config_internal.substring(0, 6);
-                        }
-                        if (!type)
-                            type = "";
-                        var valid_device = false;
-                        switch (type) {
-                            case "paratonair":
-                            case "comptair":
-                            case "alertairdc":
-                            case "alertairts":
-                                valid_device = true;
-                                break;
-                            default:
-                                valid_device = false;
-                        }
-                        if (rawdata.length > 6 && valid_device && internal === config_internal) {
-                            this.data_point_provider.savePoint(serial, config_internal, data.sender, data.rawDataStr);
-                        }
-                        if (device_callback && device) {
-                            device_callback(device);
-                        }
-                    })
-                        .catch(err => {
-                        console.log(err);
-                    });
-                };
-                if (internal === "ffffff") {
-                    this.data_point_provider.latestForContactair(data.sender)
-                        .then(item => {
-                        if (item) {
-                            this.data_point_provider.savePoint(item.serial, item.internal, data.sender, data.rawDataStr);
-                        }
-                        else {
-                            callback();
-                        }
-                    }).catch(err => {
-                        console.log(err);
-                        callback();
-                    });
-                }
-                else {
-                    callback();
-                }
-            }
-            else if (data.rawFrameStr.length === 48) {
-                /*this.agents.forEach(agent => {
-                    const lpsfr = agent.getLPSFR();
-                    if(lpsfr.internal === data.sender && lpsfr.type === "ellips") {
-                        this.data_point_provider.savePoint(lpsfr.serial, lpsfr.internal, data.sender, data.rawDataStr);
-                    }
-                })*/
-            }
+    applyData(data) {
+        const _data = data ? data : {};
+        const rawdata = _data.rawByte || _data.rawFrameStr;
+        if (!rawdata) {
+            return Promise.resolve(undefined);
         }
+        if (rawdata.length === 60) { //30*2
+            const internal = frame_model_1.default.instance.getInternalSerial(rawdata);
+            const contactair = frame_model_1.default.instance.getContactair(rawdata);
+            return this.getDevice(internal)
+                .then(device => {
+                if (device)
+                    return Promise.resolve(device);
+                return this.getDeviceForContactair(contactair);
+            })
+                .then(device => {
+                var type = "";
+                var serial = "";
+                var config_internal = "";
+                if (device && device.getLPSFR()) {
+                    const d = device.getLPSFR();
+                    serial = d.serial;
+                    type = d.type;
+                    config_internal = d.internal;
+                    if (config_internal)
+                        config_internal = config_internal.substring(0, 6);
+                }
+                if (!type)
+                    type = "";
+                var valid_device = false;
+                switch (type) {
+                    case "paratonair":
+                    case "comptair":
+                    case "alertairdc":
+                    case "alertairts":
+                        valid_device = true;
+                        break;
+                    default:
+                        valid_device = false;
+                }
+                if (rawdata.length > 6 && valid_device && internal === config_internal) {
+                    this.data_point_provider.savePoint(serial, config_internal, data.sender, rawdata);
+                }
+                return device;
+            });
+        }
+        else if (rawdata.length === 48) { //24*2
+            /*this.agents.forEach(agent => {
+                const lpsfr = agent.getLPSFR();
+                if(lpsfr.internal === data.sender && lpsfr.type === "ellips") {
+                    this.data_point_provider.savePoint(lpsfr.serial, lpsfr.internal, data.sender, data.rawDataStr);
+                }
+            })*/
+        }
+        return Promise.resolve(undefined);
     }
 }
 DeviceManagement.instance = new DeviceManagement();

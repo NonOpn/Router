@@ -1,25 +1,28 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
 const config_js_1 = __importDefault(require("./config/config.js"));
 const errors_1 = __importDefault(require("./errors"));
 const request_1 = __importDefault(require("request"));
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
-const push_web_1 = __importDefault(require("./config/push_web"));
 const frame_model_compress_js_1 = __importDefault(require("./push_web/frame_model_compress.js"));
+const index_js_1 = __importDefault(require("./network/index.js"));
 const errors = errors_1.default.instance;
-const VERSION = 9;
+const VERSION = 10;
 function _post(json) {
     console.log("posting json");
     return new Promise((resolve, reject) => {
+        const gprs = index_js_1.default.instance.isGPRS();
+        console.log("gprs mode ?", gprs);
+        var url = "https://contact-platform.com/api/ping";
+        if (gprs) {
+            url = "http://contact-platform.com/api/ping";
+        }
         try {
-            request_1.default.post({
-                url: "https://contact-platform.com/api/ping",
-                json: json
-            }, (e, response, body) => {
+            request_1.default.post({ url, json }, (e, response, body) => {
                 console.log("answer obtained ", e);
                 if (e) {
                     reject(e);
@@ -44,53 +47,59 @@ function createRequestRaw(raw) {
         data: raw
     };
 }
-function createRequest(data /*buffer hex */) {
-    const base64 = data.toString("base64");
-    return { host: config_js_1.default.identity, version: VERSION, data: base64 };
-}
 class PushWEB extends events_1.EventEmitter {
     constructor() {
         super();
+        this.is_activated = true;
+        this._number_to_skip = 0;
         this._started = false;
-        this.is_activated = push_web_1.default.is_activated;
+        //this.is_activated = push_web_config.is_activated;
         this._posting = false;
     }
     trySend() {
+        if (index_js_1.default.instance.isGPRS() && this._number_to_skip > 0) {
+            this._number_to_skip--;
+            if (this._number_to_skip < 0)
+                this._number_to_skip = 0;
+            return;
+        }
+        this._number_to_skip = 4;
+        this.trySendOk();
+    }
+    trySendOk() {
         try {
             if (this._posting || !this.is_activated)
                 return;
             this._posting = true;
             console.log("try send to send frames");
+            //TODO for GPRS, when getting unsent, only get the last non alert + every alerts in the steps
             frame_model_1.default.instance.getUnsent()
                 .then((frames) => {
                 console.log("frames ? " + frames);
                 const callback = (i) => {
                     console.log("callback called with " + i);
                     if (null == frames || i >= frames.length) {
-                        _post({
-                            host: config_js_1.default.identity,
-                            version: VERSION,
-                            fnished: true
-                        })
-                            .then(body => {
-                            console.log("finished");
-                            this._posting = false;
-                        })
-                            .catch(err => {
-                            console.log("finished with network err");
-                            this._posting = false;
-                            errors.postJsonError(err);
-                        });
+                        console.log("finished");
+                        this._posting = false;
                     }
                     else {
-                        const frame = frames[i];
-                        //const hex = Buffer.from(frame.frame, "hex");
-                        const json = createRequestRaw(frame.frame); //createRequest(hex);
+                        const to_frames = [];
+                        const json = createRequestRaw("");
+                        while (to_frames.length < 30 && i < frames.length) {
+                            to_frames.push({ data: createRequestRaw(frames[i].frame).data, id: frames[i].id });
+                            i++;
+                        }
+                        if (frames.length > 0) {
+                            json.id = frames[frames.length - 1].id || -1;
+                        }
+                        json.data = to_frames.map(frame => frame.data).join(",");
+                        //const frame = frames[i];
+                        //const json = createRequestRaw(frame.frame); //createRequest(hex);
                         json.remaining = frames.length - i;
-                        json.id = frame.id;
+                        json.gprs = index_js_1.default.instance.isGPRS();
                         _post(json)
                             .then(body => {
-                            return frame_model_1.default.instance.setSent(frame.id || 0, true);
+                            return Promise.all(to_frames.map(frame => frame_model_1.default.instance.setSent(frame.id || 0, true)));
                         })
                             .then(saved => {
                             callback(i + 1);
@@ -134,10 +143,8 @@ class PushWEB extends events_1.EventEmitter {
             errors.postJsonError(err);
         });
     }
-    onFrame(data) {
-        if (data && data.sender) {
-            this.applyData(data);
-        }
+    onFrame(device, data) {
+        this.applyData(device, data);
     }
     connect() {
         if (this._started)
@@ -164,29 +171,23 @@ class PushWEB extends events_1.EventEmitter {
             }, 1 * 60 * 1000); //every 60s
         }
     }
-    applyData(data) {
-        //if(!this.is_activated) return;
-        var rawData = undefined;
-        if (data && data.rawFrameStr) {
-            if (data.rawFrameStr.length === 60) {
-                rawData = data.rawFrameStr; //compress30(data.rawFrameStr);
-            }
-            else if (data.rawFrameStr.length === 48) {
-                rawData = data.rawFrameStr; //compress24(data.rawFrameStr);
-            }
+    applyData(device, data) {
+        const _data = data ? data : {};
+        var rawdata = _data.rawByte || _data.rawFrameStr;
+        if (rawdata && rawdata.length != 48 && rawdata.length != 60) {
+            return;
         }
-        if (rawData) {
-            const to_save = frame_model_1.default.instance.from(rawData);
-            Promise.all([
-                frame_model_1.default.instance.save(to_save),
-                frame_model_compress_js_1.default.instance.save(to_save)
-            ])
-                .then(saved => console.log(saved))
-                .catch(err => {
-                errors.postJsonError(err);
-                console.log(err);
-            });
-        }
+        const to_save = frame_model_1.default.instance.from(rawdata);
+        to_save.product_id = device ? device.getId() : undefined;
+        Promise.all([
+            frame_model_1.default.instance.save(to_save),
+            frame_model_compress_js_1.default.instance.save(to_save)
+        ])
+            .then(saved => console.log(saved))
+            .catch(err => {
+            errors.postJsonError(err);
+            console.log(err);
+        });
     }
 }
 exports.default = PushWEB;

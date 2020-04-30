@@ -1,7 +1,7 @@
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
-}
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const frame_model_1 = __importDefault(require("./../push_web/frame_model"));
 const data_point_1 = __importDefault(require("../database/data_point"));
@@ -20,6 +20,15 @@ class AbstractDevice {
         }
         this.snmp = snmpjs_1.default;
         //this.data_point_provider = new DataPoint();
+    }
+    json() {
+        const data = (this.getLPSFR() || {});
+        return {
+            id: this.getId(),
+            internal: data.internal,
+            serial: data.serial,
+            type: data.type,
+        };
     }
     getId() {
         const lpsfr = this.getLPSFR();

@@ -19,6 +19,12 @@ export default class AbstractDevice {
     data_point_provider: DataPoint;
     constructor();
     setParams(params: any): void;
+    json(): {
+        id: number;
+        internal: any;
+        serial: any;
+        type: any;
+    };
     getId(): number;
     getUUID(): string;
     getSerial(): Promise<string>;
