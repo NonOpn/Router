@@ -9,7 +9,7 @@ import NetworkInfo from "./network/index.js";
 
 const errors = Errors.instance;
 
-const VERSION = 10;
+const VERSION = 11;
 
 function _post(json: any) {
 	console.log("posting json");
