@@ -3,9 +3,7 @@ import config from "./config/config.js";
 import Errors from "./errors";
 import request from "request";
 import FrameModel from "./push_web/frame_model";
-import push_web_config from "./config/push_web";
 import FrameModelCompress from "./push_web/frame_model_compress.js";
-import { Logger } from "./log/index.js";
 import AbstractDevice from "./snmp/abstract.js";
 import NetworkInfo from "./network/index.js";
 
@@ -23,7 +21,7 @@ function _post(json: any) {
 			url = "http://contact-platform.com/api/ping";
 		}
 		try {
-			request.post({ url, json }, (e: any, response: any, body: any) => {
+			request.post({ url, json, gzip: "true" }, (e: any, response: any, body: any) => {
 				console.log("answer obtained ", e);
 				if(e) {
 					reject(e);

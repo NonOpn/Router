@@ -22,7 +22,7 @@ function _post(json) {
             url = "http://contact-platform.com/api/ping";
         }
         try {
-            request_1.default.post({ url, json }, (e, response, body) => {
+            request_1.default.post({ url, json, gzip: "true" }, (e, response, body) => {
                 console.log("answer obtained ", e);
                 if (e) {
                     reject(e);
@@ -85,7 +85,7 @@ class PushWEB extends events_1.EventEmitter {
                     else {
                         const to_frames = [];
                         const json = createRequestRaw("");
-                        while (to_frames.length < 30 && i < frames.length) {
+                        while (to_frames.length < 240 && i < frames.length) {
                             to_frames.push({ data: createRequestRaw(frames[i].frame).data, id: frames[i].id });
                             i++;
                         }
@@ -96,7 +96,7 @@ class PushWEB extends events_1.EventEmitter {
                         //const frame = frames[i];
                         //const json = createRequestRaw(frame.frame); //createRequest(hex);
                         json.remaining = frames.length - i;
-                        json.gprs = index_js_1.default.instance.isGPRS();
+                        json.gprs = !!index_js_1.default.instance.isGPRS();
                         _post(json)
                             .then(body => {
                             return Promise.all(to_frames.map(frame => frame_model_1.default.instance.setSent(frame.id || 0, true)));
