@@ -179,6 +179,18 @@ export default class FrameModel extends Abstract {
     })
   }
 
+  getCount(): Promise<number> {
+    return new Promise((resolve, reject) => {
+      pool.query("SELECT COUNT(*) as count FROM Frames")
+      .then(result => {
+        var count = 0;
+        if(result && result.length > 0) count = result[0].count;
+        resolve(count);
+      })
+      .catch(err => manageErrorCrash(err, reject));
+    })
+  }
+
   invalidateAlerts(product_id: number): Promise<boolean> {
     return new Promise((resolve, reject) => {
       pool.queryParameters("UPDATE Frames SET is_alert_disconnected = NULL, is_alert = NULL WHERE product_id = ? AND is_alert IS NOT NULL", [product_id])

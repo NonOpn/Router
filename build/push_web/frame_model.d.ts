@@ -21,6 +21,7 @@ export default class FrameModel extends Abstract {
     getContactair(frame: string): string;
     getMinFrame(): Promise<number>;
     getMaxFrame(): Promise<number>;
+    getCount(): Promise<number>;
     invalidateAlerts(product_id: number): Promise<boolean>;
     setDevice(index: number, product_id: number, is_alert?: boolean, is_alert_disconnect?: boolean): Promise<boolean>;
     getFrame(index: number, limit: number): Promise<Transaction[] | undefined>;
