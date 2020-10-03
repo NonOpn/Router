@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -23,6 +32,18 @@ class Wifi {
         this._started = false;
         this.__inCheckConfig = false;
         this._mode = NONE;
+        this.storeConfiguration = (configuration) => __awaiter(this, void 0, void 0, function* () {
+            const finished = yield this.startWLAN0(configuration, true);
+            console.log("finished ? ", finished);
+            if (finished) {
+                yield config_rows.save(KEY_WLAN, JSON.stringify(configuration));
+                yield config_rows.save(KEY_MODE, WLAN);
+                this._saved_ssid = configuration.ssid;
+                this._saved_passphrase = configuration.passphrase;
+                return true;
+            }
+            return false;
+        });
     }
     removeUnwanted(string) {
         //replace \\ to \
@@ -105,31 +126,6 @@ class Wifi {
         else if (!wifi_js_1.default.enabled) {
             console.log("wifi listener not started");
         }
-    }
-    storeConfiguration(configuration) {
-        return new Promise((resolve, reject) => {
-            this.startWLAN0(configuration, true)
-                .then(finished => {
-                console.log("finished ? ", finished);
-                if (finished) {
-                    config_rows.save(KEY_WLAN, JSON.stringify(configuration))
-                        .then(() => {
-                        config_rows.save(KEY_MODE, WLAN)
-                            .then(() => {
-                            this._saved_ssid = configuration.ssid;
-                            this._saved_passphrase = configuration.passphrase;
-                            resolve(true);
-                        })
-                            .catch((err) => reject(err));
-                    })
-                        .catch((err) => reject(err));
-                }
-                else {
-                    resolve(false);
-                }
-            })
-                .catch(err => reject(err));
-        });
     }
     checkConfig() {
         return new Promise((resolve, reject) => {
@@ -298,6 +294,6 @@ class Wifi {
         });
     }
 }
-Wifi.instance = new Wifi();
 exports.default = Wifi;
+Wifi.instance = new Wifi();
 //# sourceMappingURL=wifi.js.map
