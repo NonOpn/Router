@@ -26,7 +26,7 @@ export default class Wifi {
     removeUnwanted(string: string): string;
     saveSSID(wpa_supplicant_conf: string, ssid: string, passphrase: string, callback: Callback): any;
     start(): void;
-    storeConfiguration: (configuration: WifiConfiguration) => Promise<boolean>;
+    storeConfiguration(configuration: WifiConfiguration): Promise<boolean>;
     checkConfig(): Promise<boolean>;
     startHostAP(config: HostAPConfiguration): Promise<boolean>;
     startWLAN0(config: WifiConfiguration, save: boolean): Promise<boolean>;

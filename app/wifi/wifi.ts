@@ -142,18 +142,29 @@ export default class Wifi {
     }
   }
 
-  storeConfiguration = async (configuration: WifiConfiguration) => {
-    const finished = await this.startWLAN0(configuration, true);
-    console.log("finished ? ", finished);
-    if(finished) {
-      await config_rows.save(KEY_WLAN, JSON.stringify(configuration));
-      await config_rows.save(KEY_MODE, WLAN);
-
-      this._saved_ssid = configuration.ssid;
-      this._saved_passphrase = configuration.passphrase;
-      return true;
-    }
-    return false;
+  storeConfiguration(configuration: WifiConfiguration): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      this.startWLAN0(configuration, true)
+      .then(finished => {
+        console.log("finished ? ", finished);
+        if(finished) {
+          config_rows.save(KEY_WLAN, JSON.stringify(configuration))
+          .then(() => {
+            config_rows.save(KEY_MODE, WLAN)
+            .then(() => {
+              this._saved_ssid = configuration.ssid;
+              this._saved_passphrase = configuration.passphrase;
+              resolve(true);
+            })
+            .catch((err:any) => reject(err));
+          })
+          .catch((err:any) => reject(err));
+        } else {
+          resolve(false);
+        }
+      })
+      .catch(err => reject(err));
+    });
   }
   
   checkConfig(): Promise<boolean> {
