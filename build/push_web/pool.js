@@ -59,7 +59,7 @@ class Pool {
             reject(error);
         });
     }
-    manageErrorCrash(table_name, error, reject) {
+    manageErrorCrash(table_name, error, reject, callback) {
         console.log("Manage crash... " + (error ? error.code : "error no code"));
         if (table_name && table_name.toLowerCase() == "device" && error && error.errno == 144) {
             //safe to assume resetting the devices here :thumbsup:
@@ -70,6 +70,16 @@ class Pool {
             this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
             if (!index_js_2.default.instance.isGPRS()) {
                 index_js_1.Logger.data({ repair: table_name, use_frm: true });
+            }
+        }
+        else if (error && error.code === "ER_FILE_NOT_FOUND") {
+            console.log("crashed on interaction... try repair", { error });
+            this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, (error) => {
+                const promise = callback ? callback() : Promise.resolve(true);
+                promise.then(() => reject(error)).catch(() => reject(error));
+            });
+            if (!index_js_2.default.instance.isGPRS()) {
+                index_js_1.Logger.data({ repair: table_name });
             }
         }
         else if (error && error.code === "HA_ERR_CRASHED_ON_REPAIR") {
@@ -140,6 +150,6 @@ class Pool {
         }
     }
 }
-Pool.instance = new Pool();
 exports.default = Pool;
+Pool.instance = new Pool();
 //# sourceMappingURL=pool.js.map

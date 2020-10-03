@@ -5,30 +5,40 @@ import { Reject } from "../promise";
 
 const pool: Pool = Pool.instance;
 
-pool.query("CREATE TABLE IF NOT EXISTS Frames ("
-  + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
-  + "`frame` VARCHAR(255) NOT NULL,"
-  + "`timestamp` INTEGER NOT NULL,"
-  + "`sent` INTEGER NOT NULL,"
-  + "`product_id` INTEGER,"
-  + "`striken` TINYINT(1) DEFAULT 0,"
-  + "`connected` TINYINT(1) DEFAULT 0,"
-  + "`is_alert` TINYINT(1) DEFAULT NULL,"
-  + "`is_alert_disconnected` TINYINT(1) DEFAULT NULL,"
-  + "KEY `timestamp` (`timestamp`)"
-  + ")ENGINE=MyISAM;")
-.then(() => pool.query("ALTER TABLE Frames ADD COLUMN `product_id` INTEGER", true))
-.then(() => pool.query("ALTER TABLE Frames ADD COLUMN `striken` INTEGER", true))
-.then(() => pool.query("ALTER TABLE Frames ADD COLUMN `connected` INTEGER", true))
-.then(() => pool.query("ALTER TABLE Frames ADD COLUMN `is_alert` TINYINT(1) DEFAULT NULL", true))
-.then(() => pool.query("ALTER TABLE Frames ADD COLUMN `is_alert_disconnected` TINYINT(1) DEFAULT NULL", true))
-.then(() => pool.query("ALTER TABLE Frames ADD INDEX `product_id` (`product_id`);", true))
-.then(() => pool.query("ALTER TABLE Frames ADD INDEX `striken` (`striken`);", true))
-.then(() => pool.query("ALTER TABLE Frames ADD INDEX `connected` (`connected`);", true))
-.then(() => pool.query("ALTER TABLE Frames ADD INDEX `is_alert` (`is_alert`);", true))
-.then(() => pool.query("ALTER TABLE Frames ADD INDEX `is_alert_disconnected` (`is_alert_disconnect`);", true))
-.then(() => console.log("finished"))
-.catch(err => console.log(err));
+const create_frames = async () => {
+  try {
+    await pool.query("CREATE TABLE IF NOT EXISTS Frames ("
+      + "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,"
+      + "`frame` VARCHAR(255) NOT NULL,"
+      + "`timestamp` INTEGER NOT NULL,"
+      + "`sent` INTEGER NOT NULL,"
+      + "`product_id` INTEGER,"
+      + "`striken` TINYINT(1) DEFAULT 0,"
+      + "`connected` TINYINT(1) DEFAULT 0,"
+      + "`is_alert` TINYINT(1) DEFAULT NULL,"
+      + "`is_alert_disconnected` TINYINT(1) DEFAULT NULL,"
+      + "KEY `timestamp` (`timestamp`)"
+      + ")ENGINE=MyISAM;"
+    );
+    await pool.query("ALTER TABLE Frames ADD COLUMN `product_id` INTEGER", true);
+    await pool.query("ALTER TABLE Frames ADD COLUMN `striken` INTEGER", true);
+    await pool.query("ALTER TABLE Frames ADD COLUMN `connected` INTEGER", true);
+    await pool.query("ALTER TABLE Frames ADD COLUMN `is_alert` TINYINT(1) DEFAULT NULL", true);
+    await pool.query("ALTER TABLE Frames ADD COLUMN `is_alert_disconnected` TINYINT(1) DEFAULT NULL", true);
+    await pool.query("ALTER TABLE Frames ADD INDEX `product_id` (`product_id`);", true);
+    await pool.query("ALTER TABLE Frames ADD INDEX `striken` (`striken`);", true);
+    await pool.query("ALTER TABLE Frames ADD INDEX `connected` (`connected`);", true);
+    await pool.query("ALTER TABLE Frames ADD INDEX `is_alert` (`is_alert`);", true);
+    await pool.query("ALTER TABLE Frames ADD INDEX `is_alert_disconnected` (`is_alert_disconnect`);", true);
+    console.log("finished");
+  } catch(e) {
+    console.log("error on create", e);
+  }
+  return true;
+}
+
+
+create_frames().then(() => {}).catch(() => {});
 
 const FRAME_MODEL: string = "Transaction";
 
@@ -79,7 +89,7 @@ function txToArrayForInsert(tx: Transaction): any[] {
 }
 
 function manageErrorCrash(error: Error, reject: Reject) {
-  pool.manageErrorCrash("Frames", error, reject);
+  pool.manageErrorCrash("Frames", error, reject, create_frames);
 }
 
 export default class FrameModel extends Abstract {

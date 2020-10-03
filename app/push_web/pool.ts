@@ -70,7 +70,7 @@ export default class Pool {
     })
   }
 
-  manageErrorCrash(table_name: string, error: any, reject: Reject): void {
+  manageErrorCrash(table_name: string, error: any, reject: Reject, callback?: () => Promise<any>): void {
     console.log("Manage crash... " + (error ? error.code : "error no code"));
     if(table_name && table_name.toLowerCase() == "device" && error && error.errno == 144) {
       //safe to assume resetting the devices here :thumbsup:
@@ -80,6 +80,16 @@ export default class Pool {
       this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
       if(!NetworkInfo.instance.isGPRS()) {
         Logger.data({repair: table_name, use_frm: true});
+      }
+    } else if(error && error.code === "ER_FILE_NOT_FOUND") {
+      console.log("crashed on interaction... try repair", {error});
+      this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, (error) => {
+        const promise = callback ? callback() : Promise.resolve(true);
+
+        promise.then(() => reject(error)).catch(() => reject(error));
+      });
+      if(!NetworkInfo.instance.isGPRS()) {
+        Logger.data({repair: table_name});
       }
     } else if(error && error.code === "HA_ERR_CRASHED_ON_REPAIR") {
       console.log("crashed on auto repair... try repair", {error});
