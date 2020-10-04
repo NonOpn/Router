@@ -9,6 +9,7 @@ export interface Device {
 }
 export default class DeviceModel extends Abstract {
     static instance: DeviceModel;
+    private queue;
     constructor();
     getModelName(): string;
     list(): Promise<Device[]>;
@@ -19,7 +20,7 @@ export default class DeviceModel extends Abstract {
     getDeviceForInternalSerial(internal_serial: string): Promise<Device | undefined>;
     getDeviceForSerial(serial: string): Promise<Device | undefined>;
     getDeviceForContactair(contactair: string): Promise<Device | undefined>;
-    saveType(internal_serial: string, type: number): Promise<{}>;
+    saveType(internal_serial: string, type: number): Promise<unknown>;
     saveDevice(device: Device): Promise<Device | undefined>;
-    saveMultiple(devices: Device[]): Promise<Device[]>;
+    private saveMultiple;
 }

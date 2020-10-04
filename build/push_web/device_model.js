@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const pool_1 = __importDefault(require("./pool"));
 const abstract_js_1 = __importDefault(require("../database/abstract.js"));
+const queue_1 = __importDefault(require("../database/queue"));
 const pool = pool_1.default.instance;
 function create() {
     pool.query("CREATE TABLE IF NOT EXISTS Device ("
@@ -67,6 +68,7 @@ function manageErrorCrash(error, reject) {
 class DeviceModel extends abstract_js_1.default {
     constructor() {
         super();
+        this.queue = new queue_1.default();
     }
     getModelName() {
         return MODEL;
@@ -177,11 +179,20 @@ class DeviceModel extends abstract_js_1.default {
         });
     }
     saveDevice(device) {
-        return this.saveMultiple([device]).then(devices => {
-            console.log("saveDevice", devices);
-            if (devices && devices.length > 0)
-                return devices[0];
-            return undefined;
+        return this.queue.enqueue(() => {
+            if (device.internal_serial == "ffffff")
+                return Promise.resolve(undefined);
+            return this.getDeviceForInternalSerial(device.internal_serial)
+                .then(device_in_db => {
+                if (device_in_db)
+                    return device_in_db;
+                return this.saveMultiple([device]).then(devices => {
+                    console.log("saveDevice", devices);
+                    if (devices && devices.length > 0)
+                        return devices[0];
+                    return undefined;
+                });
+            });
         });
     }
     saveMultiple(devices) {
@@ -202,6 +213,6 @@ class DeviceModel extends abstract_js_1.default {
         });
     }
 }
-DeviceModel.instance = new DeviceModel();
 exports.default = DeviceModel;
+DeviceModel.instance = new DeviceModel();
 //# sourceMappingURL=device_model.js.map

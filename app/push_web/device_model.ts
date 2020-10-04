@@ -1,6 +1,7 @@
 import Pool from "./pool";
 import Abstract from "../database/abstract.js";
 import { Reject } from "../promise";
+import Queue from "../database/queue";
 
 const pool: Pool = Pool.instance;
 
@@ -79,6 +80,8 @@ function manageErrorCrash(error: Error, reject?: Reject): Promise<any>|undefined
 
 export default class DeviceModel extends Abstract {
   static instance: DeviceModel = new DeviceModel();
+
+  private queue: Queue<Device|undefined> = new Queue();
 
   constructor() {
     super();
@@ -190,14 +193,22 @@ export default class DeviceModel extends Abstract {
   }
 
   saveDevice(device: Device): Promise<Device|undefined> {
-    return this.saveMultiple([device]).then(devices => {
-      console.log("saveDevice", devices);
-      if(devices && devices.length > 0) return devices[0];
-      return undefined;
+    return this.queue.enqueue(() => {
+      if(device.internal_serial == "ffffff") return Promise.resolve(undefined);
+      return this.getDeviceForInternalSerial(device.internal_serial)
+      .then(device_in_db => {
+        if(device_in_db) return device_in_db;
+
+        return this.saveMultiple([device]).then(devices => {
+          console.log("saveDevice", devices);
+          if(devices && devices.length > 0) return devices[0];
+          return undefined;
+        });
+      });
     });
   }
 
-  saveMultiple(devices: Device[]): Promise<Device[]> {
+  private saveMultiple(devices: Device[]): Promise<Device[]> {
     return new Promise((resolve, reject) => {
       var array: any[] = [];
 
