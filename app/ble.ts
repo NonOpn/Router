@@ -61,10 +61,10 @@ class BLEDescriptionCharacteristic extends Characteristic {
     super({
       uuid: uuid,
       properties: ['read'],
-      value: Buffer.from(value, 'utf-8')
+      value: Buffer.from(""+value, 'utf-8')
     });
 
-    this._value = Buffer.from(value, "utf-8");
+    this._value = Buffer.from(""+value, "utf-8");
   }
 
   onReadRequest(offset: number, cb: BLECallback) { cb(RESULT_SUCCESS, this._value) }
@@ -94,7 +94,7 @@ class BLEAsyncDescriptionCharacteristic extends Characteristic {
     }
     return this._callback()
     .then(value => {
-      this._obtained = Buffer.from(value, "utf-8");
+      this._obtained = Buffer.from(""+value, "utf-8");
       this._last_offset = offset;
       return this._obtained;
     });
@@ -128,7 +128,7 @@ class BLEFrameNotify extends Characteristic {
       properties: ['notify']
     });
 
-    this._value = Buffer.from(value, "utf-8");
+    this._value = Buffer.from(""+value, "utf-8");
   }
 
 

@@ -33,9 +33,9 @@ class BLEDescriptionCharacteristic extends safeBleno_1.Characteristic {
         super({
             uuid: uuid,
             properties: ['read'],
-            value: Buffer.from(value, 'utf-8')
+            value: Buffer.from("" + value, 'utf-8')
         });
-        this._value = Buffer.from(value, "utf-8");
+        this._value = Buffer.from("" + value, "utf-8");
     }
     onReadRequest(offset, cb) { cb(BLEConstants_1.RESULT_SUCCESS, this._value); }
 }
@@ -57,7 +57,7 @@ class BLEAsyncDescriptionCharacteristic extends safeBleno_1.Characteristic {
         }
         return this._callback()
             .then(value => {
-            this._obtained = Buffer.from(value, "utf-8");
+            this._obtained = Buffer.from("" + value, "utf-8");
             this._last_offset = offset;
             return this._obtained;
         });
@@ -80,7 +80,7 @@ class BLEFrameNotify extends safeBleno_1.Characteristic {
             properties: ['notify']
         });
         this._updateFramesCallback = null;
-        this._value = Buffer.from(value, "utf-8");
+        this._value = Buffer.from("" + value, "utf-8");
     }
     onSubscribe(maxValueSize, callback) { this._updateFramesCallback = callback; }
     onUnsubscribe() { this._updateFramesCallback = null; }
