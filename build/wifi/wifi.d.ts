@@ -23,6 +23,9 @@ export default class Wifi {
     _saved_ssid: string | undefined;
     _saved_passphrase: string | undefined;
     constructor();
+    disableDNSMasq(): Promise<unknown>;
+    enableDNSMasq(): Promise<unknown>;
+    writeDNSMasq(config: string): Promise<unknown>;
     removeUnwanted(string: string): string;
     saveSSID(wpa_supplicant_conf: string, ssid: string, passphrase: string, callback: Callback): any;
     start(): void;

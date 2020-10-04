@@ -152,6 +152,7 @@ class DeviceManagement {
             .then(serial => {
             return device.getType()
                 .then(previous_type => {
+                console.log("device :: setType " + previous_type + " " + type);
                 if (previous_type != type) {
                     return Promise.all([
                         frame_model_compress_1.default.instance.invalidateAlerts(device.getId()),
@@ -251,6 +252,6 @@ class DeviceManagement {
         return Promise.resolve(undefined);
     }
 }
-DeviceManagement.instance = new DeviceManagement();
 exports.default = DeviceManagement;
+DeviceManagement.instance = new DeviceManagement();
 //# sourceMappingURL=device.js.map

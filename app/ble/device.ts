@@ -167,6 +167,7 @@ export default class DeviceManagement {
         .then(serial => {
             return device.getType()
             .then(previous_type => {
+                console.log("device :: setType " + previous_type+" "+type);
                 if(previous_type != type) {
                     return Promise.all([
                         FrameModelCompress.instance.invalidateAlerts(device.getId()),

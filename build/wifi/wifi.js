@@ -24,6 +24,39 @@ class Wifi {
         this.__inCheckConfig = false;
         this._mode = NONE;
     }
+    disableDNSMasq() {
+        const config = "#Pi3Hotspot Config - disabled by routair\n"
+            + "#stop DNSmasq from using resolv.conf\n"
+            + "no-resolv\n"
+            + "#Interface to use\n"
+            + "interface=lo\n"
+            + "bind-interfaces\n"
+            + "dhcp-range=10.0.0.3,10.0.0.20,12h\n";
+        return this.writeDNSMasq(config);
+    }
+    enableDNSMasq() {
+        const config = "#Pi3Hotspot Config - enabled by routair\n"
+            + "#stop DNSmasq from using resolv.conf\n"
+            + "no-resolv\n"
+            + "#Interface to use\n"
+            + "interface=lo,wlan0\n"
+            + "bind-interfaces\n"
+            + "dhcp-range=10.0.0.3,10.0.0.20,12h\n";
+        return this.writeDNSMasq(config);
+    }
+    writeDNSMasq(config) {
+        return new Promise((resolve, reject) => {
+            fs_1.default.writeFile("/etc/dnsmasq.conf", config, (err) => {
+                if (err) {
+                    console.log("error", err);
+                    resolve(false);
+                    return;
+                }
+                console.log("copying data into", "/etc/dnsmasq.conf");
+                resolve(true);
+            });
+        });
+    }
     removeUnwanted(string) {
         //replace \\ to \
         while (string.indexOf("\\\\") >= 0) {

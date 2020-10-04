@@ -66,6 +66,7 @@ class App {
             discovery_service.bind();
             ble.start();
             frame_manager_alert.start();
+            wifi.disableDNSMasq().then(() => { }).catch(() => { });
             if (ble.needRepair()) {
                 new index_1.Cat()
                     .exec("/etc/systemd/system/routair.service")

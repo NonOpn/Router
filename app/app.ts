@@ -71,6 +71,7 @@ class App {
       ble.start();
       frame_manager_alert.start();
 
+      wifi.disableDNSMasq().then(() => {}).catch(() => {});
 
       if(ble.needRepair()) {
         new Cat()
