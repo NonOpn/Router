@@ -11,6 +11,7 @@ tail -100 /var/log/syslog | grep routair > /tmp/last_logs
 curl -X POST -T /tmp/last_logs https://logs-01.loggly.com/bulk/d7f59ce0-0912-4f5d-82f0-004a9a8045e0/tag/syslog;
 rm /tmp/last_logs
 
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # CONSTANTS FOR NodeJS V8.17.0
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -196,6 +197,14 @@ echo EXPECTED_PATH $EXPECTED_PATH
 echo EXPECTED_PATH_MD5 $EXPECTED_PATH_MD5
 
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# FORCE COPY THE DEVICE RULE
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+cp /usr/local/routair/scripts/41-usb_modeswitch.rules /etc/udev/rules.d/
+cp /usr/local/routair/scripts/config.txt /boot/
+mkdir -p /etc/usb_modeswitch.d/
+cp /usr/local/routair/scripts/12d1\:1f01 /etc/usb_modeswitch.d/
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
