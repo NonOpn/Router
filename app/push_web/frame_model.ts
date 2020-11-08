@@ -139,6 +139,28 @@ export default class FrameModel extends Abstract {
     return frame.substring(14+0, 14+6).toLowerCase();
   }
 
+  /**
+   * Get the lowest rssi obtained (the number are positiv, so need to multiply by -1)
+   * @param count the number of frame to count from
+   */
+  getLowestSignal(count: number): Promise<number> {
+    return new Promise((resolve, reject) => {
+      pool.queryParameters("SELECT frame FROM Frames LIMIT ?", [count])
+      .then(result => {
+        var index = 0, lowest = 0;
+        if(result && result.length > 0) {
+          while(index < result.length) {
+            var current = this.getSignal(result[index].frame);
+            if(current > lowest) lowest = current;
+            index ++;
+          }
+        }
+        resolve(lowest);
+      })
+      .catch(err => manageErrorCrash(err, reject));
+    })
+  }
+
   getContactair(frame: string) {
     //ffffffffffff0000000b01824a995a01
     var begin = 14+20, end = begin + 8;
@@ -149,6 +171,15 @@ export default class FrameModel extends Abstract {
     if(frame.length > 14+20+8)
       return frame.substring(begin, end).toLowerCase()
     return "";
+  }
+
+  getSignal(frame: string): number {
+    //ffffffffffff0000000b01824a995a01
+    var begin = 27*2, end = 27*2+1;
+    if(frame.length > end) {
+      return parseInt(`${frame[begin]}${frame[end]}`, 16)
+    }
+    return 256;
   }
 
   getMinFrame(): Promise<number> {

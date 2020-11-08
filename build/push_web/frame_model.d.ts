@@ -18,7 +18,13 @@ export default class FrameModel extends Abstract {
     hasData(device: Device, timestamp_in_past: number): Promise<any[]>;
     getCompressedFrame(frame: string): string;
     getInternalSerial(frame: string): string;
+    /**
+     * Get the lowest rssi obtained (the number are positiv, so need to multiply by -1)
+     * @param count the number of frame to count from
+     */
+    getLowestSignal(count: number): Promise<number>;
     getContactair(frame: string): string;
+    getSignal(frame: string): number;
     getMinFrame(): Promise<number>;
     getMaxFrame(): Promise<number>;
     getCount(): Promise<number>;

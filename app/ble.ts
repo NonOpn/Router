@@ -224,6 +224,7 @@ class BLEPrimarySystemService extends PrimaryService {
         new BLEAsyncDescriptionCharacteristic("0203", () => Promise.resolve(false/*can be repaired in offline mode*/)),
         new BLEAsyncDescriptionCharacteristic("0204", () => Promise.resolve(false/*can repair database*/)),
         new BLEAsyncDescriptionCharacteristic("0301", () => FrameModel.instance.getCount()),
+        new BLEAsyncDescriptionCharacteristic("0302", () => FrameModel.instance.getLowestSignal(30)),
       ]
     });
   }
