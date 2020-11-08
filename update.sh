@@ -204,7 +204,7 @@ echo EXPECTED_PATH_MD5 $EXPECTED_PATH_MD5
 cp /usr/local/routair/scripts/41-usb_modeswitch.rules /etc/udev/rules.d/
 cp /usr/local/routair/scripts/config.txt /boot/
 mkdir -p /etc/usb_modeswitch.d/
-cp /usr/local/routair/scripts/12d1\:1f01 /etc/usb_modeswitch.d/
+cp /usr/local/routair/scripts/12d1_1f01 /etc/usb_modeswitch.d/12d1\:1f01
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
