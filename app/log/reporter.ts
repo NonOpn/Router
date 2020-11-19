@@ -1,6 +1,7 @@
 import { Diskspace } from "../system";
 import { Logger } from ".";
 import NetworkInfo from "../network";
+import FrameModel from "../push_web/frame_model";
 
 export default class Reporter {
     public static instance: Reporter = new Reporter();
@@ -18,9 +19,10 @@ export default class Reporter {
     private _report() {
       Diskspace.instance.diskspace()
       .then(space => {
-        if(space) {
-          Logger.identity(space, ["space"]);
-        }
+        return FrameModel.instance.getCount()
+        .then(count => {
+          Logger.identity({ space, database: { count }}, ["space"]);
+        });
       })
       .catch(err => console.log(err));
     }
