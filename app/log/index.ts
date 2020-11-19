@@ -41,7 +41,7 @@ export class _Logger {
     _post(tag: string, data: any) {
         const json: any = {};
         data && Object.keys(data).forEach(d => json[d] = data[d]);
-        json.version = "1.0";
+        json.version = config.version;
         data.host = config.identity;
 
         try {

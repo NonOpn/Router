@@ -65,7 +65,7 @@ class _Logger {
     _post(tag, data) {
         const json = {};
         data && Object.keys(data).forEach(d => json[d] = data[d]);
-        json.version = "1.0";
+        json.version = config_1.default.version;
         data.host = config_1.default.identity;
         try {
             json.process = {
