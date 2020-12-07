@@ -77,38 +77,45 @@ class PushWEB extends events_1.EventEmitter {
                 .then((frames) => {
                 console.log("frames ? " + frames);
                 const callback = (i) => {
-                    console.log("callback called with " + i);
-                    if (null == frames || i >= frames.length) {
-                        console.log("finished");
-                        this._posting = false;
+                    try {
+                        console.log("callback called with " + i);
+                        if (null == frames || i >= frames.length) {
+                            console.log("finished");
+                            this._posting = false;
+                        }
+                        else {
+                            const to_frames = [];
+                            const json = createRequestRaw("");
+                            while (to_frames.length < 240 && i < frames.length) {
+                                to_frames.push({ data: createRequestRaw(frames[i].frame).data, id: frames[i].id });
+                                i++;
+                            }
+                            if (frames.length > 0) {
+                                json.id = frames[frames.length - 1].id || -1;
+                            }
+                            json.data = to_frames.map(frame => frame.data).join(",");
+                            //const frame = frames[i];
+                            //const json = createRequestRaw(frame.frame); //createRequest(hex);
+                            json.remaining = frames.length - i;
+                            json.gprs = !!index_js_1.default.instance.isGPRS();
+                            _post(json)
+                                .then(body => {
+                                return Promise.all(to_frames.map(frame => frame_model_1.default.instance.setSent(frame.id || 0, true)));
+                            })
+                                .then(saved => {
+                                callback(i + 1);
+                            })
+                                .catch(err => {
+                                console.log(err);
+                                errors.postJsonError(err);
+                                callback(i + 1);
+                            });
+                        }
                     }
-                    else {
-                        const to_frames = [];
-                        const json = createRequestRaw("");
-                        while (to_frames.length < 240 && i < frames.length) {
-                            to_frames.push({ data: createRequestRaw(frames[i].frame).data, id: frames[i].id });
-                            i++;
-                        }
-                        if (frames.length > 0) {
-                            json.id = frames[frames.length - 1].id || -1;
-                        }
-                        json.data = to_frames.map(frame => frame.data).join(",");
-                        //const frame = frames[i];
-                        //const json = createRequestRaw(frame.frame); //createRequest(hex);
-                        json.remaining = frames.length - i;
-                        json.gprs = !!index_js_1.default.instance.isGPRS();
-                        _post(json)
-                            .then(body => {
-                            return Promise.all(to_frames.map(frame => frame_model_1.default.instance.setSent(frame.id || 0, true)));
-                        })
-                            .then(saved => {
-                            callback(i + 1);
-                        })
-                            .catch(err => {
-                            console.log(err);
-                            errors.postJsonError(err);
-                            callback(i + 1);
-                        });
+                    catch (e) {
+                        errors.postJsonError(e);
+                        //once the issue has been found, this can be enforced
+                        //this._posting = false;
                     }
                 };
                 callback(0);
