@@ -9,7 +9,7 @@ import NetworkInfo from "./network/index.js";
 
 const errors = Errors.instance;
 
-const VERSION = 11;
+const VERSION = 12;
 
 function _post(json: any) {
 	console.log("posting json");
@@ -123,7 +123,7 @@ export default class PushWEB extends EventEmitter {
 					} catch(e) {
 						errors.postJsonError(e);
 						//once the issue has been found, this can be enforced
-						//this._posting = false;
+						this._posting = false;
 					}
 				}
 	

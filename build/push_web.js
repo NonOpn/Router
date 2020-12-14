@@ -11,7 +11,7 @@ const frame_model_1 = __importDefault(require("./push_web/frame_model"));
 const frame_model_compress_js_1 = __importDefault(require("./push_web/frame_model_compress.js"));
 const index_js_1 = __importDefault(require("./network/index.js"));
 const errors = errors_1.default.instance;
-const VERSION = 11;
+const VERSION = 12;
 function _post(json) {
     console.log("posting json");
     return new Promise((resolve, reject) => {
@@ -115,7 +115,7 @@ class PushWEB extends events_1.EventEmitter {
                     catch (e) {
                         errors.postJsonError(e);
                         //once the issue has been found, this can be enforced
-                        //this._posting = false;
+                        this._posting = false;
                     }
                 };
                 callback(0);

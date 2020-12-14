@@ -26,7 +26,7 @@ class _Logger {
             catch (e) {
             }
             reason && (output.reason = reason);
-            this._post("error", output);
+            this._post("error", output, 5);
         };
         this.data = (data) => this._post("data", data);
         this.identity = (data, tags = []) => {
@@ -62,7 +62,7 @@ class _Logger {
             req.end();
         });
     }
-    _post(tag, data) {
+    _post(tag, data, retry) {
         const json = {};
         data && Object.keys(data).forEach(d => json[d] = data[d]);
         json.version = config_1.default.version;
@@ -84,7 +84,12 @@ class _Logger {
         }
         this._request(tag, json)
             .then(() => { })
-            .catch((e) => console.log(e));
+            .catch((e) => {
+            if (retry && retry > 0) {
+                setTimeout(() => this._post(tag, data, retry - 1), 2 * 60 * 1000);
+            }
+            console.log(e);
+        });
     }
 }
 exports._Logger = _Logger;

@@ -38,7 +38,7 @@ export class _Logger {
             req.end();
         });
     }
-    _post(tag: string, data: any) {
+    _post(tag: string, data: any, retry?: number) {
         const json: any = {};
         data && Object.keys(data).forEach(d => json[d] = data[d]);
         json.version = config.version;
@@ -62,7 +62,12 @@ export class _Logger {
 
         this._request(tag, json)
         .then(() => {})
-        .catch((e: Error) => console.log(e));
+        .catch((e: Error) => {
+            if(retry && retry > 0) {
+                setTimeout(() => this._post(tag, data, retry - 1), 2 * 60 * 1000);
+            }
+            console.log(e);
+        });
     }
 
     error = (error: any, reason: string|undefined = undefined) => {
@@ -82,7 +87,7 @@ export class _Logger {
 
         }
         reason && (output.reason = reason);
-        this._post("error", output);
+        this._post("error", output, 5);
     }
 
     data = (data: any) => this._post("data", data);
