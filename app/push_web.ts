@@ -114,7 +114,12 @@ export default class PushWEB extends EventEmitter {
 					json.gprs = !!NetworkInfo.instance.isGPRS();
 
 					await _post(json)
-					await Promise.all(to_frames.map(frame => FrameModel.instance.setSent(frame.id || 0, true)));
+					var j = 0;
+					while(j < to_frames.length) {
+						const frame = to_frames[j];
+						await FrameModel.instance.setSent(frame.id || 0, true);
+						j++;
+					}
 				}
 			}
 		} catch(e) {

@@ -97,7 +97,12 @@ class PushWEB extends events_1.EventEmitter {
                         json.remaining = frames.length - i;
                         json.gprs = !!index_1.default.instance.isGPRS();
                         yield _post(json);
-                        yield Promise.all(to_frames.map(frame => frame_model_1.default.instance.setSent(frame.id || 0, true)));
+                        var j = 0;
+                        while (j < to_frames.length) {
+                            const frame = to_frames[j];
+                            yield frame_model_1.default.instance.setSent(frame.id || 0, true);
+                            j++;
+                        }
                     }
                 }
             }
