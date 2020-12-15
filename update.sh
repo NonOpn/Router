@@ -210,7 +210,7 @@ cp /usr/local/routair/scripts/12d1_1f01 /etc/usb_modeswitch.d/12d1\:1f01
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # CHECK FOR ANY UPDATE
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-if ping -c 1 contact-platform.com >> /dev/null 2>&1; then
+if ping -c 10 contact-platform.com >> /dev/null 2>&1; then
   echo "online, check for updates"
   cd /usr/local/routair
 

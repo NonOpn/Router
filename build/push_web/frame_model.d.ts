@@ -37,7 +37,7 @@ export default class FrameModel extends Abstract {
     beforeForDevice(device: Device, timestamp: number): Promise<Transaction[]>;
     before(timestamp: number): Promise<Transaction[]>;
     getMaximumUnsent: () => number;
-    getUnsent(): Promise<Transaction[]>;
+    getUnsent(maximum?: number): Promise<Transaction[]>;
     saveMultiple(txs: Transaction[]): Promise<Transaction[]>;
     save(tx: Transaction): Promise<Transaction>;
 }

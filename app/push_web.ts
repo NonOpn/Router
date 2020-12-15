@@ -70,59 +70,54 @@ export default class PushWEB extends EventEmitter {
 		}
 
 		this._number_to_skip = 4;
-		this.trySendOk().then(() => {}).catch(err => {});
+
+		if(this._posting) {
+			Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated });
+			return;
+		}
+
+		//send data over the network
+		this._posting = true;
+		this.trySendOk().then(() => {
+			this._posting = false;
+		}).catch(err => {
+			this._posting = false;
+		});
 	}
 
 	trySendOk = async () => {
 		try {
-			if(this._posting || !this.is_activated) {
-				Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated });
-				return;
-			}
-
 			console.log("try send to send frames");
 
 			if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "entering" });
 			//TODO for GPRS, when getting unsent, only get the last non alert + every alerts in the steps
-			const frames = await FrameModel.instance.getUnsent()
-			this._posting = true;
+			const frames = await FrameModel.instance.getUnsent(240)
 			console.log("frames ? " + frames);
 
 			if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "obtained", size: frames.length });
 
 			if(null == frames || frames.length == 0) {
 				console.log("finished");
-				this._posting = false;
 			} else {
-				var i = 0;
+				const to_frames:RequestFrames[] = frames.map(f => ({data: createRequestRaw(f.frame).data, id: f.id }));
+				const json = createRequestRaw("");
 
-				while(i < frames.length) {
-					const to_frames:RequestFrames[] = [];
-					const json = createRequestRaw("");
+				json.id = frames[frames.length - 1].id || -1;
 
-					while(to_frames.length < 240 && i < frames.length) {
-						to_frames.push({data: createRequestRaw(frames[i].frame).data, id: frames[i].id });
-						i++;
-					}
+				json.data = to_frames.map(frame => frame.data).join(",");
+				json.remaining = 0; //TODO get the info ?
+				json.gprs = !!NetworkInfo.instance.isGPRS();
 
-					if(frames.length > 0) {
-						json.id = frames[frames.length - 1].id || -1;
-					}
-
-					json.data = to_frames.map(frame => frame.data).join(",");
-					json.remaining = frames.length - i;
-					json.gprs = !!NetworkInfo.instance.isGPRS();
-
-					await _post(json)
-					if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "push done", size: to_frames.length });
-					var j = 0;
-					while(j < to_frames.length) {
-						const frame = to_frames[j];
-						await FrameModel.instance.setSent(frame.id || 0, true);
-						j++;
-					}
-					if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "done", size: to_frames.length });
+				await _post(json)
+				if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "push done", size: to_frames.length });
+				this._posting = false;
+				var j = 0;
+				while(j < to_frames.length) {
+					const frame = to_frames[j];
+					await FrameModel.instance.setSent(frame.id || 0, true);
+					j++;
 				}
+				if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "done", size: to_frames.length });
 			}
 		} catch(e) {
 			errors.postJsonError(e);
@@ -130,7 +125,6 @@ export default class PushWEB extends EventEmitter {
 			Logger.error(e, "in push_web");
 			Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated, error: e });
 		}
-		this._posting = false;
 	}
 
 	sendEcho() {
