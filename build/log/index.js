@@ -63,6 +63,7 @@ class _Logger {
         });
     }
     _post(tag, data, retry) {
+        identity && data && (data.identity = identity);
         const json = {};
         data && Object.keys(data).forEach(d => json[d] = data[d]);
         json.version = config_1.default.version;
