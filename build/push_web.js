@@ -97,6 +97,8 @@ class PushWEB extends events_1.EventEmitter {
                         json.remaining = frames.length - i;
                         json.gprs = !!index_1.default.instance.isGPRS();
                         yield _post(json);
+                        if (!index_1.default.instance.isGPRS())
+                            log_1.Logger.data({ context: "push_web", infos: "push done", size: to_frames.length });
                         var j = 0;
                         while (j < to_frames.length) {
                             const frame = to_frames[j];

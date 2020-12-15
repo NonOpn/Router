@@ -61,6 +61,9 @@ class Pool {
     }
     manageErrorCrash(table_name, error, reject, callback) {
         console.log("Manage crash... " + (error ? error.code : "error no code"));
+        if (!index_js_2.default.instance.isGPRS()) {
+            index_js_1.Logger.error(error, "error_for " + table_name);
+        }
         if (table_name && table_name.toLowerCase() == "device" && error && error.errno == 144) {
             //safe to assume resetting the devices here :thumbsup:
             this.repair("TRUNCATE TABLE Device", error, reject);

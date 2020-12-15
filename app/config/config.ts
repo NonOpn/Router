@@ -5,7 +5,7 @@ try {
 } catch(e) {
 
 }
-const VERSION = "3.3.0";//process.env.VERSION || "1.0";
+const VERSION = "3.3.1";//process.env.VERSION || "1.0";
 
 export interface Config {
   identity: string|undefined|null,
