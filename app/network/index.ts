@@ -27,7 +27,7 @@ export default class NetworkInfo {
   }
 
   list(): Interface[] {
-    return this._list.filter(i => !!i);
+    return (this._list || []).filter(i => !!i);
   }
 
   isGPRS() {

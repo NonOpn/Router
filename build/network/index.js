@@ -17,7 +17,7 @@ class NetworkInfo {
         });
     }
     list() {
-        return this._list.filter(i => !!i);
+        return (this._list || []).filter(i => !!i);
     }
     isGPRS() {
         return this.list().find(i => i.name === "eth1");
@@ -46,6 +46,6 @@ class NetworkInfo {
         network_config_1.default.configure(name, description, callback);
     }
 }
-NetworkInfo.instance = new NetworkInfo();
 exports.default = NetworkInfo;
+NetworkInfo.instance = new NetworkInfo();
 //# sourceMappingURL=index.js.map

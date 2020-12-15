@@ -1,11 +1,12 @@
 import { EventEmitter } from "events";
-import config from "./config/config.js";
+import config from "./config/config";
 import Errors from "./errors";
 import request from "request";
 import FrameModel from "./push_web/frame_model";
-import FrameModelCompress from "./push_web/frame_model_compress.js";
-import AbstractDevice from "./snmp/abstract.js";
-import NetworkInfo from "./network/index.js";
+import FrameModelCompress from "./push_web/frame_model_compress";
+import AbstractDevice from "./snmp/abstract";
+import NetworkInfo from "./network/index";
+import { Logger } from "./log";
 
 const errors = Errors.instance;
 
@@ -69,74 +70,56 @@ export default class PushWEB extends EventEmitter {
 		}
 
 		this._number_to_skip = 4;
-		this.trySendOk();
+		this.trySendOk().then(() => {}).catch(err => {});
 	}
 
-	trySendOk() {
+	trySendOk = async () => {
 		try {
-			if(this._posting || !this.is_activated) return;
+			if(this._posting || !this.is_activated) {
+				Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated });
+				return;
+			}
+
 			this._posting = true;
 			console.log("try send to send frames");
 
 			//TODO for GPRS, when getting unsent, only get the last non alert + every alerts in the steps
-			FrameModel.instance.getUnsent()
-			.then((frames) => {
-				console.log("frames ? " + frames);
-				const callback = (i: number) => {
-					try {
-						console.log("callback called with " + i);
-						if(null == frames || i >= frames.length) {
-							console.log("finished");
-							this._posting = false;
-						} else {
-							const to_frames:RequestFrames[] = [];
-							const json = createRequestRaw("");
+			const frames = await FrameModel.instance.getUnsent()
+			console.log("frames ? " + frames);
 
-							while(to_frames.length < 240 && i < frames.length) {
-								to_frames.push({data: createRequestRaw(frames[i].frame).data, id: frames[i].id });
-								i++;
-							}
-
-							if(frames.length > 0) {
-								json.id = frames[frames.length - 1].id || -1;
-							}
-
-							json.data = to_frames.map(frame => frame.data).join(",");
-							//const frame = frames[i];
-							//const json = createRequestRaw(frame.frame); //createRequest(hex);
-							json.remaining = frames.length - i;
-							json.gprs = !!NetworkInfo.instance.isGPRS();
-		
-							_post(json)
-							.then(body => {
-								return Promise.all(to_frames.map(frame => FrameModel.instance.setSent(frame.id || 0, true)));
-							})
-							.then(saved => {
-								callback(i+1);
-							})
-							.catch(err => {
-								console.log(err);
-								errors.postJsonError(err);
-								callback(i+1);
-							});
-						}
-					} catch(e) {
-						errors.postJsonError(e);
-						//once the issue has been found, this can be enforced
-						this._posting = false;
-					}
-				}
-	
-				callback(0);
-			})
-			.catch(err => {
-				console.log("frames error... ");
-				//Logger.error(err, "in push_web");
-				//errors.postJsonError(err);
+			if(null == frames || frames.length == 0) {
+				console.log("finished");
 				this._posting = false;
-			});
+			} else {
+				var i = 0;
+
+				while(i < frames.length) {
+					const to_frames:RequestFrames[] = [];
+					const json = createRequestRaw("");
+
+					while(to_frames.length < 240 && i < frames.length) {
+						to_frames.push({data: createRequestRaw(frames[i].frame).data, id: frames[i].id });
+						i++;
+					}
+
+					if(frames.length > 0) {
+						json.id = frames[frames.length - 1].id || -1;
+					}
+
+					json.data = to_frames.map(frame => frame.data).join(",");
+					json.remaining = frames.length - i;
+					json.gprs = !!NetworkInfo.instance.isGPRS();
+
+					await _post(json)
+					await Promise.all(to_frames.map(frame => FrameModel.instance.setSent(frame.id || 0, true)));
+				}
+			}
 		} catch(e) {
 			this._posting = false;
+			errors.postJsonError(e);
+			console.log("frames error... ");
+			Logger.error(e, "in push_web");
+			Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated, error: e });
 		}
 	}
 
