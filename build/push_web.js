@@ -68,11 +68,15 @@ class PushWEB extends events_1.EventEmitter {
                     log_1.Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated });
                     return;
                 }
-                this._posting = true;
                 console.log("try send to send frames");
+                if (!index_1.default.instance.isGPRS())
+                    log_1.Logger.data({ context: "push_web", infos: "entering" });
                 //TODO for GPRS, when getting unsent, only get the last non alert + every alerts in the steps
                 const frames = yield frame_model_1.default.instance.getUnsent();
+                this._posting = true;
                 console.log("frames ? " + frames);
+                if (!index_1.default.instance.isGPRS())
+                    log_1.Logger.data({ context: "push_web", infos: "obtained", size: frames.length });
                 if (null == frames || frames.length == 0) {
                     console.log("finished");
                     this._posting = false;
