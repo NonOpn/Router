@@ -103,6 +103,8 @@ class PushWEB extends events_1.EventEmitter {
                             yield frame_model_1.default.instance.setSent(frame.id || 0, true);
                             j++;
                         }
+                        if (!index_1.default.instance.isGPRS())
+                            log_1.Logger.data({ context: "push_web", infos: "done", size: to_frames.length });
                     }
                 }
             }

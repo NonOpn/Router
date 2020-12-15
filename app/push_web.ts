@@ -120,6 +120,7 @@ export default class PushWEB extends EventEmitter {
 						await FrameModel.instance.setSent(frame.id || 0, true);
 						j++;
 					}
+					if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "done", size: to_frames.length });
 				}
 			}
 		} catch(e) {
