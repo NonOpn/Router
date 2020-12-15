@@ -56,6 +56,8 @@ export default class PushWEB extends EventEmitter {
 	_posting: boolean;
 	_number_to_skip = 0;
 
+	_protection_network: number = 0;
+
 	constructor() {
 		super();
 		//this.is_activated = push_web_config.is_activated;
@@ -71,7 +73,16 @@ export default class PushWEB extends EventEmitter {
 
 		this._number_to_skip = 4;
 
-		if(this._posting) {
+		if(!!this._posting) {
+			this._protection_network ++;
+
+			//if we have a timeout of 30min which did not clear the network stack... reset !
+			if(this._protection_network >= 30) {
+				Logger.data({ context: "push_web", reset_posting: true, posting: this._posting, is_activated: this.is_activated });
+				this._protection_network = 0;
+				this._posting = false;
+			}
+
 			Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated });
 			return;
 		}
@@ -79,8 +90,11 @@ export default class PushWEB extends EventEmitter {
 		//send data over the network
 		this._posting = true;
 		this.trySendOk().then(() => {
+			this._protection_network = 0;
 			this._posting = false;
 		}).catch(err => {
+			Logger.error(err, "error in trySendOk");
+			this._protection_network = 0;
 			this._posting = false;
 		});
 	}

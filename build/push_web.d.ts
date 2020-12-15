@@ -5,6 +5,7 @@ export default class PushWEB extends EventEmitter {
     is_activated: boolean;
     _posting: boolean;
     _number_to_skip: number;
+    _protection_network: number;
     constructor();
     trySend(): void;
     trySendOk: () => Promise<void>;

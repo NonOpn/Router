@@ -62,6 +62,7 @@ class PushWEB extends events_1.EventEmitter {
         super();
         this.is_activated = true;
         this._number_to_skip = 0;
+        this._protection_network = 0;
         this.trySendOk = () => __awaiter(this, void 0, void 0, function* () {
             try {
                 console.log("try send to send frames");
@@ -115,15 +116,25 @@ class PushWEB extends events_1.EventEmitter {
             return;
         }
         this._number_to_skip = 4;
-        if (this._posting) {
+        if (!!this._posting) {
+            this._protection_network++;
+            //if we have a timeout of 30min which did not clear the network stack... reset !
+            if (this._protection_network >= 30) {
+                log_1.Logger.data({ context: "push_web", reset_posting: true, posting: this._posting, is_activated: this.is_activated });
+                this._protection_network = 0;
+                this._posting = false;
+            }
             log_1.Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated });
             return;
         }
         //send data over the network
         this._posting = true;
         this.trySendOk().then(() => {
+            this._protection_network = 0;
             this._posting = false;
         }).catch(err => {
+            log_1.Logger.error(err, "error in trySendOk");
+            this._protection_network = 0;
             this._posting = false;
         });
     }
