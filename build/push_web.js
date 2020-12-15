@@ -109,12 +109,12 @@ class PushWEB extends events_1.EventEmitter {
                 }
             }
             catch (e) {
-                this._posting = false;
                 errors.postJsonError(e);
                 console.log("frames error... ");
                 log_1.Logger.error(e, "in push_web");
                 log_1.Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated, error: e });
             }
+            this._posting = false;
         });
         this._started = false;
         //this.is_activated = push_web_config.is_activated;

@@ -124,12 +124,12 @@ export default class PushWEB extends EventEmitter {
 				}
 			}
 		} catch(e) {
-			this._posting = false;
 			errors.postJsonError(e);
 			console.log("frames error... ");
 			Logger.error(e, "in push_web");
 			Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated, error: e });
 		}
+		this._posting = false;
 	}
 
 	sendEcho() {
