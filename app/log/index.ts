@@ -24,7 +24,9 @@ export class _Logger {
             }
 
             const req = https.request(options, (res) => {
-                res.on('data', (d: any) => { });
+                res.on('data', (d: any) => {
+                    console.log("result " + (typeof d), d);
+                });
 
                 res.on('end', () => resolve && resolve(true));
             })
