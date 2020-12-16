@@ -75,7 +75,7 @@ class PushWEB extends events_1.EventEmitter {
                 if (!index_1.default.instance.isGPRS())
                     log_1.Logger.data({ context: "push_web", infos: "entering" });
                 //TODO for GPRS, when getting unsent, only get the last non alert + every alerts in the steps
-                const frames = yield frame_model_1.default.instance.getUnsent(240);
+                const frames = yield frame_model_1.default.instance.getUnsent(120);
                 console.log("frames ? " + frames);
                 if (!index_1.default.instance.isGPRS())
                     log_1.Logger.data({ context: "push_web", infos: "obtained", size: frames.length });
@@ -90,9 +90,14 @@ class PushWEB extends events_1.EventEmitter {
                     json.remaining = 0; //TODO get the info ?
                     json.gprs = !!index_1.default.instance.isGPRS();
                     var first_id = frames.length > 0 ? frames[0].id : 0;
-                    yield _post(json);
                     if (!index_1.default.instance.isGPRS())
                         log_1.Logger.data({ context: "push_web", infos: "push done", size: to_frames.length, first_id });
+                    try {
+                        yield _post(json);
+                    }
+                    catch (e) {
+                        log_1.Logger.error(e, "in push_web");
+                    }
                     this._posting = false;
                     var j = 0;
                     while (j < to_frames.length) {
