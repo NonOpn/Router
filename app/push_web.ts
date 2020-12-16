@@ -25,14 +25,17 @@ function _post(json: any) {
 			request.post({ url, json, gzip: "true" }, (e: any, response: any, body: any) => {
 				console.log("answer obtained ", e);
 				if(e) {
+					if(!gprs) Logger.error(e);
 					reject(e);
 				}else if(response && response.statusCode) {
 					resolve(body);
 				} else {
+					if(!gprs) Logger.error(e);
 					reject(e);
 				}
 			});
 		} catch(err) {
+			if(!gprs) Logger.error(err);
 			reject(err);
 		}
 	});

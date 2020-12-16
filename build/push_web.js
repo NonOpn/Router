@@ -35,17 +35,23 @@ function _post(json) {
             request_1.default.post({ url, json, gzip: "true" }, (e, response, body) => {
                 console.log("answer obtained ", e);
                 if (e) {
+                    if (!gprs)
+                        log_1.Logger.error(e);
                     reject(e);
                 }
                 else if (response && response.statusCode) {
                     resolve(body);
                 }
                 else {
+                    if (!gprs)
+                        log_1.Logger.error(e);
                     reject(e);
                 }
             });
         }
         catch (err) {
+            if (!gprs)
+                log_1.Logger.error(err);
             reject(err);
         }
     });
