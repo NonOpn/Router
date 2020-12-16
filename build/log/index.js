@@ -47,10 +47,11 @@ class _Logger {
                 timeout: 60000
             };
             const req = https.request(options, (res) => {
+                var result = "";
                 res.on('data', (d) => {
-                    console.log("result " + (typeof d), d.toString());
+                    result += d.toString();
                 });
-                res.on('end', () => resolve && resolve(true));
+                res.on('end', () => resolve && resolve(result));
             });
             req.on('error', (error) => {
                 reject && reject(error);

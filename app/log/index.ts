@@ -24,11 +24,12 @@ export class _Logger {
             }
 
             const req = https.request(options, (res) => {
+                var result = "";
                 res.on('data', (d: Buffer) => {
-                    console.log("result " + (typeof d), d.toString());
+                    result += d.toString();
                 });
 
-                res.on('end', () => resolve && resolve(true));
+                res.on('end', () => resolve && resolve(result));
             })
 
             req.on('error', (error: Error) => {

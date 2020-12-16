@@ -126,7 +126,8 @@ export default class PushWEB extends EventEmitter {
 				var first_id = frames.length > 0 ? frames[0].id : 0;
 
 				if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "push done", size: to_frames.length, first_id });
-				await _post(json)
+				const result = await _post(json)
+				if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "push result", result, size: to_frames.length, first_id });
 
 				var j = 0;
 				while(j < to_frames.length) {
