@@ -21,7 +21,7 @@ const frame_model_compress_1 = __importDefault(require("./push_web/frame_model_c
 const index_1 = __importDefault(require("./network/index"));
 const log_1 = require("./log");
 const errors = errors_1.default.instance;
-const VERSION = 12;
+const VERSION = 13;
 function _post(json) {
     console.log("posting json");
     return new Promise((resolve, reject) => {
@@ -32,20 +32,15 @@ function _post(json) {
             url = "http://contact-platform.com/api/ping";
         }
         try {
-            request_1.default.post({ url, json, gzip: "true" }, (e, response, body) => {
-                console.log("answer obtained ", e);
+            request_1.default.post({ url, json, gzip: !!gprs }, (e, response, body) => {
                 if (e) {
+                    reject(e);
                     if (!gprs)
                         log_1.Logger.error(e);
-                    reject(e);
-                }
-                else if (response && response.statusCode) {
-                    resolve(body);
                 }
                 else {
-                    if (!gprs)
-                        log_1.Logger.error(e);
-                    reject(e);
+                    resolve(body);
+                    log_1.Logger.data({ response, body });
                 }
             });
         }
@@ -92,13 +87,7 @@ class PushWEB extends events_1.EventEmitter {
                     var first_id = frames.length > 0 ? frames[0].id : 0;
                     if (!index_1.default.instance.isGPRS())
                         log_1.Logger.data({ context: "push_web", infos: "push done", size: to_frames.length, first_id });
-                    try {
-                        yield _post(json);
-                    }
-                    catch (e) {
-                        log_1.Logger.error(e, "in push_web");
-                    }
-                    this._posting = false;
+                    yield _post(json);
                     var j = 0;
                     while (j < to_frames.length) {
                         const frame = to_frames[j];
@@ -107,6 +96,7 @@ class PushWEB extends events_1.EventEmitter {
                     }
                     if (!index_1.default.instance.isGPRS())
                         log_1.Logger.data({ context: "push_web", infos: "done", size: to_frames.length });
+                    this._posting = false;
                 }
             }
             catch (e) {
