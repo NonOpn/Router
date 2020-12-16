@@ -32,6 +32,8 @@ function _post(json) {
             url = "http://contact-platform.com/api/ping";
         }
         try {
+            if (!gprs)
+                log_1.Logger.data({ sending_to: url });
             request_1.default.post({ url, json, gzip: !!gprs }, (e, response, body) => {
                 if (e) {
                     reject(e);
