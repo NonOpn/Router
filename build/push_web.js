@@ -89,9 +89,10 @@ class PushWEB extends events_1.EventEmitter {
                     json.data = to_frames.map(frame => frame.data).join(",");
                     json.remaining = 0; //TODO get the info ?
                     json.gprs = !!index_1.default.instance.isGPRS();
+                    var first_id = frames.length > 0 ? frames[0].id : 0;
                     yield _post(json);
                     if (!index_1.default.instance.isGPRS())
-                        log_1.Logger.data({ context: "push_web", infos: "push done", size: to_frames.length });
+                        log_1.Logger.data({ context: "push_web", infos: "push done", size: to_frames.length, first_id });
                     this._posting = false;
                     var j = 0;
                     while (j < to_frames.length) {
@@ -125,7 +126,7 @@ class PushWEB extends events_1.EventEmitter {
         if (!!this._posting) {
             this._protection_network++;
             //if we have a timeout of 30min which did not clear the network stack... reset !
-            if (this._protection_network >= 30) {
+            if (this._protection_network >= 3) {
                 log_1.Logger.data({ context: "push_web", reset_posting: true, posting: this._posting, is_activated: this.is_activated });
                 this._protection_network = 0;
                 this._posting = false;
