@@ -10,7 +10,7 @@ import { Logger } from "./log";
 
 const errors = Errors.instance;
 
-const VERSION = 12;
+const VERSION = 13;
 
 function _post(json: any) {
 	console.log("posting json");
@@ -22,16 +22,13 @@ function _post(json: any) {
 			url = "http://contact-platform.com/api/ping";
 		}
 		try {
-			request.post({ url, json, gzip: "true" }, (e: any, response: any, body: any) => {
-				console.log("answer obtained ", e);
+			request.post({ url, json, gzip: !!gprs }, (e: any, response: any, body: any) => {
 				if(e) {
-					if(!gprs) Logger.error(e);
 					reject(e);
-				}else if(response && response.statusCode) {
-					resolve(body);
+					if(!gprs) Logger.error(e);
 				} else {
-					if(!gprs) Logger.error(e);
-					reject(e);
+					resolve(body);
+					Logger.data({response, body});
 				}
 			});
 		} catch(err) {
@@ -128,12 +125,8 @@ export default class PushWEB extends EventEmitter {
 				var first_id = frames.length > 0 ? frames[0].id : 0;
 
 				if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "push done", size: to_frames.length, first_id });
-				try {
-					await _post(json)
-				} catch(e) {
-					Logger.error(e, "in push_web");
-				}
-				this._posting = false;
+				await _post(json)
+
 				var j = 0;
 				while(j < to_frames.length) {
 					const frame = to_frames[j];
@@ -141,6 +134,7 @@ export default class PushWEB extends EventEmitter {
 					j++;
 				}
 				if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "done", size: to_frames.length });
+				this._posting = false;
 			}
 		} catch(e) {
 			errors.postJsonError(e);
