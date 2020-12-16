@@ -48,7 +48,7 @@ class _Logger {
             };
             const req = https.request(options, (res) => {
                 res.on('data', (d) => {
-                    console.log("result " + (typeof d), d);
+                    console.log("result " + (typeof d), d.toString());
                 });
                 res.on('end', () => resolve && resolve(true));
             });
