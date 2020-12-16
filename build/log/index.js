@@ -35,18 +35,15 @@ class _Logger {
             this._post(tags.join(","), data);
         };
     }
-    _request(tag, json) {
+    post(hostname, port, path, headers, json) {
         return new Promise((resolve, reject) => {
             const data = JSON.stringify(json || {});
             const options = {
-                hostname: "logs-01.loggly.com",
-                port: 443,
-                path: `/inputs/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/${tag}/`,
+                hostname,
+                port,
+                path,
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Content-Length": data.length
-                },
+                headers: Object.assign(Object.assign({}, headers), { "Content-Type": "application/json", "Content-Length": data.length }),
                 timeout: 60000
             };
             const req = https.request(options, (res) => {
@@ -61,6 +58,9 @@ class _Logger {
             req.write(data);
             req.end();
         });
+    }
+    _request(tag, json) {
+        return this.post("logs-01.loggly.com", 443, `/inputs/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/${tag}/`, {}, json);
     }
     _post(tag, data, retry) {
         identity && data && (data.identity = identity);

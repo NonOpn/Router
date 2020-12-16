@@ -83,6 +83,6 @@ class Errors {
         });
     }
 }
-Errors.instance = new Errors();
 exports.default = Errors;
+Errors.instance = new Errors();
 //# sourceMappingURL=errors.js.map

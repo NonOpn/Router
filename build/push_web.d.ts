@@ -9,7 +9,7 @@ export default class PushWEB extends EventEmitter {
     constructor();
     trySend(): void;
     trySendOk: () => Promise<void>;
-    sendEcho(): void;
+    sendEcho: () => Promise<void>;
     onFrame(device: AbstractDevice | undefined, data: any): void;
     private _started;
     connect(): void;

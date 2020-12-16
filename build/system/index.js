@@ -30,8 +30,8 @@ class SystemInfo {
         });
     }
 }
-SystemInfo.instance = new SystemInfo();
 exports.SystemInfo = SystemInfo;
+SystemInfo.instance = new SystemInfo();
 class Diskspace {
     constructor() {
         this.du = new systemctl_1.DU();
@@ -59,6 +59,6 @@ class Diskspace {
         return this.du.exec("/", 1);
     }
 }
-Diskspace.instance = new Diskspace();
 exports.Diskspace = Diskspace;
+Diskspace.instance = new Diskspace();
 //# sourceMappingURL=index.js.map

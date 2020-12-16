@@ -202,6 +202,6 @@ class FrameManagerAlert extends events_1.EventEmitter {
         });
     }
 }
-FrameManagerAlert.instance = new FrameManagerAlert();
 exports.default = FrameManagerAlert;
+FrameManagerAlert.instance = new FrameManagerAlert();
 //# sourceMappingURL=frame_manager_alert.js.map

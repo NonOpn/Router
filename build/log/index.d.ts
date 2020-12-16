@@ -1,6 +1,7 @@
 export declare class _Logger {
-    _request(tag: string, json: any): Promise<unknown>;
-    _post(tag: string, data: any, retry?: number): void;
+    post(hostname: string, port: number, path: string, headers: any, json: any): Promise<unknown>;
+    private _request;
+    private _post;
     error: (error: any, reason?: string | undefined) => void;
     data: (data: any) => void;
     identity: (data: any, tags?: string[]) => void;

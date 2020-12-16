@@ -6,18 +6,19 @@ const identity = config.identity ||  "unknown";
 
 export class _Logger {
 
-    _request(tag: string,json: any) {
+    post(hostname: string, port: number, path: string, headers: any, json: any) {
         return new Promise((resolve, reject) => {
             const data = JSON.stringify(json || {});
 
             const options = {
-                hostname: "logs-01.loggly.com",
-                port: 443,
-                path: `/inputs/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/${tag}/`,
+                hostname,
+                port,
+                path,
                 method: "POST",
                 headers: {
-                  "Content-Type": "application/json",
-                  "Content-Length": data.length
+                    ...headers,
+                    "Content-Type": "application/json",
+                    "Content-Length": data.length
                 },
                 timeout: 60000
             }
@@ -38,7 +39,12 @@ export class _Logger {
             req.end();
         });
     }
-    _post(tag: string, data: any, retry?: number) {
+
+    private _request(tag: string,json: any) {
+        return this.post("logs-01.loggly.com", 443, `/inputs/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/${tag}/`, {}, json);
+    }
+
+    private _post(tag: string, data: any, retry?: number) {
         identity && data && (data.identity = identity);
         const json: any = {};
         data && Object.keys(data).forEach(d => json[d] = data[d]);

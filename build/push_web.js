@@ -23,32 +23,26 @@ const log_1 = require("./log");
 const errors = errors_1.default.instance;
 const VERSION = 13;
 function _post(json) {
+    const gprs = index_1.default.instance.isGPRS();
     console.log("posting json");
+    if (!gprs) {
+        return log_1.Logger.post("contact-platform.com", 443, "/api/ping", {}, json);
+    }
+    //in gprs mode, simply sends the values
     return new Promise((resolve, reject) => {
-        const gprs = index_1.default.instance.isGPRS();
         console.log("gprs mode ?", gprs);
-        var url = "https://contact-platform.com/api/ping";
-        if (gprs) {
-            url = "http://contact-platform.com/api/ping";
-        }
+        var url = "http://contact-platform.com/api/ping";
         try {
-            if (!gprs)
-                log_1.Logger.data({ sending_to: url });
             request_1.default.post({ url, json, gzip: !!gprs }, (e, response, body) => {
                 if (e) {
                     reject(e);
-                    if (!gprs)
-                        log_1.Logger.error(e);
                 }
                 else {
                     resolve(body);
-                    log_1.Logger.data({ response, body });
                 }
             });
         }
         catch (err) {
-            if (!gprs)
-                log_1.Logger.error(err);
             reject(err);
         }
     });
@@ -108,6 +102,33 @@ class PushWEB extends events_1.EventEmitter {
                 log_1.Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated, error: e });
             }
         });
+        this.sendEcho = () => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const json = { host: config_1.default.identity, version: VERSION };
+                const gprs = index_1.default.instance.isGPRS();
+                console.log("posting json");
+                if (!gprs) {
+                    yield log_1.Logger.post("contact-platform.com", 443, "/api/echo", {}, json);
+                }
+                else {
+                    yield new Promise((resolve, reject) => {
+                        request_1.default.post({
+                            url: "https://contact-platform.com/api/echo",
+                            json
+                        }, (e, response, body) => {
+                            //nothing to do
+                            console.log(body);
+                            resolve(true);
+                        });
+                    });
+                }
+                console.log("echo posted");
+            }
+            catch (err) {
+                console.log("echo error", err);
+                errors.postJsonError(err);
+            }
+        });
         this._started = false;
         //this.is_activated = push_web_config.is_activated;
         this._posting = false;
@@ -140,25 +161,6 @@ class PushWEB extends events_1.EventEmitter {
             log_1.Logger.error(err, "error in trySendOk");
             this._protection_network = 0;
             this._posting = false;
-        });
-    }
-    sendEcho() {
-        new Promise((resolve, reject) => {
-            request_1.default.post({
-                url: "https://contact-platform.com/api/echo",
-                json: { host: config_1.default.identity, version: VERSION }
-            }, (e, response, body) => {
-                //nothing to do
-                console.log(body);
-                resolve(true);
-            });
-        })
-            .then(result => {
-            console.log("echo posted");
-        })
-            .catch(err => {
-            console.log("echo error", err);
-            errors.postJsonError(err);
         });
     }
     onFrame(device, data) {

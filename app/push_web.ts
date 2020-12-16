@@ -13,27 +13,27 @@ const errors = Errors.instance;
 const VERSION = 13;
 
 function _post(json: any) {
+	const gprs = NetworkInfo.instance.isGPRS();
 	console.log("posting json");
+
+	if(!gprs) {
+		return Logger.post("contact-platform.com", 443, "/api/ping", {}, json);
+	}
+
+	//in gprs mode, simply sends the values
 	return new Promise((resolve, reject) => {
-		const gprs = NetworkInfo.instance.isGPRS();
 		console.log("gprs mode ?", gprs);
-		var url = "https://contact-platform.com/api/ping";
-		if(gprs) {
-			url = "http://contact-platform.com/api/ping";
-		}
+		var url = "http://contact-platform.com/api/ping";
+
 		try {
-			if(!gprs) Logger.data({sending_to: url});
 			request.post({ url, json, gzip: !!gprs }, (e: any, response: any, body: any) => {
 				if(e) {
 					reject(e);
-					if(!gprs) Logger.error(e);
 				} else {
 					resolve(body);
-					Logger.data({response, body});
 				}
 			});
 		} catch(err) {
-			if(!gprs) Logger.error(err);
 			reject(err);
 		}
 	});
@@ -145,24 +145,32 @@ export default class PushWEB extends EventEmitter {
 		}
 	}
 
-	sendEcho() {
-		new Promise((resolve, reject) => {
-			request.post({
-				url: "https://contact-platform.com/api/echo",
-				json: { host: config.identity, version: VERSION }
-			}, (e: any, response: any, body: any) => {
-				//nothing to do
-				console.log(body);
-				resolve(true);
-			});
-		})
-		.then(result => {
+	sendEcho = async () => {
+		try {
+			const json = { host: config.identity, version: VERSION };
+			const gprs = NetworkInfo.instance.isGPRS();
+			console.log("posting json");
+	
+			if(!gprs) {
+				await Logger.post("contact-platform.com", 443, "/api/echo", {}, json);
+			} else {
+				await new Promise((resolve, reject) => {
+					request.post({
+						url: "https://contact-platform.com/api/echo",
+						json
+					}, (e: any, response: any, body: any) => {
+						//nothing to do
+						console.log(body);
+						resolve(true);
+					});
+				})
+			}
+	
 			console.log("echo posted");
-		})
-		.catch(err => {
+		} catch(err) {
 			console.log("echo error", err);
 			errors.postJsonError(err);
-		})
+		}
 	}
 
 	onFrame(device: AbstractDevice|undefined, data: any) {

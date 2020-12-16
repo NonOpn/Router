@@ -67,6 +67,6 @@ class DataPoint {
         });
     }
 }
-DataPoint.instance = new DataPoint();
 exports.default = DataPoint;
+DataPoint.instance = new DataPoint();
 //# sourceMappingURL=data_point.js.map

@@ -225,6 +225,6 @@ class FrameModelCompress extends abstract_js_1.default {
         });
     }
 }
-FrameModelCompress.instance = new FrameModelCompress();
 exports.default = FrameModelCompress;
+FrameModelCompress.instance = new FrameModelCompress();
 //# sourceMappingURL=frame_model_compress.js.map
