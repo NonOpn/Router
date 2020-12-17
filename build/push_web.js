@@ -26,7 +26,7 @@ function _post(json) {
     const gprs = index_1.default.instance.isGPRS();
     console.log("posting json");
     if (!gprs) {
-        return log_1.Logger.post("contact-platform.com", 443, "/api/ping", {}, json, true);
+        return log_1.Logger.post("contact-platform.com", 443, "/api/ping", {}, json);
     }
     //in gprs mode, simply sends the values
     return new Promise((resolve, reject) => {
@@ -66,7 +66,7 @@ class PushWEB extends events_1.EventEmitter {
                 if (!index_1.default.instance.isGPRS())
                     log_1.Logger.data({ context: "push_web", infos: "entering" });
                 //TODO for GPRS, when getting unsent, only get the last non alert + every alerts in the steps
-                const frames = yield frame_model_1.default.instance.getUnsent(12);
+                const frames = yield frame_model_1.default.instance.getUnsent(120);
                 console.log("frames ? " + frames);
                 if (!index_1.default.instance.isGPRS())
                     log_1.Logger.data({ context: "push_web", infos: "obtained", size: frames.length });
@@ -81,19 +81,18 @@ class PushWEB extends events_1.EventEmitter {
                     json.remaining = 0; //TODO get the info ?
                     json.gprs = !!index_1.default.instance.isGPRS();
                     var first_id = frames.length > 0 ? frames[0].id : 0;
+                    const size = to_frames.length;
+                    const supportFallback = !!(config_1.default.identity || "").toLocaleLowerCase().startsWith("0xfaa4205");
                     if (!index_1.default.instance.isGPRS())
                         log_1.Logger.data({ context: "push_web", infos: "push done", size: to_frames.length, first_id });
+                    // we need support due to a device issue impacting the 0xfaa4205 rout@ir
+                    if (supportFallback)
+                        yield this.setSent(to_frames);
                     const result = yield _post(json);
                     if (!index_1.default.instance.isGPRS())
-                        log_1.Logger.data({ context: "push_web", infos: "push result", result, size: to_frames.length, first_id });
-                    var j = 0;
-                    while (j < to_frames.length) {
-                        const frame = to_frames[j];
-                        yield frame_model_1.default.instance.setSent(frame.id || 0, true);
-                        j++;
-                    }
-                    if (!index_1.default.instance.isGPRS())
-                        log_1.Logger.data({ context: "push_web", infos: "done", size: to_frames.length });
+                        log_1.Logger.data({ context: "push_web", infos: "push", result, size, first_id });
+                    //even for the above mentionned device, not an issue : setSent changes a flag
+                    this.setSent(to_frames);
                     this._posting = false;
                 }
             }
@@ -101,6 +100,15 @@ class PushWEB extends events_1.EventEmitter {
                 log_1.Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated, error: e });
                 log_1.Logger.error(e, "in push_web");
                 console.log("frames error... ");
+            }
+        });
+        this.setSent = (frames) => __awaiter(this, void 0, void 0, function* () {
+            var j = 0;
+            log_1.Logger.data({ context: "push_web", sent: (frames || []).length });
+            while (j < frames.length) {
+                const frame = frames[j];
+                yield frame_model_1.default.instance.setSent(frame.id || 0, true);
+                j++;
             }
         });
         this.sendEcho = () => __awaiter(this, void 0, void 0, function* () {

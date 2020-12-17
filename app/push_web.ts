@@ -2,7 +2,7 @@ import { EventEmitter } from "events";
 import config from "./config/config";
 import Errors from "./errors";
 import request from "request";
-import FrameModel from "./push_web/frame_model";
+import FrameModel, { Transaction } from "./push_web/frame_model";
 import FrameModelCompress from "./push_web/frame_model_compress";
 import AbstractDevice from "./snmp/abstract";
 import NetworkInfo from "./network/index";
@@ -17,7 +17,7 @@ function _post(json: any) {
 	console.log("posting json");
 
 	if(!gprs) {
-		return Logger.post("contact-platform.com", 443, "/api/ping", {}, json, true);
+		return Logger.post("contact-platform.com", 443, "/api/ping", {}, json);
 	}
 
 	//in gprs mode, simply sends the values
@@ -106,7 +106,7 @@ export default class PushWEB extends EventEmitter {
 
 			if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "entering" });
 			//TODO for GPRS, when getting unsent, only get the last non alert + every alerts in the steps
-			const frames = await FrameModel.instance.getUnsent(12)
+			const frames = await FrameModel.instance.getUnsent(120)
 			console.log("frames ? " + frames);
 
 			if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "obtained", size: frames.length });
@@ -124,24 +124,37 @@ export default class PushWEB extends EventEmitter {
 				json.gprs = !!NetworkInfo.instance.isGPRS();
 
 				var first_id = frames.length > 0 ? frames[0].id : 0;
+				const size = to_frames.length;
+				const supportFallback = !!(config.identity || "").toLocaleLowerCase().startsWith("0xfaa4205");
 
 				if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "push done", size: to_frames.length, first_id });
-				const result = await _post(json)
-				if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "push result", result, size: to_frames.length, first_id });
 
-				var j = 0;
-				while(j < to_frames.length) {
-					const frame = to_frames[j];
-					await FrameModel.instance.setSent(frame.id || 0, true);
-					j++;
-				}
-				if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "done", size: to_frames.length });
+
+				// we need support due to a device issue impacting the 0xfaa4205 rout@ir
+				if(supportFallback) await this.setSent(to_frames);
+
+				const result = await _post(json)
+				if(!NetworkInfo.instance.isGPRS()) Logger.data({ context: "push_web", infos: "push", result, size, first_id });
+
+				//even for the above mentionned device, not an issue : setSent changes a flag
+				this.setSent(to_frames);
+
 				this._posting = false;
 			}
 		} catch(e) {
 			Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated, error: e });
 			Logger.error(e, "in push_web");
 			console.log("frames error... ");
+		}
+	}
+
+	private setSent = async (frames: RequestFrames[]) => {
+		var j = 0;
+		Logger.data({ context: "push_web", sent: (frames||[]).length });
+		while(j < frames.length) {
+			const frame = frames[j];
+			await FrameModel.instance.setSent(frame.id || 0, true);
+			j++;
 		}
 	}
 
