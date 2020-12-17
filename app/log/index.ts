@@ -6,7 +6,7 @@ const identity = config.identity ||  "unknown";
 
 export class _Logger {
 
-    post(hostname: string, port: number, path: string, headers: any, json: any) {
+    post(hostname: string, port: number, path: string, headers: any, json: any, logs?: boolean) {
         return new Promise((resolve, reject) => {
             const data = JSON.stringify(json || {});
 
@@ -24,8 +24,10 @@ export class _Logger {
             }
 
             const req = https.request(options, (res) => {
+                if(!!logs) Logger.data({context: "Logger.post.res", data: res});
                 var result = "";
                 res.on('data', (d: Buffer) => {
+                    if(!!logs) Logger.data({context: "Logger.post.data", data: d.toString()});
                     result += d.toString();
                 });
 
@@ -33,6 +35,7 @@ export class _Logger {
             })
 
             req.on('error', (error: Error) => {
+                if(!!logs) Logger.data({context: "Logger.post", error: true, data: error});
                 reject && reject(error);
                 reject = () =>  {};
                 resolve = () =>  {};

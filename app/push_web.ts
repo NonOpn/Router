@@ -17,7 +17,7 @@ function _post(json: any) {
 	console.log("posting json");
 
 	if(!gprs) {
-		return Logger.post("contact-platform.com", 443, "/api/ping", {}, json);
+		return Logger.post("contact-platform.com", 443, "/api/ping", {}, json, true);
 	}
 
 	//in gprs mode, simply sends the values

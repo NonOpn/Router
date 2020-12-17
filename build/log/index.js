@@ -35,7 +35,7 @@ class _Logger {
             this._post(tags.join(","), data);
         };
     }
-    post(hostname, port, path, headers, json) {
+    post(hostname, port, path, headers, json, logs) {
         return new Promise((resolve, reject) => {
             const data = JSON.stringify(json || {});
             const options = {
@@ -47,13 +47,19 @@ class _Logger {
                 timeout: 60000
             };
             const req = https.request(options, (res) => {
+                if (!!logs)
+                    exports.Logger.data({ context: "Logger.post.res", data: res });
                 var result = "";
                 res.on('data', (d) => {
+                    if (!!logs)
+                        exports.Logger.data({ context: "Logger.post.data", data: d.toString() });
                     result += d.toString();
                 });
                 res.on('end', () => resolve && resolve(result));
             });
             req.on('error', (error) => {
+                if (!!logs)
+                    exports.Logger.data({ context: "Logger.post", error: true, data: error });
                 reject && reject(error);
                 reject = () => { };
                 resolve = () => { };

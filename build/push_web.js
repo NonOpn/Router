@@ -26,7 +26,7 @@ function _post(json) {
     const gprs = index_1.default.instance.isGPRS();
     console.log("posting json");
     if (!gprs) {
-        return log_1.Logger.post("contact-platform.com", 443, "/api/ping", {}, json);
+        return log_1.Logger.post("contact-platform.com", 443, "/api/ping", {}, json, true);
     }
     //in gprs mode, simply sends the values
     return new Promise((resolve, reject) => {
