@@ -66,7 +66,7 @@ class PushWEB extends events_1.EventEmitter {
                 if (!index_1.default.instance.isGPRS())
                     log_1.Logger.data({ context: "push_web", infos: "entering" });
                 //TODO for GPRS, when getting unsent, only get the last non alert + every alerts in the steps
-                const frames = yield frame_model_1.default.instance.getUnsent(120);
+                const frames = yield frame_model_1.default.instance.getUnsent(12);
                 console.log("frames ? " + frames);
                 if (!index_1.default.instance.isGPRS())
                     log_1.Logger.data({ context: "push_web", infos: "obtained", size: frames.length });
