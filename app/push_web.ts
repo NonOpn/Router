@@ -10,7 +10,7 @@ import { Logger } from "./log";
 
 const errors = Errors.instance;
 
-const VERSION = 13;
+const VERSION = config.version;
 
 function _post(json: any) {
 	const gprs = NetworkInfo.instance.isGPRS();
@@ -139,10 +139,9 @@ export default class PushWEB extends EventEmitter {
 				this._posting = false;
 			}
 		} catch(e) {
-			errors.postJsonError(e);
-			console.log("frames error... ");
-			Logger.error(e, "in push_web");
 			Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated, error: e });
+			Logger.error(e, "in push_web");
+			console.log("frames error... ");
 		}
 	}
 
@@ -157,7 +156,7 @@ export default class PushWEB extends EventEmitter {
 			} else {
 				await new Promise((resolve, reject) => {
 					request.post({
-						url: "https://contact-platform.com/api/echo",
+						url: "http://contact-platform.com/api/echo",
 						json
 					}, (e: any, response: any, body: any) => {
 						//nothing to do

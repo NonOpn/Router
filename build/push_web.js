@@ -21,7 +21,7 @@ const frame_model_compress_1 = __importDefault(require("./push_web/frame_model_c
 const index_1 = __importDefault(require("./network/index"));
 const log_1 = require("./log");
 const errors = errors_1.default.instance;
-const VERSION = 13;
+const VERSION = config_1.default.version;
 function _post(json) {
     const gprs = index_1.default.instance.isGPRS();
     console.log("posting json");
@@ -98,10 +98,9 @@ class PushWEB extends events_1.EventEmitter {
                 }
             }
             catch (e) {
-                errors.postJsonError(e);
-                console.log("frames error... ");
-                log_1.Logger.error(e, "in push_web");
                 log_1.Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated, error: e });
+                log_1.Logger.error(e, "in push_web");
+                console.log("frames error... ");
             }
         });
         this.sendEcho = () => __awaiter(this, void 0, void 0, function* () {
@@ -115,7 +114,7 @@ class PushWEB extends events_1.EventEmitter {
                 else {
                     yield new Promise((resolve, reject) => {
                         request_1.default.post({
-                            url: "https://contact-platform.com/api/echo",
+                            url: "http://contact-platform.com/api/echo",
                             json
                         }, (e, response, body) => {
                             //nothing to do
