@@ -17,7 +17,7 @@ export default class BLE {
     _interval: NodeJS.Timeout | undefined;
     constructor();
     needRepair(): boolean;
-    refreshDevices(): void;
+    refreshDevices: () => Promise<void>;
     start(): void;
     startDelayed(): void;
     onFrame(device: AbstractDevice | undefined, frame: any): void;

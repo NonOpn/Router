@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -20,6 +29,7 @@ const diskspace = system_1.Diskspace.instance;
 const devices = device_model_1.default.instance;
 const BLEConstants_1 = require("./ble/BLEConstants");
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
+const log_1 = require("./log");
 var id = "Routair";
 if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) { //0xAABBCCDD
     id += config_1.default.identity.substr(0, 5 * 2);
@@ -271,6 +281,48 @@ class BLE {
         this._started = false;
         this._started_advertising_ok = false;
         this._interval = undefined;
+        this.refreshDevices = () => __awaiter(this, void 0, void 0, function* () {
+            if (!safeBleno_1.isBlenoAvailable) {
+                return;
+            }
+            try {
+                var devices = yield device_management.list();
+                const to_add = [];
+                if (devices) {
+                    devices = devices.filter(device => device.getInternalSerial() && "ffffff" != device.getSyncInternalSerial());
+                    devices.forEach(device => {
+                        var found = false;
+                        this._services.forEach(service => {
+                            const uuid_left = device.getUUID().toLowerCase();
+                            const uuid_right = service.uuid.toLowerCase();
+                            if (service && uuid_left == uuid_right) {
+                                found = true;
+                                service.tryUpdateDevice(device);
+                            }
+                        });
+                        if (!found)
+                            to_add.push(new BLEPrimaryDeviceService(device));
+                    });
+                    to_add.forEach(service => this._services.push(service));
+                }
+                if (!this._refreshing_called_once || to_add.length > 0) {
+                    this._refreshing_called_once = true;
+                    this._services_uuid = this._services.map(i => i.uuid).filter(u => u.indexOf("bee") >= 0);
+                    safeBleno_1.startAdvertising(id, this._services_uuid);
+                    if (this._started_advertising_ok) {
+                        safeBleno_1.setServices(this._services, (err) => console.log('setServices: ' + (err ? 'error ' + err : 'success')));
+                    }
+                }
+            }
+            catch (err) {
+                if (!network_1.default.instance.isGPRS())
+                    log_1.Logger.error(err, "refreshDevices");
+                console.error(err);
+                this._services_uuid = this._services.map(i => i.uuid).filter(u => u.indexOf("bee") >= 0);
+                safeBleno_1.startAdvertising(id, this._services_uuid);
+            }
+            ;
+        });
         if (!safeBleno_1.isBlenoAvailable) {
             console.log("disabling bluetooth... incompatible...");
             this._characteristics = [];
@@ -320,48 +372,12 @@ class BLE {
     needRepair() {
         return safeBleno_1.needBluetoothRepair;
     }
-    refreshDevices() {
-        if (!safeBleno_1.isBlenoAvailable) {
-            return;
-        }
-        device_management.list()
-            .then(devices => {
-            const to_add = [];
-            if (devices) {
-                devices = devices.filter(device => device.getInternalSerial() && "ffffff" != device.getSyncInternalSerial());
-                devices.forEach(device => {
-                    var found = false;
-                    this._services.forEach(service => {
-                        const uuid_left = device.getUUID().toLowerCase();
-                        const uuid_right = service.uuid.toLowerCase();
-                        if (service && uuid_left == uuid_right) {
-                            found = true;
-                            service.tryUpdateDevice(device);
-                        }
-                    });
-                    if (!found)
-                        to_add.push(new BLEPrimaryDeviceService(device));
-                });
-                to_add.forEach(service => this._services.push(service));
-            }
-            if (!this._refreshing_called_once || to_add.length > 0) {
-                this._refreshing_called_once = true;
-                this._services_uuid = this._services.map(i => i.uuid).filter(u => u.indexOf("bee") >= 0);
-                safeBleno_1.startAdvertising(id, this._services_uuid);
-                if (this._started_advertising_ok) {
-                    safeBleno_1.setServices(this._services, (err) => console.log('setServices: ' + (err ? 'error ' + err : 'success')));
-                }
-            }
-        })
-            .catch(err => {
-            console.error(err);
-            this._services_uuid = this._services.map(i => i.uuid).filter(u => u.indexOf("bee") >= 0);
-            safeBleno_1.startAdvertising(id, this._services_uuid);
-        });
-    }
     start() {
         if (!safeBleno_1.isBlenoAvailable) {
             console.log("disabling bluetooth... incompatible...");
+            if (!network_1.default.instance.isGPRS()) {
+                log_1.Logger.data({ context: "ble", status: "incompatible" });
+            }
             return;
         }
         setTimeout(() => this.startDelayed(), 1000);
@@ -369,6 +385,9 @@ class BLE {
     startDelayed() {
         if (!safeBleno_1.isBlenoAvailable) {
             console.log("disabling bluetooth... incompatible...");
+            if (!network_1.default.instance.isGPRS()) {
+                log_1.Logger.data({ context: "ble", status: "incompatible" });
+            }
             return;
         }
         if (this._started)
@@ -378,20 +397,34 @@ class BLE {
         safeBleno_1.onBlenoEvent("mtuChange", (mtuValue) => {
             const global_mtu = mtuValue || 23;
             console.log("new mtu value", global_mtu);
+            if (!network_1.default.instance.isGPRS()) {
+                log_1.Logger.data({ context: "ble", status: "mtuChange", mtuValue });
+            }
         });
         safeBleno_1.onBlenoEvent('stateChange', (state) => {
             console.log('on -> stateChange: ' + state);
             if (state == 'poweredOn' && !this._started_advertising) {
+                if (!network_1.default.instance.isGPRS()) {
+                    log_1.Logger.data({ context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "start" });
+                }
                 this._started_advertising = true;
                 console.log("starting advertising for", this._services_uuid);
                 this._interval = setInterval(() => this.refreshDevices(), 5000);
                 this.refreshDevices();
             }
             else if (this._started_advertising) {
+                if (!network_1.default.instance.isGPRS()) {
+                    log_1.Logger.data({ context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "stop" });
+                }
                 this._started_advertising = false;
                 console.log("stopping ", state);
                 this._interval && clearInterval(this._interval);
                 safeBleno_1.stopAdvertising();
+            }
+            else {
+                if (!network_1.default.instance.isGPRS()) {
+                    log_1.Logger.data({ context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "nothing" });
+                }
             }
         });
         safeBleno_1.onBlenoEvent('advertisingStart', (err) => {
@@ -399,12 +432,23 @@ class BLE {
             if (!err && this._started_advertising) {
                 this._started_advertising_ok = true;
                 safeBleno_1.setServices(this._services, (err) => {
+                    if (!network_1.default.instance.isGPRS()) {
+                        if (err)
+                            log_1.Logger.error(err, "advertisingState");
+                        else
+                            log_1.Logger.data({ context: "ble", status: "advertising", success: true });
+                    }
                     console.log('setServices: ' + (err ? 'error ' + err : 'success'));
                 });
             }
         });
         safeBleno_1.onBlenoEvent("advertisingStop", (err) => this._started_advertising_ok = false);
-        safeBleno_1.onBlenoEvent("advertisingStartError", (err) => console.log(err));
+        safeBleno_1.onBlenoEvent("advertisingStartError", (err) => {
+            if (!network_1.default.instance.isGPRS()) {
+                log_1.Logger.error(err, "advertisingStartError");
+            }
+            console.log(err);
+        });
         safeBleno_1.onBlenoEvent("disconnect", (client) => console.log("disconnect : client ->", client));
     }
     onFrame(device, frame) {

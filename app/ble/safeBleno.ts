@@ -71,6 +71,7 @@ export const stopAdvertising = () => {
 export const setServices = (services: SafePrimaryService[], callback: SetServiceCallback) => {
     if (bleno) {
         bleno.setServices(services, callback);
+        if(!NetworkInfo.instance.isGPRS()) Logger.data({context: "ble", services: services.length});
     } else {
         console.log("setServices failed, no bleno")
     }

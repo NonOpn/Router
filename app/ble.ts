@@ -24,6 +24,7 @@ import {
   RESULT_UNLIKELY_ERROR
 } from "./ble/BLEConstants";
 import FrameModel, { Transaction } from './push_web/frame_model';
+import { Logger } from './log';
 
 
 var id = "Routair";
@@ -421,13 +422,13 @@ export default class BLE {
     return needBluetoothRepair;
   }
 
-  refreshDevices() {
+  refreshDevices = async () => {
     if(!isBlenoAvailable) {
       return;
     }
 
-    device_management.list()
-    .then(devices => {
+    try {
+      var devices = await device_management.list();
       const to_add: any[] = [];
       if(devices) {
         devices = devices.filter(device => device.getInternalSerial() && "ffffff" != device.getSyncInternalSerial());
@@ -459,17 +460,22 @@ export default class BLE {
           setServices(this._services, (err: any) => console.log('setServices: '  + (err ? 'error ' + err : 'success')));
         }
       }
-    })
-    .catch(err => {
+    } catch(err) {
+      if(!NetworkInfo.instance.isGPRS()) Logger.error(err, "refreshDevices");
       console.error(err);
       this._services_uuid = this._services.map(i => i.uuid).filter(u => u.indexOf("bee") >= 0);
       startAdvertising(id, this._services_uuid);
-    })
+    };
   }
 
   start() {
     if(!isBlenoAvailable) {
       console.log("disabling bluetooth... incompatible...");
+
+      if(!NetworkInfo.instance.isGPRS()) {
+        Logger.data({context: "ble", status: "incompatible"});
+      }
+
       return;
     }
 
@@ -479,6 +485,10 @@ export default class BLE {
   startDelayed() {
     if(!isBlenoAvailable) {
       console.log("disabling bluetooth... incompatible...");
+
+      if(!NetworkInfo.instance.isGPRS()) {
+        Logger.data({context: "ble", status: "incompatible"});
+      }
       return;
     }
 
@@ -490,22 +500,35 @@ export default class BLE {
     onBlenoEvent("mtuChange", (mtuValue: number) => {
       const global_mtu = mtuValue || 23;
       console.log("new mtu value", global_mtu);
+      if(!NetworkInfo.instance.isGPRS()) {
+        Logger.data({context: "ble", status: "mtuChange", mtuValue});
+      }
     });
 
     onBlenoEvent('stateChange', (state: string) => {
       console.log('on -> stateChange: ' + state);
 
       if (state == 'poweredOn' && !this._started_advertising) {
+        if(!NetworkInfo.instance.isGPRS()) {
+          Logger.data({context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "start"});
+        }
         this._started_advertising = true;
         console.log("starting advertising for", this._services_uuid);
 
         this._interval = setInterval(() => this.refreshDevices(), 5000);
         this.refreshDevices();
       } else if(this._started_advertising) {
+        if(!NetworkInfo.instance.isGPRS()) {
+          Logger.data({context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "stop"});
+        }
         this._started_advertising = false;
         console.log("stopping ", state);
         this._interval && clearInterval(this._interval);
         stopAdvertising();
+      } else {
+        if(!NetworkInfo.instance.isGPRS()) {
+          Logger.data({context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "nothing"});
+        }
       }
     });
 
@@ -516,6 +539,11 @@ export default class BLE {
       if (!err && this._started_advertising) {
         this._started_advertising_ok = true;
         setServices( this._services, (err: any|undefined) => {
+
+          if(!NetworkInfo.instance.isGPRS()) {
+            if(err) Logger.error(err, "advertisingState");
+            else Logger.data({context: "ble", status: "advertising", success: true});
+          }
           console.log('setServices: '  + (err ? 'error ' + err : 'success'));
         });
       }
@@ -523,7 +551,13 @@ export default class BLE {
 
     onBlenoEvent("advertisingStop", (err: any) => this._started_advertising_ok = false);
 
-    onBlenoEvent("advertisingStartError", (err: any) => console.log(err))
+    onBlenoEvent("advertisingStartError", (err: any) => {
+
+      if(!NetworkInfo.instance.isGPRS()) {
+        Logger.error(err, "advertisingStartError");
+      }
+      console.log(err);
+    });
 
     onBlenoEvent("disconnect", (client: any) => console.log("disconnect : client ->", client));
   }

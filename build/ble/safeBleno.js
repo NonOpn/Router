@@ -57,6 +57,8 @@ exports.stopAdvertising = () => {
 exports.setServices = (services, callback) => {
     if (bleno) {
         bleno.setServices(services, callback);
+        if (!network_1.default.instance.isGPRS())
+            log_1.Logger.data({ context: "ble", services: services.length });
     }
     else {
         console.log("setServices failed, no bleno");
