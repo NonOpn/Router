@@ -58,6 +58,14 @@ class App {
             })
                 .then(res => { })
                 .catch(err => !network_1.default.instance.isGPRS() && index_js_1.Logger.error(err, "Error with bluetooth status"));
+            // make sure the interface is up
+            bluetooth.up().then(() => {
+                if (!network_1.default.instance.isGPRS())
+                    index_js_1.Logger.data({ content: "blue", status: "up" });
+            }).catch(err => {
+                if (!network_1.default.instance.isGPRS())
+                    index_js_1.Logger.error(err, "ble_up");
+            });
             wifi.start();
             server.start();
             snmp.connect();

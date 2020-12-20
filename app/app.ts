@@ -62,6 +62,13 @@ class App {
       .then(res => {})
       .catch(err => !NetworkInfo.instance.isGPRS() && Logger.error(err, "Error with bluetooth status"));
 
+      // make sure the interface is up
+      bluetooth.up().then(() => {
+        if(!NetworkInfo.instance.isGPRS()) Logger.data({content: "blue", status: "up"});
+      }).catch(err => {
+        if(!NetworkInfo.instance.isGPRS()) Logger.error(err, "ble_up");
+      });
+
       wifi.start();
       server.start();
       snmp.connect();
