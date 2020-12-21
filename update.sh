@@ -8,7 +8,7 @@
 
 #send last reports, testing for the next few days
 tail -100 /var/log/syslog | grep routair > /tmp/last_logs
-curl -X POST -T /tmp/last_logs https://logs-01.loggly.com/bulk/d7f59ce0-0912-4f5d-82f0-004a9a8045e0/tag/syslog;
+curl -X POST -T /tmp/last_logs https://logs-01.loggly.com/bulk/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/syslog;
 rm /tmp/last_logs
 
 
@@ -210,64 +210,46 @@ cp /usr/local/routair/scripts/12d1_1f01 /etc/usb_modeswitch.d/12d1\:1f01
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # CHECK FOR ANY UPDATE
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-if ping -c 10 contact-platform.com >> /dev/null 2>&1; then
-  echo "online, check for updates"
-  cd /usr/local/routair
+cd /usr/local/routair
 
-  # backup the config
-  cp config/snmp.json tmp_config.json
-  # pull the update
+# backup the config
+cp config/snmp.json tmp_config.json
+# pull the update
 
-  echo "reset the local repo at $BRANCH"
-  git checkout .
-  git fetch --all
-  git reset --hard origin/$BRANCH
-  git checkout $BRANCH
+echo "reset the local repo at $BRANCH"
+git checkout .
+git fetch --all
+git reset --hard origin/$BRANCH
+git checkout $BRANCH
 
-  echo "pull the update from $BRANCH"
-  git pull origin $BRANCH
-  # restore the config
-  cp tmp_config.json config/snmp.json
+echo "pull the update from $BRANCH"
+git pull origin $BRANCH
+# restore the config
+cp tmp_config.json config/snmp.json
 
-  sh /usr/local/routair/scripts/repair.sh
+sh /usr/local/routair/scripts/repair.sh
 
-  if [ -f "/home/nonopn/rebuild" ]; then
-    rm -rf /usr/local/routair/node_modules
-    echo "executing:: $NPM install --save $NODE_ENOCEAN"
-    su - nonopn -c "cd /usr/local/routair ; $NPM install --save $NODE_ENOCEAN"
-    echo "executing:: $NPM install"
-    su - nonopn -c "cd /usr/local/routair ; $NPM install"
-    rm -f /home/nonopn/rebuild
-  else
-    echo "no rebuild, skipping install of enocean and standard libs"
-  fi
-
-  # stop services
-  systemctl stop routair.service
-  sleep 5
-  mongo local  --eval "printjson(db.dropDatabase())"
-  mongo blog  --eval "printjson(db.dropDatabase())"
-  service mongodb stop
-  rm -rf /var/lib/mongodb/journal/*
-  service mongodb start
-  systemctl stop mysql.service
-  sleep 5
-  systemctl start mysql.service
-  sleep 5
-  systemctl restart routair.service
+if [ -f "/home/nonopn/rebuild" ]; then
+  rm -rf /usr/local/routair/node_modules
+  echo "executing:: $NPM install --save $NODE_ENOCEAN"
+  su - nonopn -c "cd /usr/local/routair ; $NPM install --save $NODE_ENOCEAN"
+  echo "executing:: $NPM install"
+  su - nonopn -c "cd /usr/local/routair ; $NPM install"
+  rm -f /home/nonopn/rebuild
 else
-  echo "offline, cancel routair update"
-  echo "restart services anyway for now <1.8"
-  systemctl stop routair.service
-  sleep 5
-  mongo local  --eval "printjson(db.dropDatabase())"
-  mongo blog  --eval "printjson(db.dropDatabase())"
-  service mongodb stop
-  rm -rf /var/lib/mongodb/journal/*
-  service mongodb start
-  systemctl stop mysql.service
-  sleep 5
-  systemctl start mysql.service
-  sleep 5
-  systemctl restart routair.service
+  echo "no rebuild, skipping install of enocean and standard libs"
 fi
+
+# stop services
+systemctl stop routair.service
+sleep 5
+mongo local  --eval "printjson(db.dropDatabase())"
+mongo blog  --eval "printjson(db.dropDatabase())"
+service mongodb stop
+rm -rf /var/lib/mongodb/journal/*
+service mongodb start
+systemctl stop mysql.service
+sleep 5
+systemctl start mysql.service
+sleep 5
+systemctl restart routair.service
