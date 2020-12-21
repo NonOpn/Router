@@ -494,7 +494,7 @@ export default class BLE {
 
       this._interval = setInterval(() => this.refreshDevices(), 5000);
       this.refreshDevices();
-    } else if(this._started_advertising) {
+    } else if(state != 'poweredOn' && this._started_advertising) {
       if(!NetworkInfo.instance.isGPRS()) {
         Logger.data({context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "stop"});
       }
