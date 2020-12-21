@@ -61,7 +61,7 @@ class App {
             // make sure the interface is up
             bluetooth.up().then(() => {
                 if (!network_1.default.instance.isGPRS())
-                    index_js_1.Logger.data({ content: "blue", status: "up" });
+                    index_js_1.Logger.data({ context: "ble", status: "up" });
             }).catch(err => {
                 if (!network_1.default.instance.isGPRS())
                     index_js_1.Logger.error(err, "ble_up");

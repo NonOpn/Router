@@ -19,6 +19,7 @@ export default class BLE {
     needRepair(): boolean;
     refreshDevices: () => Promise<void>;
     start(): void;
+    onStateChanged: (state: string) => void;
     startDelayed(): void;
     onFrame(device: AbstractDevice | undefined, frame: any): void;
     _onDeviceSeenCall(): Promise<string>;

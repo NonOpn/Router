@@ -482,6 +482,33 @@ export default class BLE {
     setTimeout(() => this.startDelayed(), 1000);
   }
 
+  onStateChanged = (state: string) => {
+    console.log('on -> stateChange: ' + state);
+
+    if (state == 'poweredOn' && !this._started_advertising) {
+      if(!NetworkInfo.instance.isGPRS()) {
+        Logger.data({context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "start"});
+      }
+      this._started_advertising = true;
+      console.log("starting advertising for", this._services_uuid);
+
+      this._interval = setInterval(() => this.refreshDevices(), 5000);
+      this.refreshDevices();
+    } else if(this._started_advertising) {
+      if(!NetworkInfo.instance.isGPRS()) {
+        Logger.data({context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "stop"});
+      }
+      this._started_advertising = false;
+      console.log("stopping ", state);
+      this._interval && clearInterval(this._interval);
+      stopAdvertising();
+    } else {
+      if(!NetworkInfo.instance.isGPRS()) {
+        Logger.data({context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "nothing"});
+      }
+    }
+  };
+
   startDelayed() {
     if(!isBlenoAvailable) {
       console.log("disabling bluetooth... incompatible...");
@@ -505,33 +532,9 @@ export default class BLE {
       }
     });
 
-    onBlenoEvent('stateChange', (state: string) => {
-      console.log('on -> stateChange: ' + state);
+    setTimeout(() => this.onStateChanged("poweredOn"), 30 * 1000);
 
-      if (state == 'poweredOn' && !this._started_advertising) {
-        if(!NetworkInfo.instance.isGPRS()) {
-          Logger.data({context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "start"});
-        }
-        this._started_advertising = true;
-        console.log("starting advertising for", this._services_uuid);
-
-        this._interval = setInterval(() => this.refreshDevices(), 5000);
-        this.refreshDevices();
-      } else if(this._started_advertising) {
-        if(!NetworkInfo.instance.isGPRS()) {
-          Logger.data({context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "stop"});
-        }
-        this._started_advertising = false;
-        console.log("stopping ", state);
-        this._interval && clearInterval(this._interval);
-        stopAdvertising();
-      } else {
-        if(!NetworkInfo.instance.isGPRS()) {
-          Logger.data({context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "nothing"});
-        }
-      }
-    });
-
+    onBlenoEvent('stateChange', this.onStateChanged);
 
     onBlenoEvent('advertisingStart', (err: any) => {
       console.log('on -> advertisingStart: ' + (err ? 'error ' + err : 'success'));
