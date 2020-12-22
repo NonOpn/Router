@@ -17,6 +17,7 @@ const reporter_js_1 = __importDefault(require("./log/reporter.js"));
 const frame_manager_alert_js_1 = __importDefault(require("./frame_manager_alert.js"));
 const device_1 = __importDefault(require("./ble/device"));
 const network_1 = __importDefault(require("./network"));
+const safeBleno_1 = require("./ble/safeBleno");
 const wifi = wifi_js_1.default.instance;
 class App {
     constructor() {
@@ -60,8 +61,7 @@ class App {
                 .catch(err => !network_1.default.instance.isGPRS() && index_js_1.Logger.error(err, "Error with bluetooth status"));
             // make sure the interface is up
             bluetooth.up().then(() => {
-                if (!network_1.default.instance.isGPRS())
-                    index_js_1.Logger.data({ context: "ble", status: "up" });
+                safeBleno_1.logBLE({ status: "up" });
             }).catch(err => {
                 if (!network_1.default.instance.isGPRS())
                     index_js_1.Logger.error(err, "ble_up");

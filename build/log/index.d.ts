@@ -4,6 +4,5 @@ export declare class _Logger {
     private _post;
     error: (error: any, reason?: string | undefined) => void;
     data: (data: any) => void;
-    identity: (data: any, tags?: string[]) => void;
 }
 export declare const Logger: _Logger;

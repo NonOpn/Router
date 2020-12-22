@@ -59,6 +59,11 @@ class Pool {
             reject(error);
         });
     }
+    log(data) {
+        if (!index_js_2.default.instance.isGPRS()) {
+            index_js_1.Logger.data(Object.assign({ context: "pool" }, data));
+        }
+    }
     manageErrorCrash(table_name, error, reject, callback) {
         console.log("Manage crash... " + (error ? error.code : "error no code"));
         if (!index_js_2.default.instance.isGPRS()) {
@@ -71,9 +76,7 @@ class Pool {
         else if (error && error.code === "HA_ERR_NOT_A_TABLE") {
             console.log("not a table... try repair", { error });
             this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
-            if (!index_js_2.default.instance.isGPRS()) {
-                index_js_1.Logger.data({ repair: table_name, use_frm: true });
-            }
+            this.log({ repair: table_name, use_frm: true });
         }
         else if (error && error.code === "ER_FILE_NOT_FOUND") {
             console.log("crashed on interaction... try repair", { error });
@@ -81,23 +84,17 @@ class Pool {
                 const promise = callback ? callback() : Promise.resolve(true);
                 promise.then(() => reject(error)).catch(() => reject(error));
             });
-            if (!index_js_2.default.instance.isGPRS()) {
-                index_js_1.Logger.data({ repair: table_name });
-            }
+            this.log({ repair: table_name });
         }
         else if (error && error.code === "HA_ERR_CRASHED_ON_REPAIR") {
             console.log("crashed on auto repair... try repair", { error });
             this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
-            if (!index_js_2.default.instance.isGPRS()) {
-                index_js_1.Logger.data({ repair: table_name });
-            }
+            this.log({ repair: table_name });
         }
         else if (error && error.code === "ER_CRASHED_ON_USAGE") {
             console.log("crashed... try repair", { error });
             this.repair("REPAIR TABLE " + table_name, error, reject);
-            if (!index_js_2.default.instance.isGPRS()) {
-                index_js_1.Logger.data({ repair: table_name });
-            }
+            this.log({ repair: table_name });
         }
         else if (error && error.code === "ECONNREFUSED") {
             console.log("trying starting...", { error });

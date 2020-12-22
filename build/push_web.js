@@ -63,13 +63,11 @@ class PushWEB extends events_1.EventEmitter {
         this.trySendOk = () => __awaiter(this, void 0, void 0, function* () {
             try {
                 console.log("try send to send frames");
-                if (!index_1.default.instance.isGPRS())
-                    log_1.Logger.data({ context: "push_web", infos: "entering" });
+                this.log({ infos: "entering" });
                 //TODO for GPRS, when getting unsent, only get the last non alert + every alerts in the steps
                 const frames = yield frame_model_1.default.instance.getUnsent(120);
                 console.log("frames ? " + frames);
-                if (!index_1.default.instance.isGPRS())
-                    log_1.Logger.data({ context: "push_web", infos: "obtained", size: frames.length });
+                this.log({ infos: "obtained", size: frames.length });
                 if (null == frames || frames.length == 0) {
                     console.log("finished");
                 }
@@ -83,28 +81,26 @@ class PushWEB extends events_1.EventEmitter {
                     var first_id = frames.length > 0 ? frames[0].id : 0;
                     const size = to_frames.length;
                     const supportFallback = !!(config_1.default.identity || "").toLocaleLowerCase().startsWith("0xfaa4205");
-                    if (!index_1.default.instance.isGPRS())
-                        log_1.Logger.data({ context: "push_web", infos: "push done", size: to_frames.length, first_id });
+                    this.log({ infos: "push done", size: to_frames.length, first_id });
                     // we need support due to a device issue impacting the 0xfaa4205 rout@ir
                     if (supportFallback)
                         yield this.setSent(to_frames);
                     const result = yield _post(json);
-                    if (!index_1.default.instance.isGPRS())
-                        log_1.Logger.data({ context: "push_web", infos: "push", result, size, first_id });
+                    this.log({ infos: "push", result, size, first_id });
                     //even for the above mentionned device, not an issue : setSent changes a flag
                     this.setSent(to_frames);
                     this._posting = false;
                 }
             }
             catch (e) {
-                log_1.Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated, error: e });
+                this.log({ posting: this._posting, is_activated: this.is_activated, error: e });
                 log_1.Logger.error(e, "in push_web");
                 console.log("frames error... ");
             }
         });
         this.setSent = (frames) => __awaiter(this, void 0, void 0, function* () {
             var j = 0;
-            log_1.Logger.data({ context: "push_web", sent: (frames || []).length });
+            this.log({ sent: (frames || []).length });
             while (j < frames.length) {
                 const frame = frames[j];
                 yield frame_model_1.default.instance.setSent(frame.id || 0, true);
@@ -142,6 +138,11 @@ class PushWEB extends events_1.EventEmitter {
         //this.is_activated = push_web_config.is_activated;
         this._posting = false;
     }
+    log(data) {
+        if (!index_1.default.instance.isGPRS()) {
+            log_1.Logger.data(Object.assign({ context: "push" }, data));
+        }
+    }
     trySend() {
         if (index_1.default.instance.isGPRS() && this._number_to_skip > 0) {
             this._number_to_skip--;
@@ -154,11 +155,11 @@ class PushWEB extends events_1.EventEmitter {
             this._protection_network++;
             //if we have a timeout of 30min which did not clear the network stack... reset !
             if (this._protection_network >= 3) {
-                log_1.Logger.data({ context: "push_web", reset_posting: true, posting: this._posting, is_activated: this.is_activated });
+                this.log({ reset_posting: true, posting: this._posting, is_activated: this.is_activated });
                 this._protection_network = 0;
                 this._posting = false;
             }
-            log_1.Logger.data({ context: "push_web", posting: this._posting, is_activated: this.is_activated });
+            this.log({ posting: this._posting, is_activated: this.is_activated });
             return;
         }
         //send data over the network

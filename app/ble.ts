@@ -8,7 +8,7 @@ import DeviceManagement, { TYPE } from "./ble/device";
 import AbstractDevice from "./snmp/abstract";
 import NetworkInfo from "./network";
 import { Diskspace, SystemInfo } from "./system";
-import { Characteristic, BLECallback, BLEWriteCallback, PrimaryService, isBlenoAvailable, startAdvertising, setServices, onBlenoEvent, stopAdvertising, mtu, needBluetoothRepair } from "./ble/safeBleno";
+import { Characteristic, BLECallback, BLEWriteCallback, PrimaryService, isBlenoAvailable, startAdvertising, setServices, onBlenoEvent, stopAdvertising, mtu, needBluetoothRepair, logBLE } from "./ble/safeBleno";
 
 const device_management = DeviceManagement.instance;
 const wifi = Wifi.instance;
@@ -472,9 +472,7 @@ export default class BLE {
     if(!isBlenoAvailable) {
       console.log("disabling bluetooth... incompatible...");
 
-      if(!NetworkInfo.instance.isGPRS()) {
-        Logger.data({context: "ble", status: "incompatible"});
-      }
+      logBLE({status: "incompatible"});
 
       return;
     }
@@ -486,26 +484,20 @@ export default class BLE {
     console.log('on -> stateChange: ' + state);
 
     if (state == 'poweredOn' && !this._started_advertising) {
-      if(!NetworkInfo.instance.isGPRS()) {
-        Logger.data({context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "start"});
-      }
+      logBLE({status: "stateChange", state, started: this._started_advertising, todo: "start"});
       this._started_advertising = true;
       console.log("starting advertising for", this._services_uuid);
 
       this._interval = setInterval(() => this.refreshDevices(), 5000);
       this.refreshDevices();
     } else if(state != 'poweredOn' && this._started_advertising) {
-      if(!NetworkInfo.instance.isGPRS()) {
-        Logger.data({context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "stop"});
-      }
+      logBLE({status: "stateChange", state, started: this._started_advertising, todo: "stop"});
       this._started_advertising = false;
       console.log("stopping ", state);
       this._interval && clearInterval(this._interval);
       stopAdvertising();
     } else {
-      if(!NetworkInfo.instance.isGPRS()) {
-        Logger.data({context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "nothing"});
-      }
+      logBLE({status: "stateChange", state, started: this._started_advertising, todo: "nothing"});
     }
   };
 
@@ -513,11 +505,11 @@ export default class BLE {
     if(!isBlenoAvailable) {
       console.log("disabling bluetooth... incompatible...");
 
-      if(!NetworkInfo.instance.isGPRS()) {
-        Logger.data({context: "ble", status: "incompatible"});
-      }
+      logBLE({status: "incompatible"});
       return;
     }
+
+    logBLE({status: "status", started: this._started});
 
     if(this._started) return;
 
@@ -527,9 +519,7 @@ export default class BLE {
     onBlenoEvent("mtuChange", (mtuValue: number) => {
       const global_mtu = mtuValue || 23;
       console.log("new mtu value", global_mtu);
-      if(!NetworkInfo.instance.isGPRS()) {
-        Logger.data({context: "ble", status: "mtuChange", mtuValue});
-      }
+      logBLE({status: "mtuChange", mtuValue});
     });
 
     setTimeout(() => this.onStateChanged("poweredOn"), 30 * 1000);
@@ -539,13 +529,14 @@ export default class BLE {
     onBlenoEvent('advertisingStart', (err: any) => {
       console.log('on -> advertisingStart: ' + (err ? 'error ' + err : 'success'));
 
+      logBLE({status: "advertisingStart"});
       if (!err && this._started_advertising) {
         this._started_advertising_ok = true;
         setServices( this._services, (err: any|undefined) => {
 
           if(!NetworkInfo.instance.isGPRS()) {
             if(err) Logger.error(err, "advertisingState");
-            else Logger.data({context: "ble", status: "advertising", success: true});
+            else logBLE({status: "advertising", success: true});
           }
           console.log('setServices: '  + (err ? 'error ' + err : 'success'));
         });

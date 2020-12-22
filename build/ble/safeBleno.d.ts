@@ -1,4 +1,6 @@
 /// <reference types="node" />
+declare function log(data: any): void;
+export declare const logBLE: typeof log;
 export interface SetServiceCallback {
     (err: any): any;
 }
@@ -27,3 +29,4 @@ export declare const Characteristic: GenericInterface<SafeCharacteristics>;
 export declare const Descriptor: any;
 export declare const isBlenoAvailable: boolean;
 export declare const needBluetoothRepair: boolean;
+export {};

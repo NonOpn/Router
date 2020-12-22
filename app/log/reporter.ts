@@ -21,7 +21,7 @@ export default class Reporter {
       .then(space => {
         return FrameModel.instance.getCount()
         .then(count => {
-          Logger.identity({ space, database: { count }}, ["space"]);
+          Logger.data({ context: "space", space, database: { count } });
         });
       })
       .catch(err => console.log(err));

@@ -28,12 +28,7 @@ class _Logger {
             reason && (output.reason = reason);
             this._post("error", output, 5);
         };
-        this.data = (data) => this._post("data", data);
-        this.identity = (data, tags = []) => {
-            identity && data && (data.identity = identity);
-            tags.push(identity); //set at least the identity in a tag
-            this._post(tags.join(","), data);
-        };
+        this.data = (data) => this._post("report", data);
     }
     post(hostname, port, path, headers, json) {
         return new Promise((resolve, reject) => {

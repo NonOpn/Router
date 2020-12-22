@@ -1,6 +1,12 @@
 import { Logger } from "../log";
 import NetworkInfo from "../network";
 
+function log(data: any) {
+    if(!NetworkInfo.instance.isGPRS()) {
+        Logger.data({context: "ble", ...data});
+    }
+}
+
 var bleno: any = null;
 var needRepair: boolean = false;
 try {
@@ -10,11 +16,15 @@ try {
   bleno = null;
   !NetworkInfo.instance.isGPRS() && Logger.error(e, "Erreur while importing ble");
 
+  log({bleno: "error"});
+
   if(e && e.toString) {
       const message = e.toString();
       needRepair = message && message.indexOf("NODE_MODULE_VERSION 48. This version of Node.js requires NODE_MODULE_VERSION 51");
   }
 }
+
+export const logBLE = log;
 
 
 try {
@@ -71,7 +81,7 @@ export const stopAdvertising = () => {
 export const setServices = (services: SafePrimaryService[], callback: SetServiceCallback) => {
     if (bleno) {
         bleno.setServices(services, callback);
-        if(!NetworkInfo.instance.isGPRS()) Logger.data({context: "ble", services: services.length});
+        logBLE({ services: services.length});
     } else {
         console.log("setServices failed, no bleno")
     }

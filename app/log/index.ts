@@ -100,13 +100,7 @@ export class _Logger {
         this._post("error", output, 5);
     }
 
-    data = (data: any) => this._post("data", data);
-    identity = (data: any, tags:string[] = []) => {
-        identity && data && (data.identity = identity);
-
-        tags.push(identity); //set at least the identity in a tag
-        this._post(tags.join(","), data);
-    }
+    data = (data: any) => this._post("report", data);
 }
 
 export const Logger = new _Logger;

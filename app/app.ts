@@ -13,6 +13,7 @@ import Reporter from "./log/reporter.js";
 import FrameManagerAlert from "./frame_manager_alert.js";
 import DeviceManagement from './ble/device';
 import NetworkInfo from './network';
+import { logBLE } from './ble/safeBleno';
 
 const wifi = Wifi.instance;
 
@@ -64,7 +65,7 @@ class App {
 
       // make sure the interface is up
       bluetooth.up().then(() => {
-        if(!NetworkInfo.instance.isGPRS()) Logger.data({context: "ble", status: "up"});
+        logBLE({status: "up"});
       }).catch(err => {
         if(!NetworkInfo.instance.isGPRS()) Logger.error(err, "ble_up");
       });

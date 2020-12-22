@@ -5,6 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const log_1 = require("../log");
 const network_1 = __importDefault(require("../network"));
+function log(data) {
+    if (!network_1.default.instance.isGPRS()) {
+        log_1.Logger.data(Object.assign({ context: "ble" }, data));
+    }
+}
 var bleno = null;
 var needRepair = false;
 try {
@@ -14,11 +19,13 @@ catch (e) {
     console.log(e);
     bleno = null;
     !network_1.default.instance.isGPRS() && log_1.Logger.error(e, "Erreur while importing ble");
+    log({ bleno: "error" });
     if (e && e.toString) {
         const message = e.toString();
         needRepair = message && message.indexOf("NODE_MODULE_VERSION 48. This version of Node.js requires NODE_MODULE_VERSION 51");
     }
 }
+exports.logBLE = log;
 try {
     if (!bleno) {
         needRepair = true;
@@ -57,8 +64,7 @@ exports.stopAdvertising = () => {
 exports.setServices = (services, callback) => {
     if (bleno) {
         bleno.setServices(services, callback);
-        if (!network_1.default.instance.isGPRS())
-            log_1.Logger.data({ context: "ble", services: services.length });
+        exports.logBLE({ services: services.length });
     }
     else {
         console.log("setServices failed, no bleno");

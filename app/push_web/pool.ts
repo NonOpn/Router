@@ -70,6 +70,12 @@ export default class Pool {
     })
   }
 
+  log(data: any) {
+    if(!NetworkInfo.instance.isGPRS()) {
+      Logger.data({context: "pool", ...data});
+    }
+  }
+
   manageErrorCrash(table_name: string, error: any, reject: Reject, callback?: () => Promise<any>): void {
     console.log("Manage crash... " + (error ? error.code : "error no code"));
     if(!NetworkInfo.instance.isGPRS()) {
@@ -82,9 +88,7 @@ export default class Pool {
     } else if(error && error.code === "HA_ERR_NOT_A_TABLE") {
       console.log("not a table... try repair", {error});
       this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
-      if(!NetworkInfo.instance.isGPRS()) {
-        Logger.data({repair: table_name, use_frm: true});
-      }
+      this.log({repair: table_name, use_frm: true});
     } else if(error && error.code === "ER_FILE_NOT_FOUND") {
       console.log("crashed on interaction... try repair", {error});
       this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, (error) => {
@@ -92,21 +96,15 @@ export default class Pool {
 
         promise.then(() => reject(error)).catch(() => reject(error));
       });
-      if(!NetworkInfo.instance.isGPRS()) {
-        Logger.data({repair: table_name});
-      }
+      this.log({repair: table_name});
     } else if(error && error.code === "HA_ERR_CRASHED_ON_REPAIR") {
       console.log("crashed on auto repair... try repair", {error});
       this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
-      if(!NetworkInfo.instance.isGPRS()) {
-        Logger.data({repair: table_name});
-      }
+      this.log({repair: table_name});
     } else if(error && error.code === "ER_CRASHED_ON_USAGE") {
       console.log("crashed... try repair", {error});
       this.repair("REPAIR TABLE " + table_name, error, reject);
-      if(!NetworkInfo.instance.isGPRS()) {
-        Logger.data({repair: table_name});
-      }
+      this.log({repair: table_name});
     } else if(error && error.code === "ECONNREFUSED") {
       console.log("trying starting...", {error});
       //send status to see what happens

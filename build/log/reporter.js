@@ -22,7 +22,7 @@ class Reporter {
             .then(space => {
             return frame_model_1.default.instance.getCount()
                 .then(count => {
-                _1.Logger.identity({ space, database: { count } }, ["space"]);
+                _1.Logger.data({ context: "space", space, database: { count } });
             });
         })
             .catch(err => console.log(err));

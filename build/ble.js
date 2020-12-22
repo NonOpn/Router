@@ -326,27 +326,21 @@ class BLE {
         this.onStateChanged = (state) => {
             console.log('on -> stateChange: ' + state);
             if (state == 'poweredOn' && !this._started_advertising) {
-                if (!network_1.default.instance.isGPRS()) {
-                    log_1.Logger.data({ context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "start" });
-                }
+                safeBleno_1.logBLE({ status: "stateChange", state, started: this._started_advertising, todo: "start" });
                 this._started_advertising = true;
                 console.log("starting advertising for", this._services_uuid);
                 this._interval = setInterval(() => this.refreshDevices(), 5000);
                 this.refreshDevices();
             }
             else if (state != 'poweredOn' && this._started_advertising) {
-                if (!network_1.default.instance.isGPRS()) {
-                    log_1.Logger.data({ context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "stop" });
-                }
+                safeBleno_1.logBLE({ status: "stateChange", state, started: this._started_advertising, todo: "stop" });
                 this._started_advertising = false;
                 console.log("stopping ", state);
                 this._interval && clearInterval(this._interval);
                 safeBleno_1.stopAdvertising();
             }
             else {
-                if (!network_1.default.instance.isGPRS()) {
-                    log_1.Logger.data({ context: "ble", status: "stateChange", state, started: this._started_advertising, todo: "nothing" });
-                }
+                safeBleno_1.logBLE({ status: "stateChange", state, started: this._started_advertising, todo: "nothing" });
             }
         };
         if (!safeBleno_1.isBlenoAvailable) {
@@ -401,9 +395,7 @@ class BLE {
     start() {
         if (!safeBleno_1.isBlenoAvailable) {
             console.log("disabling bluetooth... incompatible...");
-            if (!network_1.default.instance.isGPRS()) {
-                log_1.Logger.data({ context: "ble", status: "incompatible" });
-            }
+            safeBleno_1.logBLE({ status: "incompatible" });
             return;
         }
         setTimeout(() => this.startDelayed(), 1000);
@@ -411,11 +403,10 @@ class BLE {
     startDelayed() {
         if (!safeBleno_1.isBlenoAvailable) {
             console.log("disabling bluetooth... incompatible...");
-            if (!network_1.default.instance.isGPRS()) {
-                log_1.Logger.data({ context: "ble", status: "incompatible" });
-            }
+            safeBleno_1.logBLE({ status: "incompatible" });
             return;
         }
+        safeBleno_1.logBLE({ status: "status", started: this._started });
         if (this._started)
             return;
         frame_model_compress_1.default.instance.start();
@@ -423,14 +414,13 @@ class BLE {
         safeBleno_1.onBlenoEvent("mtuChange", (mtuValue) => {
             const global_mtu = mtuValue || 23;
             console.log("new mtu value", global_mtu);
-            if (!network_1.default.instance.isGPRS()) {
-                log_1.Logger.data({ context: "ble", status: "mtuChange", mtuValue });
-            }
+            safeBleno_1.logBLE({ status: "mtuChange", mtuValue });
         });
         setTimeout(() => this.onStateChanged("poweredOn"), 30 * 1000);
         safeBleno_1.onBlenoEvent('stateChange', this.onStateChanged);
         safeBleno_1.onBlenoEvent('advertisingStart', (err) => {
             console.log('on -> advertisingStart: ' + (err ? 'error ' + err : 'success'));
+            safeBleno_1.logBLE({ status: "advertisingStart" });
             if (!err && this._started_advertising) {
                 this._started_advertising_ok = true;
                 safeBleno_1.setServices(this._services, (err) => {
@@ -438,7 +428,7 @@ class BLE {
                         if (err)
                             log_1.Logger.error(err, "advertisingState");
                         else
-                            log_1.Logger.data({ context: "ble", status: "advertising", success: true });
+                            safeBleno_1.logBLE({ status: "advertising", success: true });
                     }
                     console.log('setServices: ' + (err ? 'error ' + err : 'success'));
                 });
