@@ -10,6 +10,7 @@ export default class Pool {
     trySendMysqlStatus(): Promise<boolean>;
     query(query: string, resolve_if_fail?: boolean): Promise<any[]>;
     queryParameters(query: string, parameters: any[], resolve_if_fail?: boolean): Promise<any[]>;
+    forceWideRepair: () => Promise<void>;
     repair(request: string, error: any, reject: Reject): void;
     log(data: any): void;
     manageErrorCrash(table_name: string, error: any, reject: Reject, callback?: () => Promise<any>): void;

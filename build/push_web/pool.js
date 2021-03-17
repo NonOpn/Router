@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -8,8 +17,24 @@ const mysql_js_1 = __importDefault(require("../config/mysql.js"));
 const index_js_1 = require("../log/index.js");
 const systemctl_1 = require("../systemctl");
 const index_js_2 = __importDefault(require("../network/index.js"));
+const Touch_js_1 = require("../system/Touch.js");
 class Pool {
     constructor() {
+        this.forceWideRepair = () => __awaiter(this, void 0, void 0, function* () {
+            console.log("repairing due to invalid file");
+            try {
+                yield new Touch_js_1.Touch().exec("/home/nonopn/repair");
+            }
+            catch (e) {
+                try {
+                    index_js_1.Logger.error(e, "error in forceWideRepair");
+                    console.log(e);
+                }
+                catch (error) {
+                    console.log("error while sending the error", e);
+                }
+            }
+        });
         this.can_post_error = true;
         this.sent_mysql_status = 0;
         this.mysql = new systemctl_1.MySQL();
@@ -72,6 +97,14 @@ class Pool {
         if (table_name && table_name.toLowerCase() == "device" && error && error.errno == 144) {
             //safe to assume resetting the devices here :thumbsup:
             this.repair("TRUNCATE TABLE Device", error, reject);
+        }
+        else if (error && error.code === "EE_FILENOTFOUND") {
+            this.forceWideRepair().then(() => {
+                this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, (error) => {
+                    const promise = callback ? callback() : Promise.resolve(true);
+                    promise.then(() => reject(error)).catch(() => reject(error));
+                });
+            }).catch(err => reject(err)); //never reject tho
         }
         else if (error && error.code === "HA_ERR_NOT_A_TABLE") {
             console.log("not a table... try repair", { error });

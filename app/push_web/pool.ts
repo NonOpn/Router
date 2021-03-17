@@ -5,6 +5,7 @@ import { Logger } from "../log/index.js";
 import { MySQL, Cat, MysqlAdmin } from "../systemctl";
 import { networkInterfaces } from "os";
 import NetworkInfo from "../network/index.js";
+import { Touch } from "../system/Touch.js";
 
 export default class Pool {
   static instance: Pool = new Pool();
@@ -63,6 +64,20 @@ export default class Pool {
     });
   }
 
+  forceWideRepair = async () => {
+    console.log("repairing due to invalid file");
+    try {
+      await new Touch().exec("/home/nonopn/repair");
+    } catch(e) {
+      try {
+        Logger.error(e, "error in forceWideRepair");
+        console.log(e);
+      } catch(error) {
+        console.log("error while sending the error", e);
+      }
+    }
+  }
+
   repair(request: string, error: any, reject: Reject) {
     this.pool.query(request, (err: any, results: any[], fields: any[]) => {
       console.log("repairing...", {err});
@@ -85,6 +100,14 @@ export default class Pool {
     if(table_name && table_name.toLowerCase() == "device" && error && error.errno == 144) {
       //safe to assume resetting the devices here :thumbsup:
       this.repair("TRUNCATE TABLE Device", error, reject);
+    } else if(error && error.code === "EE_FILENOTFOUND") {
+      this.forceWideRepair().then(() => {
+        this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, (error) => {
+          const promise = callback ? callback() : Promise.resolve(true);
+  
+          promise.then(() => reject(error)).catch(() => reject(error));
+        });
+      }).catch(err => reject(err)); //never reject tho
     } else if(error && error.code === "HA_ERR_NOT_A_TABLE") {
       console.log("not a table... try repair", {error});
       this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
