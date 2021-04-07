@@ -114,11 +114,13 @@ export default class Pool {
       this.log({repair: table_name, use_frm: true});
     } else if(error && error.code === "ER_FILE_NOT_FOUND") {
       console.log("crashed on interaction... try repair", {error});
-      this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, (error) => {
-        const promise = callback ? callback() : Promise.resolve(true);
-
-        promise.then(() => reject(error)).catch(() => reject(error));
-      });
+      this.forceWideRepair().then(() => {
+        this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, (error) => {
+          const promise = callback ? callback() : Promise.resolve(true);
+  
+          promise.then(() => reject(error)).catch(() => reject(error));
+        });
+      }).catch(err => reject(err)); //never reject tho
       this.log({repair: table_name});
     } else if(error && error.code === "HA_ERR_CRASHED_ON_REPAIR") {
       console.log("crashed on auto repair... try repair", {error});
