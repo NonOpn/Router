@@ -13,7 +13,7 @@ raspi-config nonint do_i2c 0
 modprobe -r i2c_bcm2708
 modprobe i2c_bcm2708 baudrate=100000
 
-if [ -f "/opt/python/3.6.5/lib/python3.6/site-packages/sixfab_power_python_api-0.2.2.dist-info"]; then
+if [ -f "/opt/python/3.6.5/lib/python3.6/site-packages/sixfab_power_python_api-0.2.2.dist-info" ]; then
   echo "sixfab-power-python-api already exists, skipping"
 else
   (sudo /opt/python/3.6.5/bin/pip3.6 install sixfab-power-python-api) || echo "can't install for now"
