@@ -212,6 +212,9 @@ cp /usr/local/routair/scripts/12d1_1f01 /etc/usb_modeswitch.d/12d1\:1f01
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 cd /usr/local/routair
 
+echo "manage python script..."
+bash ./scripts/python_configure.sh
+
 # backup the config
 cp config/snmp.json tmp_config.json
 # pull the update
