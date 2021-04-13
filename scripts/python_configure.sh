@@ -1,5 +1,8 @@
 BOOT=`cat /boot/config.txt`
-if ! cat /boot/config.txt | grep -q "^dtparam=i2c_arm=on"; then
+
+let found=1
+(cat /boot/config.txt | grep "^dtparam=i2c_arm=on") || (let found=0)
+if [ $found -eq 0 ]; then
   echo "needs update"
   echo "dtparam=i2c_arm=on" >> /boot/config.txt
   echo "dtparam=i2c_baudrate=10000" >> /boot/config.txt
