@@ -225,6 +225,7 @@ bash ./scripts/python_configure.sh
 
 if [ -f "/etc/systemd/system/routair_diagnostic.service" ]; then
   echo "diagnostic service exists"
+  systemctl restart routair_diagnostic.service
 else
   cp systemd/routair_diagnostic.service /etc/systemd/system/routair_diagnostic.service
   systemctl daemon-reload
