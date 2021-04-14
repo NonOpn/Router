@@ -9,7 +9,7 @@ def empty():
 def check_loop(fn):
   print("call starting")
   i = 0
-  while i < 10:
+  while i < 3:
     i += 1
     try:
       result = fn(100)
