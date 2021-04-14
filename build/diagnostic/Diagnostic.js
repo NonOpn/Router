@@ -29,6 +29,10 @@ class Diagnostic {
         setInterval(() => this.onManage().catch(err => console.warn(err)), 60 * 60 * 1000);
     }
     send(diagnostic) {
+        console.warn("sending", {
+            routair: config_1.default.identity,
+            diagnostic
+        });
         return new Promise((resolve, reject) => {
             request_1.default.post({
                 url: "https://api.contact-platform.com/v3/routair/data",
@@ -51,7 +55,14 @@ class Diagnostic {
                         reject(e);
                     }
                     else {
-                        resolve(body);
+                        try {
+                            if (typeof body == "string")
+                                body = JSON.parse(body);
+                            resolve(body);
+                        }
+                        catch (e) {
+                            reject(e);
+                        }
                     }
                 });
             }

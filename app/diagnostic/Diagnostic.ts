@@ -17,6 +17,10 @@ class Diagnostic {
   }
 
   send(diagnostic: any): Promise<void> {
+    console.warn("sending", {
+      routair: config.identity,
+      diagnostic
+    });
     return new Promise<void>((resolve, reject) => {
       request.post({
         url: "https://api.contact-platform.com/v3/routair/data",
@@ -33,21 +37,25 @@ class Diagnostic {
 
   fetch(): Promise<any> {
     const url = "http://127.0.0.1:5000/report"
-      //in gprs mode, simply sends the values
-      return new Promise((resolve, reject) => {
-        try {
-          request.get({ url }, (e: any, response: any, body: any) => {
-            if(e) {
-              reject(e);
-            } else {
+    //in gprs mode, simply sends the values
+    return new Promise((resolve, reject) => {
+      try {
+        request.get({ url }, (e: any, response: any, body: any) => {
+          if(e) {
+            reject(e);
+          } else {
+            try {
+              if(typeof body == "string") body = JSON.parse(body);
               resolve(body);
+            } catch(e) {
+              reject(e);
             }
-          });
-        } catch(err) {
-          reject(err);
-        }
-      });
-    }
+          }
+        });
+      } catch(err) {
+        reject(err);
+      }
+    });
   }
 }
 
