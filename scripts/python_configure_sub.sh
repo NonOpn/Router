@@ -1,5 +1,7 @@
 if [ -f "/opt/python/3.6.5/bin/pip3.6" ]; then
   echo "skipping, pip3.6 exists, therefore python3.6 exists"
+  rm -rf /tmp/Python-3.6.5
+  rm -rf /tmp/Python-3.6.5.tar.xz
   exit 0
 fi
 
