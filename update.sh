@@ -218,6 +218,7 @@ cd /usr/local/routair
 
 echo "manage python script..."
 bash ./scripts/python_configure.sh
+cd /usr/local/routair
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # UPDATE SERVICE IF REQUIRED
