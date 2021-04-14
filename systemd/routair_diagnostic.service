@@ -1,0 +1,16 @@
+[Unit]
+Description=Routair Diagnostic Manager
+After=syslog.target network.target nss-lookup.target
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/local/routair/data
+ExecStart=/opt/python/3.6.5/bin/python3.6 wrapper.py
+Restart=always
+RestartSec=5
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=routair_diagnostic
+
+[Install]
+WantedBy=default.target

@@ -22,6 +22,12 @@ else
   (sudo /opt/python/3.6.5/bin/pip3.6 install sixfab-power-python-api) || echo "can't install for now"
 fi
 
+if [ -f "/opt/python/3.6.5/lib/python3.6/site-packages/flask" ]; then
+  echo "flask already exists, skipping"
+else
+  (sudo /opt/python/3.6.5/bin/pip3.6 install flask) || echo "can't install for now"
+fi
+
 if [ -f "/opt/python/3.6.5/bin/pip3.6" ]; then
   echo "skipping, pip3.6 exists, therefore python3.6 exists"
   exit 0
@@ -46,4 +52,10 @@ if [ -f "/opt/python/3.6.5/lib/python3.6/site-packages/sixfab_power_python_api-0
   echo "sixfab-power-python-api already exists, skipping"
 else
   (sudo /opt/python/3.6.5/bin/pip3.6 install sixfab-power-python-api) || echo "can't install for now"
+fi
+
+if [ -f "/opt/python/3.6.5/lib/python3.6/site-packages/flask" ]; then
+  echo "flask already exists, skipping"
+else
+  (sudo /opt/python/3.6.5/bin/pip3.6 install flask) || echo "can't install for now"
 fi
