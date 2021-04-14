@@ -21,7 +21,7 @@ modprobe i2c_bcm2708 baudrate=100000
 
 export PATH=/opt/python/3.6.5/bin:$PATH
 
-if [ -f "/opt/python/3.6.5/lib/python3.6/site-packages/sixfab_power_python_api-0.2.2-py3.6.egg"]; then
+if [ -f "/opt/python/3.6.5/lib/python3.6/site-packages/sixfab_power_python_api-0.2.2-py3.6.egg" ]; then
   echo "sixfab-power-python-api already exists, skipping"
 else
   cd /tmp
