@@ -79,7 +79,7 @@ def get_tasks():
       "power": get_input_power(api)
     },
     "system": {
-      "temp": get_system_temp(api),
+      #"temp": get_system_temp(api),
       "voltage": get_system_voltage(api),
       "current": get_system_current(api),
       "power": get_system_power(api)
