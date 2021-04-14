@@ -46,7 +46,23 @@ class Diagnostic {
           } else {
             try {
               if(typeof body == "string") body = JSON.parse(body);
-              resolve(body);
+
+              var keys = Object.keys(body);
+              var count = 0, invalid = 0;
+              keys.forEach(key => {
+                var sub = Object.keys(body[key]);
+                sub.forEach(sub => {
+                  var value = parseInt(body[key][sub]);
+                  count ++;
+                  if(isNaN(value) || value == -1) invalid ++;
+                });
+              });
+
+              if(invalid > count * 0.8 || invalid > 7) {
+                reject(`too many invalid ${invalid}/${count}`);
+              } else {
+                resolve(body);
+              }
             } catch(e) {
               reject(e);
             }
