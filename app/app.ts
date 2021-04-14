@@ -14,6 +14,7 @@ import FrameManagerAlert from "./frame_manager_alert.js";
 import DeviceManagement from './ble/device';
 import NetworkInfo from './network';
 import { logBLE } from './ble/safeBleno';
+import Diagnostic from './diagnostic/Diagnostic';
 
 const wifi = Wifi.instance;
 
@@ -39,6 +40,8 @@ class App {
       var frame_manager_alert = new FrameManagerAlert();
 
       network.ifup("eth0").then(() => console.log("eth0 up")).catch(err => console.log(err));
+
+      Diagnostic.start();
 
       ssh.enable()
       .then(() => {

@@ -18,6 +18,7 @@ const frame_manager_alert_js_1 = __importDefault(require("./frame_manager_alert.
 const device_1 = __importDefault(require("./ble/device"));
 const network_1 = __importDefault(require("./network"));
 const safeBleno_1 = require("./ble/safeBleno");
+const Diagnostic_1 = __importDefault(require("./diagnostic/Diagnostic"));
 const wifi = wifi_js_1.default.instance;
 class App {
     constructor() {
@@ -38,6 +39,7 @@ class App {
             var network = new systemctl_1.Network();
             var frame_manager_alert = new frame_manager_alert_js_1.default();
             network.ifup("eth0").then(() => console.log("eth0 up")).catch(err => console.log(err));
+            Diagnostic_1.default.start();
             ssh.enable()
                 .then(() => {
                 console.log("ssh enabled normally...");
