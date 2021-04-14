@@ -2,8 +2,6 @@ from power_api import SixfabPower
 from flask import Flask, jsonify
 import time
 
-api = SixfabPower()
-
 def empty():
   time.sleep(1)
   return
@@ -20,82 +18,83 @@ def check_loop(fn):
       empty()
   return -1
 
-def get_input_temp():
+def get_input_temp(api):
   return check_loop(lambda time: api.get_input_temp(time))
 
-def get_input_voltage():
+def get_input_voltage(api):
   return check_loop(lambda time: api.get_input_voltage(time))
 
-def get_input_current():
+def get_input_current(api):
   return check_loop(lambda time: api.get_input_current(time))
 
-def get_input_power():
+def get_input_power(api):
   return check_loop(lambda time: api.get_input_power(time))
 
-def get_system_temp():
+def get_system_temp(api):
   return check_loop(lambda time: api.get_system_temp(time))
 
-def get_system_voltage():
+def get_system_voltage(api):
   return check_loop(lambda time: api.get_system_voltage(time))
 
-def get_system_current():
+def get_system_current(api):
   return check_loop(lambda time: api.get_system_current(time))
 
-def get_system_power():
+def get_system_power(api):
   return check_loop(lambda time: api.get_system_power(time))
 
-def get_battery_temp():
+def get_battery_temp(api):
   return check_loop(lambda time: api.get_battery_temp(time))
 
-def get_battery_voltage():
+def get_battery_voltage(api):
   return check_loop(lambda time: api.get_battery_voltage(time))
 
-def get_battery_current():
+def get_battery_current(api):
   return check_loop(lambda time: api.get_battery_current(time))
 
-def get_battery_power():
+def get_battery_power(api):
   return check_loop(lambda time: api.get_battery_power(time))
 
-def get_battery_level():
+def get_battery_level(api):
   return check_loop(lambda time: api.get_battery_level(time))
 
-def get_battery_health():
+def get_battery_health(api):
   return check_loop(lambda time: api.get_battery_health(time))
 
-def get_fan_health():
+def get_fan_health(api):
   return check_loop(lambda time: api.get_fan_health(time))
 
-def get_fan_speed():
+def get_fan_speed(api):
   return check_loop(lambda time: api.get_fan_speed(time))
 
 app = Flask(__name__)
 
 @app.route('/report', methods=['GET'])
 def get_tasks():
+  api = SixfabPower()
   return jsonify({
     "input": {
-      "temp": get_input_temp(),
-      "voltage": get_input_voltage(),
-      "current": get_input_current(),
-      "power": get_input_power()
+      "temp": get_input_temp(api),
+      "voltage": get_input_voltage(api),
+      "current": get_input_current(api),
+      "power": get_input_power(api)
     },
     "system": {
-      "temp": get_system_temp(),
-      "voltage": get_system_voltage(),
-      "current": get_system_current(),
-      "power": get_system_power()
+      "temp": get_system_temp(api),
+      "voltage": get_system_voltage(api),
+      "current": get_system_current(api),
+      "power": get_system_power(api)
     },
     "battery": {
-      "temp": get_battery_temp(),
-      "voltage": get_battery_voltage(),
-      "current": get_battery_current(),
-      "power": get_battery_power(),
-      "level": get_battery_level(),
-      "health": get_battery_health()
+      "temp": get_battery_temp(api),
+      "voltage": get_battery_voltage(api),
+      "current": get_battery_current(api),
+      "power": get_battery_power(api),
+      "level": get_battery_level(api),
+      "health": get_battery_health(api)
     },
     "fan": {
-        'health': get_fan_health(),
-        'speed': get_fan_speed()
+        'health': get_fan_health(api),
+        'speed': get_fan_speed(api)
     }
   })
 
