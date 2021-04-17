@@ -224,16 +224,6 @@ cd /usr/local/routair
 # UPDATE SERVICE IF REQUIRED
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-if [ -f "/etc/systemd/system/routair_diagnostic.service" ]; then
-  echo "diagnostic service exists"
-  systemctl restart routair_diagnostic.service
-else
-  cp systemd/routair_diagnostic.service /etc/systemd/system/routair_diagnostic.service
-  systemctl daemon-reload
-  systemctl enable routair_diagnostic.service
-  systemctl start routair_diagnostic.service
-fi
-
 # backup the config
 cp config/snmp.json tmp_config.json
 # pull the update
@@ -248,6 +238,16 @@ echo "pull the update from $BRANCH"
 git pull origin $BRANCH
 # restore the config
 cp tmp_config.json config/snmp.json
+
+if [ -f "/etc/systemd/system/routair_diagnostic.service" ]; then
+  echo "diagnostic service exists"
+  systemctl restart routair_diagnostic.service
+else
+  cp systemd/routair_diagnostic.service /etc/systemd/system/routair_diagnostic.service
+  systemctl daemon-reload
+  systemctl enable routair_diagnostic.service
+  systemctl start routair_diagnostic.service
+fi
 
 sh /usr/local/routair/scripts/repair.sh
 
