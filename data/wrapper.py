@@ -16,7 +16,7 @@ def check_loop(fn):
       return result
     except:
       empty()
-  return -1
+  return -999
 
 def get_input_temp(api):
   return check_loop(lambda time: api.get_input_temp(time))
