@@ -4,35 +4,42 @@ import request from "request";
 class Diagnostic {
 
   private _started = false;
+  private diagnostics: any[] = [];
   start() {
     if(this._started) return;
     this._started = true;
 
+    setInterval(() => this.onTick().catch(err => console.warn(err)), 60 * 1000);
     setInterval(() => this.onManage().catch(err => console.warn(err)), 60 * 60 * 1000);
   }
 
-  private onManage = async () => {
+  private onTick = async () => {
     const diagnostic = await this.fetch();
-    await this.send(diagnostic);
+    if(!!diagnostic) this.diagnostics.push(diagnostic);
   }
 
-  send(diagnostic: any): Promise<void> {
+  private onManage = async () => {
+    const diagnostics = [...this.diagnostics];
+    this.diagnostics = []
+    await this.send(diagnostics);
+  }
+
+  send(diagnostics: any): Promise<void> {
     console.warn("sending", {
       routair: config.identity,
-      diagnostic
+      diagnostics
     });
     return new Promise<void>((resolve, reject) => {
       request.post({
         url: "https://api.contact-platform.com/v3/routair/data",
         json: {
           routair: config.identity,
-          diagnostic
+          diagnostics
         }
       }, (e: any, response: any, body: any) => {
         resolve();
       });
-		})
-
+		});
   }
 
   fetch(): Promise<any> {
@@ -54,7 +61,7 @@ class Diagnostic {
                 sub.forEach(sub => {
                   var value = parseInt(body[key][sub]);
                   count ++;
-                  if(isNaN(value) || value == -1) invalid ++;
+                  if(isNaN(value) || value == -999) invalid ++;
                 });
               });
 

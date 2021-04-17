@@ -17,28 +17,36 @@ const request_1 = __importDefault(require("request"));
 class Diagnostic {
     constructor() {
         this._started = false;
-        this.onManage = () => __awaiter(this, void 0, void 0, function* () {
+        this.diagnostics = [];
+        this.onTick = () => __awaiter(this, void 0, void 0, function* () {
             const diagnostic = yield this.fetch();
-            yield this.send(diagnostic);
+            if (!!diagnostic)
+                this.diagnostics.push(diagnostic);
+        });
+        this.onManage = () => __awaiter(this, void 0, void 0, function* () {
+            const diagnostics = [...this.diagnostics];
+            this.diagnostics = [];
+            yield this.send(diagnostics);
         });
     }
     start() {
         if (this._started)
             return;
         this._started = true;
+        setInterval(() => this.onTick().catch(err => console.warn(err)), 60 * 1000);
         setInterval(() => this.onManage().catch(err => console.warn(err)), 60 * 60 * 1000);
     }
-    send(diagnostic) {
+    send(diagnostics) {
         console.warn("sending", {
             routair: config_1.default.identity,
-            diagnostic
+            diagnostics
         });
         return new Promise((resolve, reject) => {
             request_1.default.post({
                 url: "https://api.contact-platform.com/v3/routair/data",
                 json: {
                     routair: config_1.default.identity,
-                    diagnostic
+                    diagnostics
                 }
             }, (e, response, body) => {
                 resolve();
@@ -65,7 +73,7 @@ class Diagnostic {
                                 sub.forEach(sub => {
                                     var value = parseInt(body[key][sub]);
                                     count++;
-                                    if (isNaN(value) || value == -1)
+                                    if (isNaN(value) || value == -999)
                                         invalid++;
                                 });
                             });
