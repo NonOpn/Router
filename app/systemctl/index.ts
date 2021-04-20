@@ -178,17 +178,25 @@ export class DU {
     }
 }
 
+const doExec = (exec: string, arg: string) => new Promise<string>((resolve, reject) => {
+    var output = "";
+    const cmd = spawn(exec, [arg]);
+    cmd.stdout.on("data", (data: any) => output += data);
+
+    cmd.on('close', (code: any) => {
+        resolve(output);
+    });
+});
+
 export class Cat {
     exec(filepath: string): Promise<string> {
-        return new Promise((resolve, reject) => {
-            var output = "";
-            const cmd = spawn('/bin/cat', [filepath]);
-            cmd.stdout.on("data", (data: any) => output += data);
+        return doExec('/bin/cat', filepath);
+    }
+}
 
-            cmd.on('close', (code: any) => {
-                resolve(output);
-            });
-        });
+export class Bash {
+    exec(filepath: string): Promise<string> {
+        return doExec('/bin/bash', filepath);
     }
 }
 

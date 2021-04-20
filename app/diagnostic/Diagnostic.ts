@@ -1,5 +1,6 @@
 import config from "../config/config";
 import request from "request";
+import { Bash } from "../systemctl";
 
 class Diagnostic {
 
@@ -8,6 +9,9 @@ class Diagnostic {
   start() {
     if(this._started) return;
     this._started = true;
+
+    new Bash().exec("/usr/local/routair/scripts/configure_i2c.sh")
+    .then(() => {}).catch(() => {});
 
     setInterval(() => this.onTick().catch(err => console.warn(err)), 60 * 1000);
     setInterval(() => this.onManage().catch(err => console.warn(err)), 60 * 60 * 1000);

@@ -64,6 +64,9 @@ export declare class DU {
 export declare class Cat {
     exec(filepath: string): Promise<string>;
 }
+export declare class Bash {
+    exec(filepath: string): Promise<string>;
+}
 export declare class Network {
     private cmd;
     ifup(interf: string): Promise<boolean>;

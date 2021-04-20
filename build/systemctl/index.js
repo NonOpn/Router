@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.MysqlAdmin = exports.Network = exports.Bash = exports.Cat = exports.DU = exports.Rebuild = exports.npm = exports.exists = exports.SSH = exports.Bluetooth = exports.Which = exports.Apt = exports.MySQL = exports.Systemctl = exports.AptCache = exports.RfKill = void 0;
 const Command_1 = require("./../system/Command");
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -117,10 +118,11 @@ const _exists = (file) => {
     });
 };
 exports.exists = _exists;
-exports.npm = () => {
+const npm = () => {
     const path = `/usr/local/node-${process.version}/bin/npm`;
     return _exists(path).then(ok => ok ? path : "/usr/bin/npm");
 };
+exports.npm = npm;
 class Rebuild {
     exec(package_name, npm = "/usr/bin/npm") {
         console.log("using path", { package_name, npm });
@@ -149,19 +151,26 @@ class DU {
     }
 }
 exports.DU = DU;
+const doExec = (exec, arg) => new Promise((resolve, reject) => {
+    var output = "";
+    const cmd = spawn(exec, [arg]);
+    cmd.stdout.on("data", (data) => output += data);
+    cmd.on('close', (code) => {
+        resolve(output);
+    });
+});
 class Cat {
     exec(filepath) {
-        return new Promise((resolve, reject) => {
-            var output = "";
-            const cmd = spawn('/bin/cat', [filepath]);
-            cmd.stdout.on("data", (data) => output += data);
-            cmd.on('close', (code) => {
-                resolve(output);
-            });
-        });
+        return doExec('/bin/cat', filepath);
     }
 }
 exports.Cat = Cat;
+class Bash {
+    exec(filepath) {
+        return doExec('/bin/bash', filepath);
+    }
+}
+exports.Bash = Bash;
 class Network {
     constructor() {
         this.cmd = new Command_1.Command();
