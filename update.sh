@@ -221,12 +221,21 @@ bash ./scripts/python_configure.sh
 cd /usr/local/routair
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# UPDATE RSYSLOG TO PREVENT SIZE ISSUE
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+echo "update rsyslog script // TODO check for the size before doing so"
+sudo cp scripts/rsyslog /etc/logrotate.d/rsyslog
+sudo systemctl restart  rsyslog.service
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # UPDATE SERVICE IF REQUIRED
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # backup the config
 cp config/snmp.json tmp_config.json
 # pull the update
+
 
 echo "reset the local repo at $BRANCH"
 git checkout .
