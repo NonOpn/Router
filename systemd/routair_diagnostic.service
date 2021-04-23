@@ -8,8 +8,8 @@ WorkingDirectory=/usr/local/routair/data
 ExecStart=/opt/python/3.6.5/bin/python3.6 wrapper.py
 Restart=always
 RestartSec=5
-StandardOutput=syslog
-StandardError=syslog
+StandardOutput=null
+StandardError=null
 SyslogIdentifier=routair_diagnostic
 
 [Install]
