@@ -53,12 +53,14 @@ class Pool {
             this.sent_mysql_status--;
             if (this.sent_mysql_status <= 0) {
                 this.mysql.status()
-                    .then(() => {
+                    .then(status => {
+                    index_js_1.Logger.data({ mysql: true, status });
                     this.sent_mysql_status = 20;
                     resolve(true);
                 })
                     .catch(err => {
                     console.error(err);
+                    index_js_1.Logger.error(err, "trySendMysqlStatus");
                     this.sent_mysql_status = 20;
                     resolve(true);
                 });
@@ -141,6 +143,8 @@ class Pool {
             this.trySendMysqlStatus()
                 .then(can_be_done => {
                 if (can_be_done) {
+                    //force repair for the next round as well
+                    this.forceWideRepair().then(() => { }).catch(err => { });
                     //restart the MySQL instance if possible and report the state
                     const callback = () => reject(error);
                     this.mysql.restart().then(() => callback())

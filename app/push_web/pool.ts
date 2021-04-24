@@ -3,9 +3,9 @@ import config from "../config/mysql.js";
 import { Resolve, Reject } from "../promise.jsx";
 import { Logger } from "../log/index.js";
 import { MySQL, Cat, MysqlAdmin } from "../systemctl";
-import { networkInterfaces } from "os";
 import NetworkInfo from "../network/index.js";
 import { Touch } from "../system/Touch.js";
+
 
 export default class Pool {
   static instance: Pool = new Pool();
@@ -37,12 +37,14 @@ export default class Pool {
 
       if(this.sent_mysql_status <= 0) {
         this.mysql.status()
-        .then(() => {
+        .then(status => {
+          Logger.data({mysql: true, status});
           this.sent_mysql_status = 20;
           resolve(true);
         })
         .catch(err => {
           console.error(err);
+          Logger.error(err, "trySendMysqlStatus");
           this.sent_mysql_status = 20;
           resolve(true);
         });
@@ -141,6 +143,8 @@ export default class Pool {
       this.trySendMysqlStatus()
       .then(can_be_done => {
         if(can_be_done) {
+          //force repair for the next round as well
+          this.forceWideRepair().then(() => {}).catch(err => {});
           //restart the MySQL instance if possible and report the state
           const callback = () => reject(error);
           this.mysql.restart().then(() => callback())
