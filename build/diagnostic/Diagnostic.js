@@ -31,6 +31,23 @@ class Diagnostic {
             this.diagnostics = [];
             yield this.send(diagnostics);
         });
+        this.send = (diagnostics) => __awaiter(this, void 0, void 0, function* () {
+            var i = 1;
+            while (i < 6) {
+                try {
+                    yield this.sendRetry(diagnostics);
+                    return;
+                }
+                catch (e) { }
+                yield this.wait(i * 1000);
+                i++;
+            }
+        });
+        this.wait = (time) => __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve) => {
+                setTimeout(() => resolve(), time);
+            });
+        });
     }
     log(arg1, arg2) {
         if (arguments.length == 1)
@@ -47,7 +64,7 @@ class Diagnostic {
         setInterval(() => this.onTick().catch(err => this.log("onTick", err)), 60 * 1000);
         setInterval(() => this.onManage().catch(err => this.log("onManage", err)), 60 * 60 * 1000);
     }
-    send(diagnostics) {
+    sendRetry(diagnostics) {
         return new Promise((resolve, reject) => {
             log_1.Logger.data({ diagnostics });
             request_1.default.post({

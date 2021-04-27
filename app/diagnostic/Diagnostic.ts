@@ -36,7 +36,26 @@ class Diagnostic {
     await this.send(diagnostics);
   }
 
-  send(diagnostics: any): Promise<void> {
+  private send = async (diagnostics: any) => {
+    var i = 1;
+    while(i < 6) {
+      try {
+        await this.sendRetry(diagnostics);
+        return;
+      } catch(e) { }
+
+      await this.wait(i * 1000);
+      i++;
+    }
+  }
+
+  private wait = async (time: number) => {
+    return new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), time);
+    })
+  }
+
+  private sendRetry(diagnostics: any): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       Logger.data({diagnostics});
       request.post({
@@ -51,7 +70,7 @@ class Diagnostic {
 		});
   }
 
-  fetch(): Promise<any> {
+  private fetch(): Promise<any> {
     const url = "http://127.0.0.1:5000/report"
     //in gprs mode, simply sends the values
     return new Promise((resolve, reject) => {
