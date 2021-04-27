@@ -24,6 +24,7 @@ class Diagnostic {
             const diagnostic = yield this.fetch();
             if (!!diagnostic)
                 this.diagnostics.push(diagnostic);
+            this.log("onTick", diagnostic.length);
         });
         this.onManage = () => __awaiter(this, void 0, void 0, function* () {
             const diagnostics = [...this.diagnostics];
@@ -31,14 +32,20 @@ class Diagnostic {
             yield this.send(diagnostics);
         });
     }
+    log(arg1, arg2) {
+        if (arguments.length == 1)
+            console.warn("Diagnosstic :: " + arg1);
+        else
+            console.warn("Diagnosstic :: " + arg1, arg2);
+    }
     start() {
         if (this._started)
             return;
         this._started = true;
         new systemctl_1.Bash().exec("/usr/local/routair/scripts/configure_i2c.sh")
-            .then(() => { }).catch(() => { });
-        setInterval(() => this.onTick().catch(err => console.warn(err)), 60 * 1000);
-        setInterval(() => this.onManage().catch(err => console.warn(err)), 60 * 60 * 1000);
+            .then(result => this.log("Bash", result)).catch(err => this.log("Bash, error", err));
+        setInterval(() => this.onTick().catch(err => this.log("onTick", err)), 60 * 1000);
+        setInterval(() => this.onManage().catch(err => this.log("onManage", err)), 60 * 60 * 1000);
     }
     send(diagnostics) {
         return new Promise((resolve, reject) => {

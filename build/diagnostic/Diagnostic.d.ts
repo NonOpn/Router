@@ -1,6 +1,7 @@
 declare class Diagnostic {
     private _started;
     private diagnostics;
+    private log;
     start(): void;
     private onTick;
     private onManage;
