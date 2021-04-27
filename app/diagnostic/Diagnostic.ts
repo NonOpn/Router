@@ -27,7 +27,7 @@ class Diagnostic {
   private onTick = async () => {
     const diagnostic = await this.fetch();
     if(!!diagnostic) this.diagnostics.push(diagnostic);
-    this.log("onTick", diagnostic.length);
+    this.log("onTick", this.diagnostics);
   }
 
   private onManage = async () => {

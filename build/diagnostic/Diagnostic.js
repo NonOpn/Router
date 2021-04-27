@@ -24,7 +24,7 @@ class Diagnostic {
             const diagnostic = yield this.fetch();
             if (!!diagnostic)
                 this.diagnostics.push(diagnostic);
-            this.log("onTick", diagnostic.length);
+            this.log("onTick", this.diagnostics);
         });
         this.onManage = () => __awaiter(this, void 0, void 0, function* () {
             const diagnostics = [...this.diagnostics];
