@@ -10,7 +10,7 @@ class Diagnostic {
 
   private log(arg1: string, arg2?: any) {
     if(arguments.length == 1) console.warn("Diagnosstic :: " + arg1);
-    else console.warn("Diagnosstic :: " + arg1, arg2);
+    else console.warn("Diagnostic :: " + arg1, arg2);
   }
 
   start() {
@@ -27,7 +27,7 @@ class Diagnostic {
   private onTick = async () => {
     const diagnostic = await this.fetch();
     if(!!diagnostic) this.diagnostics.push(diagnostic);
-    this.log("onTick", this.diagnostics);
+    this.log("onTick", this.diagnostics.length);
   }
 
   private onManage = async () => {

@@ -24,7 +24,7 @@ class Diagnostic {
             const diagnostic = yield this.fetch();
             if (!!diagnostic)
                 this.diagnostics.push(diagnostic);
-            this.log("onTick", this.diagnostics);
+            this.log("onTick", this.diagnostics.length);
         });
         this.onManage = () => __awaiter(this, void 0, void 0, function* () {
             const diagnostics = [...this.diagnostics];
@@ -36,7 +36,7 @@ class Diagnostic {
         if (arguments.length == 1)
             console.warn("Diagnosstic :: " + arg1);
         else
-            console.warn("Diagnosstic :: " + arg1, arg2);
+            console.warn("Diagnostic :: " + arg1, arg2);
     }
     start() {
         if (this._started)
