@@ -8,7 +8,7 @@ try {
 }
 catch (e) {
 }
-const VERSION = "4.1.3"; //process.env.VERSION || "1.0";
+const VERSION = "4.1.4"; //process.env.VERSION || "1.0";
 const config = {
     "identity": process.env.IDENTITY || "undefined",
     "version": VERSION

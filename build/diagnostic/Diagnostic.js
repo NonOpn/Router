@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const config_1 = __importDefault(require("../config/config"));
 const request_1 = __importDefault(require("request"));
 const systemctl_1 = require("../systemctl");
+const log_1 = require("../log");
 class Diagnostic {
     constructor() {
         this._started = false;
@@ -40,11 +41,8 @@ class Diagnostic {
         setInterval(() => this.onManage().catch(err => console.warn(err)), 60 * 60 * 1000);
     }
     send(diagnostics) {
-        console.warn("sending", {
-            routair: config_1.default.identity,
-            diagnostics
-        });
         return new Promise((resolve, reject) => {
+            log_1.Logger.data({ diagnostics });
             request_1.default.post({
                 url: "https://api.contact-platform.com/v3/routair/data",
                 json: {
@@ -69,23 +67,7 @@ class Diagnostic {
                         try {
                             if (typeof body == "string")
                                 body = JSON.parse(body);
-                            var keys = Object.keys(body);
-                            var count = 0, invalid = 0;
-                            keys.forEach(key => {
-                                var sub = Object.keys(body[key]);
-                                sub.forEach(sub => {
-                                    var value = parseInt(body[key][sub]);
-                                    count++;
-                                    if (isNaN(value) || value == -999)
-                                        invalid++;
-                                });
-                            });
-                            if (invalid > count * 0.8 || invalid > 7) {
-                                reject(`too many invalid ${invalid}/${count}`);
-                            }
-                            else {
-                                resolve(body);
-                            }
+                            resolve(body);
                         }
                         catch (e) {
                             reject(e);

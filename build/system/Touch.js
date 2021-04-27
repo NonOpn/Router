@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Touch = void 0;
 const Command_1 = require("./Command");
 class Touch {
     exec(filename) {

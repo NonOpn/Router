@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.BLELargeSyncCharacteristic = void 0;
 const BLEConstants_1 = require("./BLEConstants");
 const safeBleno_1 = require("./safeBleno");
 const frame_model_compress_1 = __importDefault(require("../push_web/frame_model_compress"));

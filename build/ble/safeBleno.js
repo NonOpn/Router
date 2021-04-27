@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.needBluetoothRepair = exports.isBlenoAvailable = exports.Descriptor = exports.Characteristic = exports.PrimaryService = exports.mtu = exports.onBlenoEvent = exports.setServices = exports.stopAdvertising = exports.startAdvertising = exports.SafeCharacteristics = exports.SafePrimaryService = exports.logBLE = void 0;
 const log_1 = require("../log");
 const network_1 = __importDefault(require("../network"));
 function log(data) {
@@ -45,7 +46,7 @@ class SafeCharacteristics {
     }
 }
 exports.SafeCharacteristics = SafeCharacteristics;
-exports.startAdvertising = (id, uuids) => {
+const startAdvertising = (id, uuids) => {
     if (bleno) {
         bleno.startAdvertising(id, uuids);
     }
@@ -53,7 +54,8 @@ exports.startAdvertising = (id, uuids) => {
         console.log("can't advertise for " + id, uuids);
     }
 };
-exports.stopAdvertising = () => {
+exports.startAdvertising = startAdvertising;
+const stopAdvertising = () => {
     if (bleno) {
         bleno.stopAdvertising();
     }
@@ -61,7 +63,8 @@ exports.stopAdvertising = () => {
         console.log("can't stop advertising");
     }
 };
-exports.setServices = (services, callback) => {
+exports.stopAdvertising = stopAdvertising;
+const setServices = (services, callback) => {
     if (bleno) {
         bleno.setServices(services, callback);
         exports.logBLE({ services: services.length });
@@ -70,7 +73,8 @@ exports.setServices = (services, callback) => {
         console.log("setServices failed, no bleno");
     }
 };
-exports.onBlenoEvent = (name, callback) => {
+exports.setServices = setServices;
+const onBlenoEvent = (name, callback) => {
     if (bleno) {
         bleno.on(name, callback);
     }
@@ -78,12 +82,14 @@ exports.onBlenoEvent = (name, callback) => {
         console.log("setServices failed, no bleno");
     }
 };
-exports.mtu = () => {
+exports.onBlenoEvent = onBlenoEvent;
+const mtu = () => {
     if (bleno) {
         return bleno.mtu;
     }
     return 0;
 };
+exports.mtu = mtu;
 const _PrimaryService = bleno ? bleno.PrimaryService : SafePrimaryService;
 const _Characteristic = bleno ? bleno.Characteristic : SafeCharacteristics;
 const _Descriptor = bleno ? bleno.Descriptor : null;

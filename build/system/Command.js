@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Command = void 0;
 const { spawn } = require('child_process');
 class Command {
     exec(exe, args = []) {

@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Logger = exports._Logger = void 0;
 const https = require('https');
 const config_1 = __importDefault(require("../config/config"));
 const os_1 = __importDefault(require("os"));
