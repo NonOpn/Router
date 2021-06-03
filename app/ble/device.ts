@@ -211,24 +211,23 @@ export default class DeviceManagement {
         .then(device => this._databaseDeviceToRealDevice(device));
     }
 
-    applyData(data: any): Promise<AbstractDevice|undefined> {
+    applyData = async (data: any): Promise<AbstractDevice|undefined> => {
         const _data = data ? data : {};
         const rawdata = _data.rawByte || _data.rawFrameStr;
 
         if(!rawdata) {
-            return Promise.resolve(undefined);
+            return undefined;;
         }
 
         if(rawdata.length === 60) { //30*2
             const internal = FrameModel.instance.getInternalSerial(rawdata);
             const contactair = FrameModel.instance.getContactair(rawdata);
 
-            return this.getDevice(internal)
-            .then(device => {
-                if(device) return Promise.resolve(device);
-                return this.getDeviceForContactair(contactair);
-            })
-            .then(device => {
+            try {
+                var device = await this.getDevice(internal);
+                if(device) return device;
+                device = await this.getDeviceForContactair(contactair);
+
                 var type: string = "";
                 var serial = "";
                 var config_internal = "";
@@ -258,7 +257,9 @@ export default class DeviceManagement {
                 }
 
                 return device;
-            });
+            } catch(e) {
+                return undefined;
+            }
         } else if(rawdata.length === 48) { //24*2
             /*this.agents.forEach(agent => {
                 const lpsfr = agent.getLPSFR();
@@ -267,6 +268,6 @@ export default class DeviceManagement {
                 }
             })*/
         }
-        return Promise.resolve(undefined);
+        return undefined;
     }
 }

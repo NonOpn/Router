@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -40,6 +49,64 @@ function intTypeToString(type) {
 }
 class DeviceManagement {
     constructor() {
+        this.applyData = (data) => __awaiter(this, void 0, void 0, function* () {
+            const _data = data ? data : {};
+            const rawdata = _data.rawByte || _data.rawFrameStr;
+            if (!rawdata) {
+                return undefined;
+                ;
+            }
+            if (rawdata.length === 60) { //30*2
+                const internal = frame_model_1.default.instance.getInternalSerial(rawdata);
+                const contactair = frame_model_1.default.instance.getContactair(rawdata);
+                try {
+                    var device = yield this.getDevice(internal);
+                    if (device)
+                        return device;
+                    device = yield this.getDeviceForContactair(contactair);
+                    var type = "";
+                    var serial = "";
+                    var config_internal = "";
+                    if (device && device.getLPSFR()) {
+                        const d = device.getLPSFR();
+                        serial = d.serial;
+                        type = d.type;
+                        config_internal = d.internal;
+                        if (config_internal)
+                            config_internal = config_internal.substring(0, 6);
+                    }
+                    if (!type)
+                        type = "";
+                    var valid_device = false;
+                    switch (type) {
+                        case "paratonair":
+                        case "comptair":
+                        case "alertairdc":
+                        case "alertairts":
+                            valid_device = true;
+                            break;
+                        default:
+                            valid_device = false;
+                    }
+                    if (rawdata.length > 6 && valid_device && internal === config_internal) {
+                        this.data_point_provider.savePoint(serial, config_internal, data.sender, rawdata);
+                    }
+                    return device;
+                }
+                catch (e) {
+                    return undefined;
+                }
+            }
+            else if (rawdata.length === 48) { //24*2
+                /*this.agents.forEach(agent => {
+                    const lpsfr = agent.getLPSFR();
+                    if(lpsfr.internal === data.sender && lpsfr.type === "ellips") {
+                        this.data_point_provider.savePoint(lpsfr.serial, lpsfr.internal, data.sender, data.rawDataStr);
+                    }
+                })*/
+            }
+            return undefined;
+        });
         this.data_point_provider = new data_point_1.default();
     }
     /* UNUSED and no more available in data_point_provider
@@ -194,62 +261,6 @@ class DeviceManagement {
             return model_devices.saveDevice({ serial: "", internal_serial: internal, last_contactair: current_contactair, type: TYPE_UNASSIGNED });
         })
             .then(device => this._databaseDeviceToRealDevice(device));
-    }
-    applyData(data) {
-        const _data = data ? data : {};
-        const rawdata = _data.rawByte || _data.rawFrameStr;
-        if (!rawdata) {
-            return Promise.resolve(undefined);
-        }
-        if (rawdata.length === 60) { //30*2
-            const internal = frame_model_1.default.instance.getInternalSerial(rawdata);
-            const contactair = frame_model_1.default.instance.getContactair(rawdata);
-            return this.getDevice(internal)
-                .then(device => {
-                if (device)
-                    return Promise.resolve(device);
-                return this.getDeviceForContactair(contactair);
-            })
-                .then(device => {
-                var type = "";
-                var serial = "";
-                var config_internal = "";
-                if (device && device.getLPSFR()) {
-                    const d = device.getLPSFR();
-                    serial = d.serial;
-                    type = d.type;
-                    config_internal = d.internal;
-                    if (config_internal)
-                        config_internal = config_internal.substring(0, 6);
-                }
-                if (!type)
-                    type = "";
-                var valid_device = false;
-                switch (type) {
-                    case "paratonair":
-                    case "comptair":
-                    case "alertairdc":
-                    case "alertairts":
-                        valid_device = true;
-                        break;
-                    default:
-                        valid_device = false;
-                }
-                if (rawdata.length > 6 && valid_device && internal === config_internal) {
-                    this.data_point_provider.savePoint(serial, config_internal, data.sender, rawdata);
-                }
-                return device;
-            });
-        }
-        else if (rawdata.length === 48) { //24*2
-            /*this.agents.forEach(agent => {
-                const lpsfr = agent.getLPSFR();
-                if(lpsfr.internal === data.sender && lpsfr.type === "ellips") {
-                    this.data_point_provider.savePoint(lpsfr.serial, lpsfr.internal, data.sender, data.rawDataStr);
-                }
-            })*/
-        }
-        return Promise.resolve(undefined);
     }
 }
 exports.default = DeviceManagement;

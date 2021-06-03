@@ -108,7 +108,7 @@ class App {
       enocean.on("managed_frame", (frame: any) => {
         DeviceManagement.instance.onFrame(frame)
         .then(device => {
-          console.log("device frame := ", {device: device?device.json() : undefined});
+          console.log("device frame := ", {device: device ? device.json() : undefined});
           push_web.onFrame(device, frame);
           ble.onFrame(device, frame);
         }).catch(err => !NetworkInfo.instance.isGPRS() && Logger.error(err, "error in managed frame"));

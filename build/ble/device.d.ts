@@ -18,5 +18,5 @@ export default class DeviceManagement {
     setType(device: AbstractDevice, type?: TYPE): Promise<AbstractDevice | undefined>;
     getDeviceForContactair(contactair: string): Promise<AbstractDevice | undefined>;
     getDevice(internal: string, current_contactair?: string): Promise<AbstractDevice | undefined>;
-    applyData(data: any): Promise<AbstractDevice | undefined>;
+    applyData: (data: any) => Promise<AbstractDevice | undefined>;
 }

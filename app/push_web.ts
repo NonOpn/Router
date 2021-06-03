@@ -53,11 +53,12 @@ interface RequestFrames {
 }
 
 export default class PushWEB extends EventEmitter {
-	is_activated: boolean = true;
-	_posting: boolean;
-	_number_to_skip = 0;
+	private is_activated: boolean = true;
+	private _posting: boolean;
+	private _number_to_skip = 0;
 
-	_protection_network: number = 0;
+	private _protection_network: number = 0;
+	private memory_transactions: Transaction[] = [];
 
 	constructor() {
 		super();
@@ -112,7 +113,35 @@ export default class PushWEB extends EventEmitter {
 
 			this.log({ infos: "entering" });
 			//TODO for GPRS, when getting unsent, only get the last non alert + every alerts in the steps
-			const frames = await FrameModel.instance.getUnsent(120)
+
+			var crashed = false;
+			var frames: Transaction[] = [];
+			// safely prevent crashes
+			try {
+				frames = await FrameModel.instance.getUnsent(120)
+			} catch(e) {
+				crashed = true;
+				console.error("error while loading frames", e);
+			}
+
+			// this is a "last chance scenario", in this mode, we don't care about the frames before the last 120
+			if(this.memory_transactions.length > 0) {
+				var last120: Transaction[] = [];
+				const length = this.memory_transactions.length;
+
+				if(length <= 120) {
+					last120 = this.memory_transactions;
+				} else if(length > 120) {
+					//add the last 120 items
+					for(var i = 1; i <= 120; i++) {
+						last120.push(this.memory_transactions[length - i]);
+					}
+					//reverse
+					last120 = last120.reverse();
+				}
+				frames = [...frames, ...last120];
+			}
+
 			console.log("frames ? " + frames);
 
 			this.log({ infos: "obtained", size: frames.length });
@@ -128,6 +157,7 @@ export default class PushWEB extends EventEmitter {
 				json.data = to_frames.map(frame => frame.data).join(",");
 				json.remaining = 0; //TODO get the info ?
 				json.gprs = !!NetworkInfo.instance.isGPRS();
+				json.crashed = crashed;
 
 				var first_id = frames.length > 0 ? frames[0].id : 0;
 				const size = to_frames.length;
@@ -159,7 +189,11 @@ export default class PushWEB extends EventEmitter {
 		this.log({ sent: (frames||[]).length });
 		while(j < frames.length) {
 			const frame = frames[j];
-			await FrameModel.instance.setSent(frame.id || 0, true);
+			try {
+				await FrameModel.instance.setSent(frame.id || 0, true);
+			} catch(e) {
+
+			}
 			j++;
 		}
 	}
@@ -193,7 +227,7 @@ export default class PushWEB extends EventEmitter {
 	}
 
 	onFrame(device: AbstractDevice|undefined, data: any) {
-		this.applyData(device, data);
+		this.applyData(device, data).then(() => {}).catch(e => {});
 	}
 
 	private _started: boolean = false;
@@ -227,7 +261,7 @@ export default class PushWEB extends EventEmitter {
 		}
 	}
 
-	applyData(device: AbstractDevice|undefined, data: any) {
+	private applyData = async (device: AbstractDevice|undefined, data: any) => {
 		const _data = data ? data : {};
 		var rawdata = _data.rawByte || _data.rawFrameStr;
 
@@ -237,14 +271,13 @@ export default class PushWEB extends EventEmitter {
 
 		const to_save = FrameModel.instance.from(rawdata);
 		to_save.product_id = device ? device.getId() : undefined;
-		Promise.all([
-			FrameModel.instance.save(to_save),
-			FrameModelCompress.instance.save(to_save)
-		])
-		.then(saved => console.log(saved))
-		.catch(err => {
+		try {
+			await FrameModel.instance.save(to_save);
+			await FrameModelCompress.instance.save(to_save);
+		} catch(err) {
 			errors.postJsonError(err);
 			console.log(err);
-		});
+			this.memory_transactions.push(to_save);
+		}
 	}
 }

@@ -60,12 +60,39 @@ class PushWEB extends events_1.EventEmitter {
         this.is_activated = true;
         this._number_to_skip = 0;
         this._protection_network = 0;
+        this.memory_transactions = [];
         this.trySendOk = () => __awaiter(this, void 0, void 0, function* () {
             try {
                 console.log("try send to send frames");
                 this.log({ infos: "entering" });
                 //TODO for GPRS, when getting unsent, only get the last non alert + every alerts in the steps
-                const frames = yield frame_model_1.default.instance.getUnsent(120);
+                var crashed = false;
+                var frames = [];
+                // safely prevent crashes
+                try {
+                    frames = yield frame_model_1.default.instance.getUnsent(120);
+                }
+                catch (e) {
+                    crashed = true;
+                    console.error("error while loading frames", e);
+                }
+                // this is a "last chance scenario", in this mode, we don't care about the frames before the last 120
+                if (this.memory_transactions.length > 0) {
+                    var last120 = [];
+                    const length = this.memory_transactions.length;
+                    if (length <= 120) {
+                        last120 = this.memory_transactions;
+                    }
+                    else if (length > 120) {
+                        //add the last 120 items
+                        for (var i = 1; i <= 120; i++) {
+                            last120.push(this.memory_transactions[length - i]);
+                        }
+                        //reverse
+                        last120 = last120.reverse();
+                    }
+                    frames = [...frames, ...last120];
+                }
                 console.log("frames ? " + frames);
                 this.log({ infos: "obtained", size: frames.length });
                 if (null == frames || frames.length == 0) {
@@ -78,6 +105,7 @@ class PushWEB extends events_1.EventEmitter {
                     json.data = to_frames.map(frame => frame.data).join(",");
                     json.remaining = 0; //TODO get the info ?
                     json.gprs = !!index_1.default.instance.isGPRS();
+                    json.crashed = crashed;
                     var first_id = frames.length > 0 ? frames[0].id : 0;
                     const size = to_frames.length;
                     const supportFallback = !!(config_1.default.identity || "").toLocaleLowerCase().startsWith("0xfaa4205");
@@ -103,7 +131,11 @@ class PushWEB extends events_1.EventEmitter {
             this.log({ sent: (frames || []).length });
             while (j < frames.length) {
                 const frame = frames[j];
-                yield frame_model_1.default.instance.setSent(frame.id || 0, true);
+                try {
+                    yield frame_model_1.default.instance.setSent(frame.id || 0, true);
+                }
+                catch (e) {
+                }
                 j++;
             }
         });
@@ -135,6 +167,24 @@ class PushWEB extends events_1.EventEmitter {
             }
         });
         this._started = false;
+        this.applyData = (device, data) => __awaiter(this, void 0, void 0, function* () {
+            const _data = data ? data : {};
+            var rawdata = _data.rawByte || _data.rawFrameStr;
+            if (rawdata && rawdata.length != 48 && rawdata.length != 60) {
+                return;
+            }
+            const to_save = frame_model_1.default.instance.from(rawdata);
+            to_save.product_id = device ? device.getId() : undefined;
+            try {
+                yield frame_model_1.default.instance.save(to_save);
+                yield frame_model_compress_1.default.instance.save(to_save);
+            }
+            catch (err) {
+                errors.postJsonError(err);
+                console.log(err);
+                this.memory_transactions.push(to_save);
+            }
+        });
         //this.is_activated = push_web_config.is_activated;
         this._posting = false;
     }
@@ -174,7 +224,7 @@ class PushWEB extends events_1.EventEmitter {
         });
     }
     onFrame(device, data) {
-        this.applyData(device, data);
+        this.applyData(device, data).then(() => { }).catch(e => { });
     }
     connect() {
         if (this._started)
@@ -200,24 +250,6 @@ class PushWEB extends events_1.EventEmitter {
                 this.trySend();
             }, 1 * 60 * 1000); //every 60s
         }
-    }
-    applyData(device, data) {
-        const _data = data ? data : {};
-        var rawdata = _data.rawByte || _data.rawFrameStr;
-        if (rawdata && rawdata.length != 48 && rawdata.length != 60) {
-            return;
-        }
-        const to_save = frame_model_1.default.instance.from(rawdata);
-        to_save.product_id = device ? device.getId() : undefined;
-        Promise.all([
-            frame_model_1.default.instance.save(to_save),
-            frame_model_compress_1.default.instance.save(to_save)
-        ])
-            .then(saved => console.log(saved))
-            .catch(err => {
-            errors.postJsonError(err);
-            console.log(err);
-        });
     }
 }
 exports.default = PushWEB;
