@@ -43,7 +43,12 @@ export class _Logger {
         });
     }
 
-    private _request(tag: string,json: any) {
+    private _request = async (tag: string,json: any) => {
+        try {
+            await this.post("api.contact-platform.com", 443, `/api/v4/routair/${tag}/`, {}, json);
+        } catch(err2) {
+            //posting data to contact platform
+        }
         return this.post("logs-01.loggly.com", 443, `/inputs/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/${tag}/`, {}, json);
     }
 

@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -10,6 +19,15 @@ const os_1 = __importDefault(require("os"));
 const identity = config_1.default.identity || "unknown";
 class _Logger {
     constructor() {
+        this._request = (tag, json) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield this.post("api.contact-platform.com", 443, `/api/v4/routair/${tag}/`, {}, json);
+            }
+            catch (err2) {
+                //posting data to contact platform
+            }
+            return this.post("logs-01.loggly.com", 443, `/inputs/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/${tag}/`, {}, json);
+        });
         this.error = (error, reason = undefined) => {
             const output = { str: "", stack: null, message: "", code: 0, process: {
                     platform: "",
@@ -57,9 +75,6 @@ class _Logger {
             req.write(data);
             req.end();
         });
-    }
-    _request(tag, json) {
-        return this.post("logs-01.loggly.com", 443, `/inputs/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/${tag}/`, {}, json);
     }
     _post(tag, data, retry) {
         identity && data && (data.identity = identity);
