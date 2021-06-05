@@ -10,8 +10,6 @@ const paratonair_1 = __importDefault(require("./snmp/paratonair"));
 const alertairdc_1 = __importDefault(require("./snmp/alertairdc"));
 const ellips_1 = __importDefault(require("./snmp/ellips"));
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
-const log_1 = require("./log");
-const network_1 = __importDefault(require("./network"));
 var config = null;
 try {
     config = require("../config/snmp.json");
@@ -19,7 +17,7 @@ try {
 catch (e) {
     console.log(e);
     config = null;
-    !network_1.default.instance.isGPRS() && log_1.Logger.error(e, "Erreur while importing snmp configuration");
+    //!NetworkInfo.instance.isGPRS() && Logger.error(e, "Erreur while importing snmp configuration");
 }
 const array = {
     paratonair: paratonair_1.default,

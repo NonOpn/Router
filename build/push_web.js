@@ -96,7 +96,7 @@ class PushWEB extends events_1.EventEmitter {
                 console.log("frames ? " + frames);
                 this.log({ infos: "obtained", size: frames.length });
                 if (null == frames || frames.length == 0) {
-                    console.log("finished");
+                    this.log({ infos: "push", none: true }, true);
                 }
                 else {
                     const to_frames = frames.map(f => ({ data: createRequestRaw(f.frame).data, id: f.id }));
@@ -114,9 +114,9 @@ class PushWEB extends events_1.EventEmitter {
                     if (supportFallback)
                         yield this.setSent(to_frames);
                     const result = yield _post(json);
-                    this.log({ infos: "push", result, size, first_id });
+                    this.log({ infos: "push", result, size, first_id }, true);
                     //even for the above mentionned device, not an issue : setSent changes a flag
-                    this.setSent(to_frames);
+                    yield this.setSent(to_frames);
                     this._posting = false;
                 }
             }
@@ -188,8 +188,8 @@ class PushWEB extends events_1.EventEmitter {
         //this.is_activated = push_web_config.is_activated;
         this._posting = false;
     }
-    log(data) {
-        if (!index_1.default.instance.isGPRS()) {
+    log(data, force) {
+        if (!index_1.default.instance.isGPRS() || !!force) {
             log_1.Logger.data(Object.assign({ context: "push" }, data));
         }
     }
@@ -205,11 +205,11 @@ class PushWEB extends events_1.EventEmitter {
             this._protection_network++;
             //if we have a timeout of 30min which did not clear the network stack... reset !
             if (this._protection_network >= 3) {
-                this.log({ reset_posting: true, posting: this._posting, is_activated: this.is_activated });
+                this.log({ context: "posting", reset_posting: true, posting: this._posting, is_activated: this.is_activated }, true);
                 this._protection_network = 0;
                 this._posting = false;
             }
-            this.log({ posting: this._posting, is_activated: this.is_activated });
+            this.log({ context: "posting", posting: this._posting, is_activated: this.is_activated }, true);
             return;
         }
         //send data over the network

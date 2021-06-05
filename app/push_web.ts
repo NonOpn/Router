@@ -66,8 +66,8 @@ export default class PushWEB extends EventEmitter {
 		this._posting = false;
 	}
 
-	log(data: any) {
-		if(!NetworkInfo.instance.isGPRS()) {
+	log(data: any, force?: boolean) {
+		if(!NetworkInfo.instance.isGPRS() || !!force) {
 			Logger.data({context: "push", ...data});
 		}
 	}
@@ -86,12 +86,12 @@ export default class PushWEB extends EventEmitter {
 
 			//if we have a timeout of 30min which did not clear the network stack... reset !
 			if(this._protection_network >= 3) {
-				this.log({ reset_posting: true, posting: this._posting, is_activated: this.is_activated });
+				this.log({ context: "posting", reset_posting: true, posting: this._posting, is_activated: this.is_activated }, true);
 				this._protection_network = 0;
 				this._posting = false;
 			}
 
-			this.log({ posting: this._posting, is_activated: this.is_activated });
+			this.log({ context: "posting", posting: this._posting, is_activated: this.is_activated }, true);
 			return;
 		}
 
@@ -147,7 +147,7 @@ export default class PushWEB extends EventEmitter {
 			this.log({ infos: "obtained", size: frames.length });
 
 			if(null == frames || frames.length == 0) {
-				console.log("finished");
+				this.log({ infos: "push", none: true }, true);
 			} else {
 				const to_frames:RequestFrames[] = frames.map(f => ({data: createRequestRaw(f.frame).data, id: f.id }));
 				const json = createRequestRaw("");
@@ -170,10 +170,10 @@ export default class PushWEB extends EventEmitter {
 				if(supportFallback) await this.setSent(to_frames);
 
 				const result = await _post(json)
-				this.log({ infos: "push", result, size, first_id });
+				this.log({ infos: "push", result, size, first_id }, true);
 
 				//even for the above mentionned device, not an issue : setSent changes a flag
-				this.setSent(to_frames);
+				await this.setSent(to_frames);
 
 				this._posting = false;
 			}

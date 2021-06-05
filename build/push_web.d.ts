@@ -8,7 +8,7 @@ export default class PushWEB extends EventEmitter {
     private _protection_network;
     private memory_transactions;
     constructor();
-    log(data: any): void;
+    log(data: any, force?: boolean): void;
     trySend(): void;
     trySendOk: () => Promise<void>;
     private setSent;
