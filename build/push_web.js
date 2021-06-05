@@ -57,10 +57,47 @@ function createRequestRaw(raw) {
 class PushWEB extends events_1.EventEmitter {
     constructor() {
         super();
-        this.is_activated = true;
         this._number_to_skip = 0;
         this._protection_network = 0;
         this.memory_transactions = [];
+        this.trySend = () => __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (index_1.default.instance.isGPRS() && this._number_to_skip > 0) {
+                    this._number_to_skip--;
+                    if (this._number_to_skip < 0)
+                        this._number_to_skip = 0;
+                    return;
+                }
+                this._number_to_skip = 4;
+                log_1.Logger.data({ infos: "attempt send?", gprs: index_1.default.instance.isGPRS(), posting: this._posting });
+                if (!!this._posting) {
+                    this._protection_network++;
+                    //if we have a timeout of 30min which did not clear the network stack... reset !
+                    if (this._protection_network >= 3) {
+                        this.log({ context: "posting", reset_posting: true, posting: this._posting }, true);
+                        this._protection_network = 0;
+                        this._posting = false;
+                    }
+                    this.log({ context: "posting", posting: this._posting }, true);
+                    return;
+                }
+            }
+            catch (e) {
+                log_1.Logger.error(e, "in method trySend");
+                return;
+            }
+            try {
+                this.log({ infos: "attempt send" });
+                //send data over the network
+                this._posting = true;
+                yield this.trySendOk();
+            }
+            catch (e) {
+                log_1.Logger.error(e, "error in trySendOk");
+            }
+            this._protection_network = 0;
+            this._posting = false;
+        });
         this.trySendOk = () => __awaiter(this, void 0, void 0, function* () {
             try {
                 console.log("try send to send frames");
@@ -121,7 +158,7 @@ class PushWEB extends events_1.EventEmitter {
                 }
             }
             catch (e) {
-                this.log({ posting: this._posting, is_activated: this.is_activated, error: e });
+                this.log({ posting: this._posting, error: e });
                 log_1.Logger.error(e, "in push_web");
                 console.log("frames error... ");
             }
@@ -166,7 +203,6 @@ class PushWEB extends events_1.EventEmitter {
                 errors.postJsonError(err);
             }
         });
-        this._started = false;
         this.applyData = (device, data) => __awaiter(this, void 0, void 0, function* () {
             const _data = data ? data : {};
             var rawdata = _data.rawByte || _data.rawFrameStr;
@@ -185,7 +221,6 @@ class PushWEB extends events_1.EventEmitter {
                 this.memory_transactions.push(to_save);
             }
         });
-        //this.is_activated = push_web_config.is_activated;
         this._posting = false;
     }
     log(data, force) {
@@ -193,63 +228,20 @@ class PushWEB extends events_1.EventEmitter {
             log_1.Logger.data(Object.assign({ context: "push" }, data));
         }
     }
-    trySend() {
-        if (index_1.default.instance.isGPRS() && this._number_to_skip > 0) {
-            this._number_to_skip--;
-            if (this._number_to_skip < 0)
-                this._number_to_skip = 0;
-            return;
-        }
-        this._number_to_skip = 4;
-        if (!!this._posting) {
-            this._protection_network++;
-            //if we have a timeout of 30min which did not clear the network stack... reset !
-            if (this._protection_network >= 3) {
-                this.log({ context: "posting", reset_posting: true, posting: this._posting, is_activated: this.is_activated }, true);
-                this._protection_network = 0;
-                this._posting = false;
-            }
-            this.log({ context: "posting", posting: this._posting, is_activated: this.is_activated }, true);
-            return;
-        }
-        //send data over the network
-        this._posting = true;
-        this.trySendOk().then(() => {
-            this._protection_network = 0;
-            this._posting = false;
-        }).catch(err => {
-            log_1.Logger.error(err, "error in trySendOk");
-            this._protection_network = 0;
-            this._posting = false;
-        });
-    }
     onFrame(device, data) {
         this.applyData(device, data).then(() => { }).catch(e => { });
     }
     connect() {
-        if (this._started)
-            return;
-        if (!this.is_activated) {
-            this._started = true;
-            console.log("PushWEB is disabled see .env.example");
+        console.log("PushWEB is now init");
+        this.sendEcho();
+        setInterval(() => {
             this.sendEcho();
-            setInterval(() => {
-                this.sendEcho();
-            }, 15 * 60 * 1000); //set echo every 15minutes
-        }
-        else {
-            this._started = true;
-            console.log("PushWEB is now init");
-            this.sendEcho();
-            setInterval(() => {
-                this.sendEcho();
-            }, 15 * 60 * 1000); //set echo every 15minutes
+        }, 15 * 60 * 1000); //set echo every 15minutes
+        this.trySend();
+        setInterval(() => {
+            console.log("try send... " + this._posting);
             this.trySend();
-            setInterval(() => {
-                console.log("try send... " + this.is_activated + " " + this._posting);
-                this.trySend();
-            }, 1 * 60 * 1000); //every 60s
-        }
+        }, 1 * 60 * 1000); //every 60s
     }
 }
 exports.default = PushWEB;

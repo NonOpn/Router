@@ -53,7 +53,6 @@ interface RequestFrames {
 }
 
 export default class PushWEB extends EventEmitter {
-	private is_activated: boolean = true;
 	private _posting: boolean;
 	private _number_to_skip = 0;
 
@@ -62,7 +61,6 @@ export default class PushWEB extends EventEmitter {
 
 	constructor() {
 		super();
-		//this.is_activated = push_web_config.is_activated;
 		this._posting = false;
 	}
 
@@ -72,39 +70,46 @@ export default class PushWEB extends EventEmitter {
 		}
 	}
 	  
-	trySend() {
-		if(NetworkInfo.instance.isGPRS() && this._number_to_skip > 0) {
-			this._number_to_skip --;
-			if(this._number_to_skip < 0) this._number_to_skip = 0;
-			return;
-		}
-
-		this._number_to_skip = 4;
-
-		if(!!this._posting) {
-			this._protection_network ++;
-
-			//if we have a timeout of 30min which did not clear the network stack... reset !
-			if(this._protection_network >= 3) {
-				this.log({ context: "posting", reset_posting: true, posting: this._posting, is_activated: this.is_activated }, true);
-				this._protection_network = 0;
-				this._posting = false;
+	trySend = async () => {
+		try {
+			if(NetworkInfo.instance.isGPRS() && this._number_to_skip > 0) {
+				this._number_to_skip --;
+				if(this._number_to_skip < 0) this._number_to_skip = 0;
+				return;
 			}
-
-			this.log({ context: "posting", posting: this._posting, is_activated: this.is_activated }, true);
+	
+			this._number_to_skip = 4;
+			Logger.data({ infos: "attempt send?", gprs: NetworkInfo.instance.isGPRS(), posting: this._posting});
+	
+			if(!!this._posting) {
+				this._protection_network ++;
+	
+				//if we have a timeout of 30min which did not clear the network stack... reset !
+				if(this._protection_network >= 3) {
+					this.log({ context: "posting", reset_posting: true, posting: this._posting }, true);
+					this._protection_network = 0;
+					this._posting = false;
+				}
+	
+				this.log({ context: "posting", posting: this._posting }, true);
+				return;
+			}
+		} catch(e) {
+			Logger.error(e, "in method trySend");
 			return;
 		}
 
-		//send data over the network
-		this._posting = true;
-		this.trySendOk().then(() => {
-			this._protection_network = 0;
-			this._posting = false;
-		}).catch(err => {
-			Logger.error(err, "error in trySendOk");
-			this._protection_network = 0;
-			this._posting = false;
-		});
+		try {
+			this.log({ infos: "attempt send"});
+			//send data over the network
+			this._posting = true;
+			await this.trySendOk();
+		} catch(e) {
+			Logger.error(e, "error in trySendOk");
+		}
+
+		this._protection_network = 0;
+		this._posting = false;
 	}
 
 	trySendOk = async () => {
@@ -178,7 +183,7 @@ export default class PushWEB extends EventEmitter {
 				this._posting = false;
 			}
 		} catch(e) {
-			this.log({ posting: this._posting, is_activated: this.is_activated, error: e });
+			this.log({ posting: this._posting, error: e });
 			Logger.error(e, "in push_web");
 			console.log("frames error... ");
 		}
@@ -230,35 +235,20 @@ export default class PushWEB extends EventEmitter {
 		this.applyData(device, data).then(() => {}).catch(e => {});
 	}
 
-	private _started: boolean = false;
-
 	connect() {
-		if(this._started) return;
+		console.log("PushWEB is now init");
 
-		if(!this.is_activated) {
-			this._started = true;
-			console.log("PushWEB is disabled see .env.example");
+		this.sendEcho();
+		setInterval(() => {
 			this.sendEcho();
-			setInterval(() => {
-				this.sendEcho();
-			}, 15 * 60 * 1000); //set echo every 15minutes
+		}, 15 * 60 * 1000); //set echo every 15minutes
 
-		} else {
-			this._started = true;
-			console.log("PushWEB is now init");
+		this.trySend();
 
-			this.sendEcho();
-			setInterval(() => {
-				this.sendEcho();
-			}, 15 * 60 * 1000); //set echo every 15minutes
-
+		setInterval(() => {
+			console.log("try send... " + this._posting);
 			this.trySend();
-
-			setInterval(() => {
-				console.log("try send... " + this.is_activated+" "+this._posting);
-				this.trySend();
-			}, 1 * 60 * 1000);//every 60s
-		}
+		}, 1 * 60 * 1000);//every 60s
 	}
 
 	private applyData = async (device: AbstractDevice|undefined, data: any) => {
