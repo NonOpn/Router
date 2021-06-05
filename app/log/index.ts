@@ -53,9 +53,10 @@ export class _Logger {
     }
 
     private _post(tag: string, data: any, retry?: number) {
-        identity && data && (data.identity = identity);
+        if(!data) data = {};
+        identity && (data.identity = identity);
         const json: any = {};
-        data && Object.keys(data).forEach(d => json[d] = data[d]);
+        Object.keys(data).forEach(d => json[d] = data[d]);
         json.version = config.version;
         data.host = config.identity;
 

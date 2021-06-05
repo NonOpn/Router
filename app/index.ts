@@ -1,5 +1,7 @@
 import { Touch } from './system/Touch';
 import Errors from "./errors";
+import { Logger } from './log';
+import NetworkInfo from './network';
 
 const errors = Errors.instance;
 
@@ -31,6 +33,8 @@ export default class MainEntryPoint {
   
       process.on("uncaughtException", (err: any) => {
         console.log("oups", err);
+        const gprs = NetworkInfo.instance.isGPRS();
+        if(!gprs) Logger.error(err, "uncaughtException");
       });
   
       created_domain.on('error', (err: Error) => {

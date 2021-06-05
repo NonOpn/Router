@@ -15,6 +15,7 @@ import DeviceManagement from './ble/device';
 import NetworkInfo from './network';
 import { logBLE } from './ble/safeBleno';
 import Diagnostic from './diagnostic/Diagnostic';
+import Errors from './errors';
 
 const wifi = Wifi.instance;
 
@@ -24,11 +25,9 @@ class App {
   }
 
   start() {
-    new Promise((resolve) => {
+    try {
       Reporter.instance.start();
-      //delay the answer to prevent any issue in this session - to improve, just exploring new features
-      setTimeout(() => resolve(true), 5000);
-    }).then(() => {
+
       var enocean = new EnoceanLoader();
       var server = new Server(enocean);
       var snmp = new SNMP();
@@ -39,9 +38,19 @@ class App {
       var network = new Network();
       var frame_manager_alert = new FrameManagerAlert();
 
+      push_web.connect();
+
       network.ifup("eth0").then(() => console.log("eth0 up")).catch(err => console.log(err));
 
       Diagnostic.start();
+
+      wifi.start();
+      server.start();
+      snmp.connect();
+      //enocean.register(server);
+      discovery_service.bind();
+      ble.start();
+      frame_manager_alert.start();
 
       ssh.enable()
       .then(() => {
@@ -72,15 +81,6 @@ class App {
       }).catch(err => {
         if(!NetworkInfo.instance.isGPRS()) Logger.error(err, "ble_up");
       });
-
-      wifi.start();
-      server.start();
-      snmp.connect();
-      push_web.connect();
-      //enocean.register(server);
-      discovery_service.bind();
-      ble.start();
-      frame_manager_alert.start();
 
       wifi.disableDNSMasq().then(() => {}).catch(() => {});
 
@@ -124,7 +124,10 @@ class App {
       snmp.on("log", (log: any) => {
         server.emit("log", log);
       });
-    })
+    } catch(e) {
+      Errors.instance.postJsonError(e, "App::start");
+      throw e;
+    }
   };
 }
 

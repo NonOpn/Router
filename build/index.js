@@ -5,6 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Touch_1 = require("./system/Touch");
 const errors_1 = __importDefault(require("./errors"));
+const log_1 = require("./log");
+const network_1 = __importDefault(require("./network"));
 const errors = errors_1.default.instance;
 const RESTART_DELAY = 180000; //restart the program after 180 000 ms
 class MainEntryPoint {
@@ -26,6 +28,9 @@ class MainEntryPoint {
             const created_domain = domain.create();
             process.on("uncaughtException", (err) => {
                 console.log("oups", err);
+                const gprs = network_1.default.instance.isGPRS();
+                if (!gprs)
+                    log_1.Logger.error(err, "uncaughtException");
             });
             created_domain.on('error', (err) => {
                 const qSilent = () => {

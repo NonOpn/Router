@@ -19,16 +19,14 @@ const device_1 = __importDefault(require("./ble/device"));
 const network_1 = __importDefault(require("./network"));
 const safeBleno_1 = require("./ble/safeBleno");
 const Diagnostic_1 = __importDefault(require("./diagnostic/Diagnostic"));
+const errors_1 = __importDefault(require("./errors"));
 const wifi = wifi_js_1.default.instance;
 class App {
     constructor() {
     }
     start() {
-        new Promise((resolve) => {
+        try {
             reporter_js_1.default.instance.start();
-            //delay the answer to prevent any issue in this session - to improve, just exploring new features
-            setTimeout(() => resolve(true), 5000);
-        }).then(() => {
             var enocean = new enocean_js_1.default();
             var server = new server_js_1.default(enocean);
             var snmp = new snmp_js_1.default();
@@ -38,8 +36,16 @@ class App {
             var ssh = new systemctl_1.SSH();
             var network = new systemctl_1.Network();
             var frame_manager_alert = new frame_manager_alert_js_1.default();
+            push_web.connect();
             network.ifup("eth0").then(() => console.log("eth0 up")).catch(err => console.log(err));
             Diagnostic_1.default.start();
+            wifi.start();
+            server.start();
+            snmp.connect();
+            //enocean.register(server);
+            discovery_service.bind();
+            ble.start();
+            frame_manager_alert.start();
             ssh.enable()
                 .then(() => {
                 console.log("ssh enabled normally...");
@@ -68,14 +74,6 @@ class App {
                 if (!network_1.default.instance.isGPRS())
                     index_js_1.Logger.error(err, "ble_up");
             });
-            wifi.start();
-            server.start();
-            snmp.connect();
-            push_web.connect();
-            //enocean.register(server);
-            discovery_service.bind();
-            ble.start();
-            frame_manager_alert.start();
             wifi.disableDNSMasq().then(() => { }).catch(() => { });
             if (ble.needRepair()) {
                 new index_1.Cat()
@@ -111,7 +109,11 @@ class App {
             snmp.on("log", (log) => {
                 server.emit("log", log);
             });
-        });
+        }
+        catch (e) {
+            errors_1.default.instance.postJsonError(e, "App::start");
+            throw e;
+        }
     }
     ;
 }
