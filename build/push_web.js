@@ -69,16 +69,13 @@ class PushWEB extends events_1.EventEmitter {
                     return;
                 }
                 this._number_to_skip = 4;
-                log_1.Logger.data({ infos: "attempt send?", gprs: index_1.default.instance.isGPRS(), posting: this._posting });
                 if (!!this._posting) {
                     this._protection_network++;
                     //if we have a timeout of 30min which did not clear the network stack... reset !
                     if (this._protection_network >= 3) {
-                        this.log({ context: "posting", reset_posting: true, posting: this._posting }, true);
                         this._protection_network = 0;
                         this._posting = false;
                     }
-                    this.log({ context: "posting", posting: this._posting }, true);
                     return;
                 }
             }
@@ -87,7 +84,6 @@ class PushWEB extends events_1.EventEmitter {
                 return;
             }
             try {
-                this.log({ infos: "attempt send" });
                 //send data over the network
                 this._posting = true;
                 yield this.trySendOk();
@@ -100,8 +96,6 @@ class PushWEB extends events_1.EventEmitter {
         });
         this.trySendOk = () => __awaiter(this, void 0, void 0, function* () {
             try {
-                console.log("try send to send frames");
-                this.log({ infos: "entering" });
                 //TODO for GPRS, when getting unsent, only get the last non alert + every alerts in the steps
                 var crashed = false;
                 var frames = [];
@@ -130,8 +124,6 @@ class PushWEB extends events_1.EventEmitter {
                     }
                     frames = [...frames, ...last120];
                 }
-                console.log("frames ? " + frames);
-                this.log({ infos: "obtained", size: frames.length });
                 if (null == frames || frames.length == 0) {
                     this.log({ infos: "push", none: true }, true);
                 }
@@ -146,7 +138,6 @@ class PushWEB extends events_1.EventEmitter {
                     var first_id = frames.length > 0 ? frames[0].id : 0;
                     const size = to_frames.length;
                     const supportFallback = !!(config_1.default.identity || "").toLocaleLowerCase().startsWith("0xfaa4205");
-                    this.log({ infos: "push done", size: to_frames.length, first_id });
                     // we need support due to a device issue impacting the 0xfaa4205 rout@ir
                     if (supportFallback)
                         yield this.setSent(to_frames);
@@ -165,7 +156,6 @@ class PushWEB extends events_1.EventEmitter {
         });
         this.setSent = (frames) => __awaiter(this, void 0, void 0, function* () {
             var j = 0;
-            this.log({ sent: (frames || []).length });
             while (j < frames.length) {
                 const frame = frames[j];
                 try {
@@ -180,7 +170,6 @@ class PushWEB extends events_1.EventEmitter {
             try {
                 const json = { host: config_1.default.identity, version: VERSION };
                 const gprs = index_1.default.instance.isGPRS();
-                console.log("posting json");
                 if (!gprs) {
                     yield log_1.Logger.post("contact-platform.com", 443, "/api/echo", {}, json);
                 }

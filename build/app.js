@@ -24,6 +24,15 @@ const wifi = wifi_js_1.default.instance;
 class App {
     constructor() {
     }
+    safeStart(callback) {
+        try {
+            callback();
+        }
+        catch (e) {
+            errors_1.default.instance.postJsonError(e, "App::start");
+            throw e;
+        }
+    }
     start() {
         try {
             reporter_js_1.default.instance.start();
@@ -36,16 +45,16 @@ class App {
             var ssh = new systemctl_1.SSH();
             var network = new systemctl_1.Network();
             var frame_manager_alert = new frame_manager_alert_js_1.default();
-            push_web.connect();
-            network.ifup("eth0").then(() => console.log("eth0 up")).catch(err => console.log(err));
-            Diagnostic_1.default.start();
-            wifi.start();
-            server.start();
-            snmp.connect();
+            this.safeStart(() => push_web.connect());
+            this.safeStart(() => Diagnostic_1.default.start());
+            this.safeStart(() => wifi.start());
+            this.safeStart(() => server.start());
+            this.safeStart(() => snmp.connect());
+            this.safeStart(() => discovery_service.bind());
+            this.safeStart(() => ble.start());
+            this.safeStart(() => frame_manager_alert.start());
             //enocean.register(server);
-            discovery_service.bind();
-            ble.start();
-            frame_manager_alert.start();
+            network.ifup("eth0").then(() => console.log("eth0 up")).catch(err => console.log(err));
             ssh.enable()
                 .then(() => {
                 console.log("ssh enabled normally...");
@@ -105,7 +114,7 @@ class App {
             });
             enocean.on("frame", (frame) => {
             });
-            enocean.init();
+            this.safeStart(() => enocean.init());
             snmp.on("log", (log) => {
                 server.emit("log", log);
             });

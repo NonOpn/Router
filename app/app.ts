@@ -24,6 +24,15 @@ class App {
 
   }
 
+  private safeStart(callback: () => void) {
+    try {
+      callback();
+    } catch(e) {
+      Errors.instance.postJsonError(e, "App::start");
+      throw e;
+    }
+  }
+
   start() {
     try {
       Reporter.instance.start();
@@ -38,19 +47,17 @@ class App {
       var network = new Network();
       var frame_manager_alert = new FrameManagerAlert();
 
-      push_web.connect();
+      this.safeStart(() => push_web.connect());
+      this.safeStart(() => Diagnostic.start());
+      this.safeStart(() => wifi.start());
+      this.safeStart(() => server.start());
+      this.safeStart(() => snmp.connect());
+      this.safeStart(() => discovery_service.bind());
+      this.safeStart(() => ble.start());
+      this.safeStart(() => frame_manager_alert.start());
+      //enocean.register(server);
 
       network.ifup("eth0").then(() => console.log("eth0 up")).catch(err => console.log(err));
-
-      Diagnostic.start();
-
-      wifi.start();
-      server.start();
-      snmp.connect();
-      //enocean.register(server);
-      discovery_service.bind();
-      ble.start();
-      frame_manager_alert.start();
 
       ssh.enable()
       .then(() => {
@@ -119,7 +126,7 @@ class App {
       enocean.on("frame", (frame: any) => {
       });
 
-      enocean.init();
+      this.safeStart(() => enocean.init());
 
       snmp.on("log", (log: any) => {
         server.emit("log", log);

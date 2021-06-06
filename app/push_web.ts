@@ -79,19 +79,16 @@ export default class PushWEB extends EventEmitter {
 			}
 	
 			this._number_to_skip = 4;
-			Logger.data({ infos: "attempt send?", gprs: NetworkInfo.instance.isGPRS(), posting: this._posting});
 	
 			if(!!this._posting) {
 				this._protection_network ++;
 	
 				//if we have a timeout of 30min which did not clear the network stack... reset !
 				if(this._protection_network >= 3) {
-					this.log({ context: "posting", reset_posting: true, posting: this._posting }, true);
 					this._protection_network = 0;
 					this._posting = false;
 				}
 	
-				this.log({ context: "posting", posting: this._posting }, true);
 				return;
 			}
 		} catch(e) {
@@ -100,7 +97,6 @@ export default class PushWEB extends EventEmitter {
 		}
 
 		try {
-			this.log({ infos: "attempt send"});
 			//send data over the network
 			this._posting = true;
 			await this.trySendOk();
@@ -114,9 +110,6 @@ export default class PushWEB extends EventEmitter {
 
 	trySendOk = async () => {
 		try {
-			console.log("try send to send frames");
-
-			this.log({ infos: "entering" });
 			//TODO for GPRS, when getting unsent, only get the last non alert + every alerts in the steps
 
 			var crashed = false;
@@ -147,10 +140,6 @@ export default class PushWEB extends EventEmitter {
 				frames = [...frames, ...last120];
 			}
 
-			console.log("frames ? " + frames);
-
-			this.log({ infos: "obtained", size: frames.length });
-
 			if(null == frames || frames.length == 0) {
 				this.log({ infos: "push", none: true }, true);
 			} else {
@@ -167,9 +156,6 @@ export default class PushWEB extends EventEmitter {
 				var first_id = frames.length > 0 ? frames[0].id : 0;
 				const size = to_frames.length;
 				const supportFallback = !!(config.identity || "").toLocaleLowerCase().startsWith("0xfaa4205");
-
-				this.log({ infos: "push done", size: to_frames.length, first_id });
-
 
 				// we need support due to a device issue impacting the 0xfaa4205 rout@ir
 				if(supportFallback) await this.setSent(to_frames);
@@ -191,7 +177,6 @@ export default class PushWEB extends EventEmitter {
 
 	private setSent = async (frames: RequestFrames[]) => {
 		var j = 0;
-		this.log({ sent: (frames||[]).length });
 		while(j < frames.length) {
 			const frame = frames[j];
 			try {
@@ -207,7 +192,6 @@ export default class PushWEB extends EventEmitter {
 		try {
 			const json = { host: config.identity, version: VERSION };
 			const gprs = NetworkInfo.instance.isGPRS();
-			console.log("posting json");
 	
 			if(!gprs) {
 				await Logger.post("contact-platform.com", 443, "/api/echo", {}, json);
