@@ -94,41 +94,46 @@ class SNMP extends events_1.EventEmitter {
         }
     }
     connect() {
-        this.agent = snmpjs_1.default.createAgent();
-        var mib = [{
-                oid: config.router_oid + ".1",
-                handler: (prq) => {
-                    var val = snmpjs_1.default.data.createData({
-                        type: "OctetString",
-                        value: "Rout@ir v" + VERSION
+        try {
+            this.agent = snmpjs_1.default.createAgent();
+            var mib = [{
+                    oid: config.router_oid + ".1",
+                    handler: (prq) => {
+                        var val = snmpjs_1.default.data.createData({
+                            type: "OctetString",
+                            value: "Rout@ir v" + VERSION
+                        });
+                        snmpjs_1.default.provider.readOnlyScalar(prq, val);
+                    }
+                },
+                {
+                    oid: config.router_oid + ".2",
+                    handler: (prq) => {
+                        var val = snmpjs_1.default.data.createData({
+                            type: "OctetString",
+                            value: new Date().toString()
+                        });
+                        snmpjs_1.default.provider.readOnlyScalar(prq, val);
+                    }
+                }];
+            config.agents.forEach((conf) => {
+                try {
+                    const instance = instantiate(conf);
+                    instance.asMib().forEach((sub_mib) => {
+                        mib.push(sub_mib);
                     });
-                    snmpjs_1.default.provider.readOnlyScalar(prq, val);
+                    this.agents.push(instance);
                 }
-            },
-            {
-                oid: config.router_oid + ".2",
-                handler: (prq) => {
-                    var val = snmpjs_1.default.data.createData({
-                        type: "OctetString",
-                        value: new Date().toString()
-                    });
-                    snmpjs_1.default.provider.readOnlyScalar(prq, val);
+                catch (e) {
+                    console.log(e);
                 }
-            }];
-        config.agents.forEach((conf) => {
-            try {
-                const instance = instantiate(conf);
-                instance.asMib().forEach((sub_mib) => {
-                    mib.push(sub_mib);
-                });
-                this.agents.push(instance);
-            }
-            catch (e) {
-                console.log(e);
-            }
-        });
-        this.agent.request(mib);
-        this.agent.bind({ family: 'udp4', port: 161 });
+            });
+            this.agent.request(mib);
+            this.agent.bind({ family: 'udp4', port: 161 });
+        }
+        catch (e) {
+            console.error("not starting ... ", e);
+        }
     }
 }
 exports.default = SNMP;

@@ -106,45 +106,49 @@ export default class SNMP extends EventEmitter {
 	}
 	
 	connect() {
-		this.agent = snmp.createAgent();
-	
-		var mib = [{
-			oid: config.router_oid+".1",
-			handler: (prq: any) => {
-				var val = snmp.data.createData({
-					type: "OctetString",
-					value: "Rout@ir v"+VERSION
-				});
-	
-				snmp.provider.readOnlyScalar(prq, val);
-			}
-		},
-		{
-			oid: config.router_oid+".2",
-			handler: (prq: any) => {
-				var val = snmp.data.createData({
-					type: "OctetString",
-					value: new Date().toString()
-				});
-	
-				snmp.provider.readOnlyScalar(prq, val);
-			}
-		}];
-	
-		config.agents.forEach((conf: any) => {
-			try{
-				const instance = instantiate(conf);
-				instance.asMib().forEach((sub_mib: any) => {
-					mib.push(sub_mib)
-				});
-	
-				this.agents.push(instance);
-			}catch(e) {
-				console.log(e);
-			}
-	
-		});
-		this.agent.request(mib);
-		this.agent.bind({ family: 'udp4', port: 161 });
+		try {
+			this.agent = snmp.createAgent();
+		
+			var mib = [{
+				oid: config.router_oid+".1",
+				handler: (prq: any) => {
+					var val = snmp.data.createData({
+						type: "OctetString",
+						value: "Rout@ir v"+VERSION
+					});
+		
+					snmp.provider.readOnlyScalar(prq, val);
+				}
+			},
+			{
+				oid: config.router_oid+".2",
+				handler: (prq: any) => {
+					var val = snmp.data.createData({
+						type: "OctetString",
+						value: new Date().toString()
+					});
+		
+					snmp.provider.readOnlyScalar(prq, val);
+				}
+			}];
+		
+			config.agents.forEach((conf: any) => {
+				try{
+					const instance = instantiate(conf);
+					instance.asMib().forEach((sub_mib: any) => {
+						mib.push(sub_mib)
+					});
+		
+					this.agents.push(instance);
+				}catch(e) {
+					console.log(e);
+				}
+		
+			});
+			this.agent.request(mib);
+			this.agent.bind({ family: 'udp4', port: 161 });
+		} catch(e) {
+			console.error("not starting ... ", e);
+		}
 	}
 }
