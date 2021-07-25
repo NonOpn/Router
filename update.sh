@@ -216,9 +216,10 @@ cd /usr/local/routair
 # UPDATE PYTHON IF REQUIRED
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-echo "manage python script..."
-bash ./scripts/python_configure.sh
-cd /usr/local/routair
+echo "no python configuration, enabling in the future with LTS management"
+#echo "manage python script..."
+#bash ./scripts/python_configure.sh
+#cd /usr/local/routair
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # UPDATE RSYSLOG TO PREVENT SIZE ISSUE
@@ -254,11 +255,11 @@ cp tmp_config.json config/snmp.json
 #else
 #  # restore here
 #fi
-cp systemd/routair_diagnostic.service /etc/systemd/system/routair_diagnostic.service
-systemctl daemon-reload
-systemctl enable routair_diagnostic.service
-systemctl start routair_diagnostic.service
-
+echo "no python configuration, enabling in the future with LTS management"
+#cp systemd/routair_diagnostic.service /etc/systemd/system/routair_diagnostic.service
+#systemctl daemon-reload
+#systemctl enable routair_diagnostic.service
+#systemctl start routair_diagnostic.service
 
 sh /usr/local/routair/scripts/repair.sh
 
