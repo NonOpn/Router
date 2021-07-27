@@ -215,27 +215,26 @@ class DeviceManagement {
     }
     //previous implementation checked out only
     setType(device, type) {
-        return device.getInternalSerial()
-            .then(serial => {
-            return device.getType()
-                .then(previous_type => {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const serial = yield device.getInternalSerial();
+                const previous_type = yield device.getType();
                 console.log("device :: setType " + previous_type + " " + type);
                 if (previous_type != type) {
-                    return Promise.all([
+                    yield Promise.all([
                         frame_model_compress_1.default.instance.invalidateAlerts(device.getId()),
                         frame_model_1.default.instance.invalidateAlerts(device.getId())
-                    ])
-                        .then(() => device.setType(type).then(() => serial));
+                    ]);
                 }
-                return device.setType(type).then(() => serial);
-            })
-                .then(() => {
-                return model_devices.saveType(serial, stringTypeToInt(type || "paratonair"))
-                    .then(() => this.getDevice(serial));
-            });
-        })
-            .then(device => device)
-            .catch(err => device);
+                yield device.setType(type);
+                yield model_devices.saveType(serial, stringTypeToInt(type || "paratonair"));
+                return this.getDevice(serial);
+            }
+            catch (err) {
+                console.log("setType, having exception", err);
+            }
+            return device;
+        });
     }
     getDeviceForContactair(contactair) {
         return model_devices.getDeviceForContactair(contactair)

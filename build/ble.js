@@ -209,6 +209,7 @@ class BLEPrimaryDeviceService extends safeBleno_1.PrimaryService {
                 new BLEAsyncDescriptionCharacteristic("0008", () => device.getAdditionnalInfo1()),
                 new BLEAsyncDescriptionCharacteristic("0009", () => device.getAdditionnalInfo2()),
                 new BLEAsyncDescriptionCharacteristic("000A", () => device.getLatestFramesAsString()),
+                new BLEAsyncDescriptionCharacteristic("000B", () => device.getLatestAlertFramesAsString()),
             ]
         });
         this.device = device;
@@ -369,8 +370,8 @@ class BLE {
             new BLEReadWriteLogCharacteristic("0104"),
             new BLEReadWriteLogCharacteristic("0105", true),
             new BLEReadWriteLogCharacteristic("0106", true, false),
-            new BLEReadWriteLogIsAlertCharacteristic("0107", false, true)
-            //this._notify_frame
+            new BLEReadWriteLogIsAlertCharacteristic("0107", false, true),
+            new BLEAsyncDescriptionCharacteristic("0108", () => this._getPendingCalculations()),
         ];
         this._refreshing_called_once = false;
         this._ble_service = new BLEPrimaryService(this._characteristics);
@@ -459,6 +460,10 @@ class BLE {
                 }
             });
         }
+    }
+    _getPendingCalculations() {
+        return frame_model_1.default.instance.getPendingCalculations()
+            .then(count => `${count}`);
     }
     _onDeviceSeenCall() {
         return new Promise((resolve, reject) => {

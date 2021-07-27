@@ -1,7 +1,7 @@
 import os from 'os';
 import { DataPointModel } from './../database/data_point';
 import AbstractDevice, { Filter, OID } from "./abstract";
-import FrameModelCompress from '../push_web/frame_model_compress';
+import { Transaction } from '../push_web/frame_model';
 
 export enum Detection {
   NORMAL = 0,
@@ -130,21 +130,17 @@ export default class AlertairTS extends AbstractDevice {
     return "-1";
   }
 
-  getFormattedLatestFrames(): Promise<any[]> {
-    return this.getLatestFrames()
-    .then(transactions => transactions.map(transaction => {
-      const compressed = FrameModelCompress.instance.getFrameWithoutHeader(transaction.frame);
-      return {
-        d: transaction.timestamp,
-        c: !!AlertairTS.isConnected(compressed),
-        a: !!AlertairTS.isAlert(compressed),
-        s: !!transaction.sent,
-        t: AlertairTS.detectionType(compressed),
-        km: AlertairTS.distance(compressed)
-      }
-    }))
+  protected format_frame(transaction: Transaction, compressed: string){
+    return {
+      d: transaction.timestamp,
+      c: !!AlertairTS.isConnected(compressed),
+      a: !!AlertairTS.isAlert(compressed),
+      s: !!transaction.sent,
+      t: AlertairTS.detectionType(compressed),
+      km: AlertairTS.distance(compressed)
+    }
   }
-  
+
   detectionStr(detection: Detection) {
       switch(detection) {
           case Detection.ARRIVAL: return "arrival";

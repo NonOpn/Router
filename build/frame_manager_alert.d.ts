@@ -14,5 +14,6 @@ export default class FrameManagerAlert extends EventEmitter {
     private tryUpdateDevicesForContactairs;
     private setDevicesForInvalidProductsOrAlerts;
     private manageFrame;
+    private wait;
     private checkNextTransactions;
 }

@@ -265,6 +265,7 @@ class BLEPrimaryDeviceService extends PrimaryService {
         new BLEAsyncDescriptionCharacteristic("0008", () => device.getAdditionnalInfo1()),
         new BLEAsyncDescriptionCharacteristic("0009", () => device.getAdditionnalInfo2()),
         new BLEAsyncDescriptionCharacteristic("000A", () => device.getLatestFramesAsString()),
+        new BLEAsyncDescriptionCharacteristic("000B", () => device.getLatestAlertFramesAsString()),
       ]
     });
 
@@ -393,7 +394,9 @@ export default class BLE {
       new BLEReadWriteLogCharacteristic("0104"),
       new BLEReadWriteLogCharacteristic("0105", true),
       new BLEReadWriteLogCharacteristic("0106", true, false),
-      new BLEReadWriteLogIsAlertCharacteristic("0107", false, true)
+      new BLEReadWriteLogIsAlertCharacteristic("0107", false, true),
+      new BLEAsyncDescriptionCharacteristic("0108", () => this._getPendingCalculations()),
+
       //this._notify_frame
     ];
 
@@ -574,6 +577,11 @@ export default class BLE {
         }
       });
     }
+  }
+
+  private _getPendingCalculations(): Promise<string> {
+    return FrameModel.instance.getPendingCalculations()
+    .then(count => `${count}`);
   }
 
   _onDeviceSeenCall(): Promise<string> {

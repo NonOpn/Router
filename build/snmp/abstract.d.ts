@@ -12,7 +12,7 @@ export interface OID {
     oid: string;
     handler: CallbackOID;
 }
-export default class AbstractDevice {
+export default abstract class AbstractDevice {
     agent: any | undefined;
     params: any | undefined;
     snmp: any | undefined;
@@ -41,7 +41,12 @@ export default class AbstractDevice {
     getLPSFR(): any;
     getLatest(): Promise<DataPointModel | undefined>;
     getLatestFrames(): Promise<Transaction[]>;
+    getLatestAlertFrames(): Promise<Transaction[]>;
+    getFormattedLatestAlertFrames(): Promise<any[]>;
     getFormattedLatestFrames(): Promise<any[]>;
+    protected getFormatted(callback: () => Promise<Transaction[]>): Promise<any[]>;
+    protected abstract format_frame(transaction: Transaction, compressed: string): void;
+    getLatestAlertFramesAsString(): Promise<string>;
     getLatestFramesAsString(): Promise<string>;
     getAdditionnalInfo1(): Promise<string>;
     getAdditionnalInfo2(): Promise<string>;

@@ -1,6 +1,6 @@
 import { DataPointModel } from './../database/data_point';
 import AbstractDevice, { Filter, OID } from "./abstract";
-import FrameModelCompress from '../push_web/frame_model_compress';
+import { Transaction } from '../push_web/frame_model';
 
 export default class Ellips extends AbstractDevice {
   constructor(params: any) {
@@ -33,6 +33,13 @@ export default class Ellips extends AbstractDevice {
       if(disconnect) return "striken";
     }
     return "normal";
+  }
+
+  protected format_frame(transaction: Transaction, compressed: string){
+    return {
+      d: transaction.timestamp,
+      s: !!transaction.sent
+    }
   }
 
   asMib(): OID[] {

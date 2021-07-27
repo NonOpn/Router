@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -160,11 +169,10 @@ class FrameManagerAlert extends events_1.EventEmitter {
         });
     }
     manageFrame(devices, from, until) {
-        return frame_model_1.default.instance.getFrame(from, until)
-            .then(frames => {
-            frames = frames || [];
+        return __awaiter(this, void 0, void 0, function* () {
+            const frames = (yield frame_model_1.default.instance.getFrame(from, until)) || [];
             if (frames.length == 0)
-                return Promise.resolve(-1);
+                return -1;
             var next = frames.reduce((t1, t2) => {
                 if (!t1.id)
                     return t2;
@@ -172,33 +180,36 @@ class FrameManagerAlert extends events_1.EventEmitter {
                     return t1;
                 return t1.id > t2.id ? t1 : t2;
             }, frames[0]);
-            return this.setDevicesForInvalidProductsOrAlerts(devices, frames)
-                .then(() => (next.id || -1) + 1);
+            yield this.setDevicesForInvalidProductsOrAlerts(devices, frames);
+            return (next.id || -1) + 1;
         });
     }
+    wait(timeout) {
+        return new Promise(resolve => setTimeout(() => resolve(true), timeout));
+    }
     checkNextTransactions() {
-        device_model_js_1.default.instance.list()
-            .then(devices => {
-            return frame_model_1.default.instance.getMaxFrame()
-                .then(maximum => {
-                if (maximum > 0)
-                    return this.manageFrame(devices, Math.max(1, maximum - 50), 50).then(() => true).catch(() => true);
-                return Promise.resolve(true);
-            })
-                .then(() => this.manageFrame(devices, this._current_index, 200))
-                .then(new_index => {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const devices = yield device_model_js_1.default.instance.list();
+                const maximum = yield frame_model_1.default.instance.getMaxFrame();
+                try {
+                    if (maximum > 0)
+                        yield this.manageFrame(devices, Math.max(1, maximum - 50), 50);
+                }
+                catch (e) {
+                }
+                const new_index = yield this.manageFrame(devices, this._current_index, 200);
                 if (new_index == -1) {
                     this._current_index = -1;
-                    return new Promise(resolve => setTimeout(() => resolve(true), 50000));
+                    yield this.wait(50000);
                 }
                 this._current_index = new_index;
-                return true;
-            });
-        })
-            .then(() => setTimeout(() => this.checkNextTransactions(), 500))
-            .catch(err => {
-            console.error("error", err);
-            setTimeout(() => this.checkNextTransactions(), 5000);
+                setTimeout(() => this.checkNextTransactions(), 500);
+            }
+            catch (err) {
+                console.error("error", err);
+                setTimeout(() => this.checkNextTransactions(), 5000);
+            }
         });
     }
 }

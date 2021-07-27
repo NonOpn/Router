@@ -37,6 +37,12 @@ class Ellips extends abstract_1.default {
         }
         return "normal";
     }
+    format_frame(transaction, compressed) {
+        return {
+            d: transaction.timestamp,
+            s: !!transaction.sent
+        };
+    }
     asMib() {
         return [
             {

@@ -1,5 +1,6 @@
 import { DataPointModel } from './../database/data_point';
 import AbstractDevice, { Filter, OID } from "./abstract";
+import { Transaction } from '../push_web/frame_model';
 export declare enum Detection {
     NORMAL = 0,
     CALIBRATION_OK = 1,
@@ -25,7 +26,14 @@ export default class AlertairTS extends AbstractDevice {
     getAdditionnalInfo2String(item: DataPointModel | undefined): string;
     getDistance(item: DataPointModel | undefined): string;
     getDetectionType(item: DataPointModel | undefined): string;
-    getFormattedLatestFrames(): Promise<any[]>;
+    protected format_frame(transaction: Transaction, compressed: string): {
+        d: number;
+        c: boolean;
+        a: boolean;
+        s: boolean;
+        t: Detection;
+        km: number;
+    };
     detectionStr(detection: Detection): "close" | "normal" | "arrival" | "departing" | "stable" | "approaching" | "far" | "noise" | "disturbing" | "cal_ok";
     asMib(): OID[];
 }

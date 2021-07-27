@@ -208,47 +208,48 @@ export default class FrameManagerAlert extends EventEmitter {
 		});
 	}
 
-	private manageFrame(devices: Device[], from: number, until: number): Promise<number> {
-		return FrameModel.instance.getFrame(from, until)
-		.then(frames => {
-			frames = frames || [];
+	private async manageFrame(devices: Device[], from: number, until: number): Promise<number> {
+		const frames = (await FrameModel.instance.getFrame(from, until)) || [];
 
-			if(frames.length == 0) return Promise.resolve(-1);
+		if(frames.length == 0) return -1;
 
-			var next = frames.reduce((t1, t2) => {
-				if(!t1.id) return t2;
-				if(!t2.id) return t1;
-				return t1.id > t2.id ? t1 : t2;
-			}, frames[0]);
+		var next = frames.reduce((t1, t2) => {
+			if(!t1.id) return t2;
+			if(!t2.id) return t1;
+			return t1.id > t2.id ? t1 : t2;
+		}, frames[0]);
 
-			return this.setDevicesForInvalidProductsOrAlerts(devices, frames)
-			.then(() => (next.id || -1) + 1);
-		});
+		await this.setDevicesForInvalidProductsOrAlerts(devices, frames)
+		return (next.id || -1) + 1;
 	}
 
-	private checkNextTransactions() {
-		DeviceModel.instance.list()
-		.then(devices => {
-			return FrameModel.instance.getMaxFrame()
-			.then(maximum => {
-				if(maximum > 0) return this.manageFrame(devices, Math.max(1, maximum - 50), 50).then(() => true).catch(() => true);
-				return Promise.resolve(true);
-			})
-			.then(() => this.manageFrame(devices, this._current_index, 200))
-			.then(new_index => {
-				if(new_index == -1) {
-					this._current_index = -1;
-					return new Promise(resolve => setTimeout(() => resolve(true), 50000));
-				}
+	private wait(timeout: number) {
+		return new Promise(resolve => setTimeout(() => resolve(true), timeout));
+	}
 
-				this._current_index = new_index;
-				return true;
-			})
-		})
-		.then(() => setTimeout(() => this.checkNextTransactions(), 500))
-		.catch(err => {
+	private async checkNextTransactions() {
+		try {
+			const devices = await DeviceModel.instance.list();
+			const maximum = await FrameModel.instance.getMaxFrame();
+			try {
+				if(maximum > 0) await this.manageFrame(devices, Math.max(1, maximum - 50), 50);
+			} catch(e) {
+
+			}
+
+			const new_index = await this.manageFrame(devices, this._current_index, 200);
+
+			if(new_index == -1) {
+				this._current_index = -1;
+				await this.wait(50000);
+			}
+
+			this._current_index = new_index;
+
+			setTimeout(() => this.checkNextTransactions(), 500);
+		} catch(err) {
 			console.error("error", err);
 			setTimeout(() => this.checkNextTransactions(), 5000);
-		})
+		}
 	}
 }

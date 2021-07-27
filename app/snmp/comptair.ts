@@ -1,7 +1,7 @@
 import os from 'os';
 import { DataPointModel } from './../database/data_point';
 import AbstractDevice, { Filter, OID } from "./abstract";
-import FrameModelCompress from '../push_web/frame_model_compress';
+import { Transaction } from '../push_web/frame_model';
 
 export default class Comptair extends AbstractDevice {
   constructor(params: any) {
@@ -46,17 +46,13 @@ export default class Comptair extends AbstractDevice {
     return connected ? "striken" : "normal";
   }
 
-  getFormattedLatestFrames(): Promise<any[]> {
-    return this.getLatestFrames()
-    .then(transactions => transactions.map(transaction => {
-      const compressed = FrameModelCompress.instance.getFrameWithoutHeader(transaction.frame);
-      return {
-        d: transaction.timestamp,
-        c: Comptair.isConnected(compressed),
-        a: Comptair.isStriken(compressed),
-        s: !!transaction.sent
-      }
-    }))
+  protected format_frame(transaction: Transaction, compressed: string){
+    return {
+      d: transaction.timestamp,
+      c: Comptair.isConnected(compressed),
+      a: Comptair.isStriken(compressed),
+      s: !!transaction.sent
+    }
   }
 
   asMib(): OID[] {

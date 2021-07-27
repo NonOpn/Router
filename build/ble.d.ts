@@ -22,6 +22,7 @@ export default class BLE {
     onStateChanged: (state: string) => void;
     startDelayed(): void;
     onFrame(device: AbstractDevice | undefined, frame: any): void;
+    private _getPendingCalculations;
     _onDeviceSeenCall(): Promise<string>;
     json(value: string): any;
     _onNetwork(value: string): Promise<boolean>;

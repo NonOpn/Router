@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -6,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const frame_model_1 = __importDefault(require("./../push_web/frame_model"));
 const data_point_1 = __importDefault(require("../database/data_point"));
 const snmpjs_1 = __importDefault(require("snmpjs"));
+const frame_model_compress_1 = __importDefault(require("../push_web/frame_model_compress"));
 class AbstractDevice {
     constructor() {
         this.agent = undefined;
@@ -95,8 +105,28 @@ class AbstractDevice {
     getLatestFrames() {
         return frame_model_1.default.instance.lasts(this.getId(), 5);
     }
+    getLatestAlertFrames() {
+        return frame_model_1.default.instance.lastsAlerts(this.getId(), 5);
+    }
+    getFormattedLatestAlertFrames() {
+        return this.getFormatted(() => this.getLatestAlertFrames());
+    }
     getFormattedLatestFrames() {
-        return Promise.reject("invalid");
+        return this.getFormatted(() => this.getLatestFrames());
+    }
+    getFormatted(callback) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const transactions = yield callback();
+            return transactions.map(transaction => {
+                const compressed = frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame);
+                return this.format_frame(transaction, compressed);
+            });
+        });
+    }
+    getLatestAlertFramesAsString() {
+        return this.getFormattedLatestAlertFrames()
+            .then(array => JSON.stringify(array))
+            .catch(err => { console.log(err); return JSON.stringify({ error: true }); });
     }
     getLatestFramesAsString() {
         return this.getFormattedLatestFrames()

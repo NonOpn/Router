@@ -162,28 +162,26 @@ export default class DeviceManagement {
     }
 
     //previous implementation checked out only
-    setType(device: AbstractDevice, type?: TYPE): Promise<AbstractDevice|undefined> {
-        return device.getInternalSerial()
-        .then(serial => {
-            return device.getType()
-            .then(previous_type => {
-                console.log("device :: setType " + previous_type+" "+type);
-                if(previous_type != type) {
-                    return Promise.all([
-                        FrameModelCompress.instance.invalidateAlerts(device.getId()),
-                        FrameModel.instance.invalidateAlerts(device.getId())
-                    ])
-                    .then(() => device.setType(type).then(() => serial))
-                }
-                return device.setType(type).then(() => serial);
-            })
-            .then(() => {
-                return model_devices.saveType(serial, stringTypeToInt(type || "paratonair"))
-                .then(() => this.getDevice(serial))
-            });
-        })
-        .then(device => device)
-        .catch(err => device);
+    async setType(device: AbstractDevice, type?: TYPE): Promise<AbstractDevice|undefined> {
+        try {
+            const serial = await device.getInternalSerial();
+
+            const previous_type = await device.getType();
+            console.log("device :: setType " + previous_type+" "+type);
+    
+            if(previous_type != type) {
+                await Promise.all([
+                    FrameModelCompress.instance.invalidateAlerts(device.getId()),
+                    FrameModel.instance.invalidateAlerts(device.getId())
+                ])
+            }
+            await device.setType(type);
+            await model_devices.saveType(serial, stringTypeToInt(type || "paratonair"));
+            return this.getDevice(serial);
+        } catch(err) {
+            console.log("setType, having exception", err);
+        }
+        return device;
     }
 
     getDeviceForContactair(contactair: string): Promise<AbstractDevice|undefined> {

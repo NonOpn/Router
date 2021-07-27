@@ -271,6 +271,25 @@ export default class FrameModel extends Abstract {
     });
   }
 
+  lastsAlerts(product_id: number, limit: number): Promise<Transaction[]> {
+    return new Promise((resolve, reject) => {
+      pool.queryParameters("SELECT * FROM Frames WHERE is_alert = 1 AND product_id = ? ORDER BY id DESC LIMIT ?", [product_id, limit])
+      .then(results => results && results.length > 0 ? resolve(results) : resolve([]))
+      .catch(err => manageErrorCrash(err, reject));
+    });
+  }
+
+  public async getPendingCalculations(): Promise<number> {
+    const result: any[] = await new Promise((resolve, reject) => {
+      pool.queryParameters("SELECT COUNT(*) FROM Frames WHERE product_id IS NOT NULL AND is_alert IS NULL ", [])
+      .then(results => resolve(results))
+      .catch(() => resolve([]));
+    });
+
+    if(result && result.length > 0) return result[0].count;
+    return 0;
+  }
+
   getFrameIsAlert(index: number, limit: number): Promise<Transaction[]|undefined> {
     return new Promise((resolve, reject) => {
       pool.queryParameters("SELECT * FROM Frames WHERE id >= ? AND is_alert = 1 ORDER BY id LIMIT ?", [index, limit])

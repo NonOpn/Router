@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Detection = void 0;
 const os_1 = __importDefault(require("os"));
 const abstract_1 = __importDefault(require("./abstract"));
-const frame_model_compress_1 = __importDefault(require("../push_web/frame_model_compress"));
 var Detection;
 (function (Detection) {
     Detection[Detection["NORMAL"] = 0] = "NORMAL";
@@ -130,19 +129,15 @@ class AlertairTS extends abstract_1.default {
         }
         return "-1";
     }
-    getFormattedLatestFrames() {
-        return this.getLatestFrames()
-            .then(transactions => transactions.map(transaction => {
-            const compressed = frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame);
-            return {
-                d: transaction.timestamp,
-                c: !!AlertairTS.isConnected(compressed),
-                a: !!AlertairTS.isAlert(compressed),
-                s: !!transaction.sent,
-                t: AlertairTS.detectionType(compressed),
-                km: AlertairTS.distance(compressed)
-            };
-        }));
+    format_frame(transaction, compressed) {
+        return {
+            d: transaction.timestamp,
+            c: !!AlertairTS.isConnected(compressed),
+            a: !!AlertairTS.isAlert(compressed),
+            s: !!transaction.sent,
+            t: AlertairTS.detectionType(compressed),
+            km: AlertairTS.distance(compressed)
+        };
     }
     detectionStr(detection) {
         switch (detection) {

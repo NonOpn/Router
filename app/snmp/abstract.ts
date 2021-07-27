@@ -2,7 +2,7 @@ import FrameModel, { Transaction } from './../push_web/frame_model';
 import { DataPointModel } from '../database/data_point';
 import DataPoint from "../database/data_point";
 import snmp from "snmpjs";
-import { TYPE } from '../ble/device';
+import FrameModelCompress from '../push_web/frame_model_compress';
 
 export interface Filter {
   key: string,
@@ -18,7 +18,7 @@ export interface OID {
   handler: CallbackOID;
 }
 
-export default class AbstractDevice {
+export default abstract class AbstractDevice {
   agent: any|undefined;
   params: any|undefined;
   snmp: any|undefined;
@@ -126,11 +126,35 @@ export default class AbstractDevice {
     return FrameModel.instance.lasts(this.getId(), 5);
   }
 
-  getFormattedLatestFrames(): Promise<any[]> {
-    return Promise.reject("invalid");
+  getLatestAlertFrames(): Promise<Transaction[]> {
+    return FrameModel.instance.lastsAlerts(this.getId(), 5);
   }
 
-  getLatestFramesAsString(): Promise<string> {
+  getFormattedLatestAlertFrames(): Promise<any[]> {
+    return this.getFormatted(() => this.getLatestAlertFrames());
+  }
+
+  getFormattedLatestFrames(): Promise<any[]> {
+    return this.getFormatted(() => this.getLatestFrames());
+  }
+
+  protected async getFormatted(callback: () => Promise<Transaction[]>): Promise<any[]> {
+    const transactions = await callback();
+    return transactions.map(transaction => {
+      const compressed = FrameModelCompress.instance.getFrameWithoutHeader(transaction.frame);
+      return this.format_frame(transaction, compressed);
+    });
+  }
+
+  protected abstract format_frame(transaction: Transaction, compressed: string): void;
+
+  public getLatestAlertFramesAsString(): Promise<string> {
+    return this.getFormattedLatestAlertFrames()
+    .then(array => JSON.stringify(array))
+    .catch(err => { console.log(err); return JSON.stringify({error: true}); })
+  }
+
+  public getLatestFramesAsString(): Promise<string> {
     return this.getFormattedLatestFrames()
     .then(array => JSON.stringify(array))
     .catch(err => { console.log(err); return JSON.stringify({error: true}); })

@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -240,6 +249,25 @@ class FrameModel extends abstract_js_1.default {
             pool.queryParameters("SELECT * FROM Frames WHERE product_id = ? ORDER BY id DESC LIMIT ?", [product_id, limit])
                 .then(results => results && results.length > 0 ? resolve(results) : resolve([]))
                 .catch(err => manageErrorCrash(err, reject));
+        });
+    }
+    lastsAlerts(product_id, limit) {
+        return new Promise((resolve, reject) => {
+            pool.queryParameters("SELECT * FROM Frames WHERE is_alert = 1 AND product_id = ? ORDER BY id DESC LIMIT ?", [product_id, limit])
+                .then(results => results && results.length > 0 ? resolve(results) : resolve([]))
+                .catch(err => manageErrorCrash(err, reject));
+        });
+    }
+    getPendingCalculations() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield new Promise((resolve, reject) => {
+                pool.queryParameters("SELECT COUNT(*) FROM Frames WHERE product_id IS NOT NULL AND is_alert IS NULL ", [])
+                    .then(results => resolve(results))
+                    .catch(() => resolve([]));
+            });
+            if (result && result.length > 0)
+                return result[0].count;
+            return 0;
         });
     }
     getFrameIsAlert(index, limit) {
