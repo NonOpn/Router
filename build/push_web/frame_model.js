@@ -261,7 +261,7 @@ class FrameModel extends abstract_js_1.default {
     getPendingCalculations() {
         return __awaiter(this, void 0, void 0, function* () {
             const result = yield new Promise((resolve, reject) => {
-                pool.queryParameters("SELECT COUNT(*) FROM Frames WHERE product_id IS NOT NULL AND is_alert IS NULL ", [])
+                pool.queryParameters("SELECT COUNT(*) as count FROM Frames WHERE product_id IS NOT NULL AND is_alert IS NULL ", [])
                     .then(results => resolve(results))
                     .catch(() => resolve([]));
             });

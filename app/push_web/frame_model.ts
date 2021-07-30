@@ -281,7 +281,7 @@ export default class FrameModel extends Abstract {
 
   public async getPendingCalculations(): Promise<number> {
     const result: any[] = await new Promise((resolve, reject) => {
-      pool.queryParameters("SELECT COUNT(*) FROM Frames WHERE product_id IS NOT NULL AND is_alert IS NULL ", [])
+      pool.queryParameters("SELECT COUNT(*) as count FROM Frames WHERE product_id IS NOT NULL AND is_alert IS NULL ", [])
       .then(results => resolve(results))
       .catch(() => resolve([]));
     });

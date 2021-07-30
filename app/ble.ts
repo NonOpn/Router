@@ -266,6 +266,7 @@ class BLEPrimaryDeviceService extends PrimaryService {
         new BLEAsyncDescriptionCharacteristic("0009", () => device.getAdditionnalInfo2()),
         new BLEAsyncDescriptionCharacteristic("000A", () => device.getLatestFramesAsString()),
         new BLEAsyncDescriptionCharacteristic("000B", () => device.getLatestAlertFramesAsString()),
+        new BLEAsyncDescriptionCharacteristic("000C", () => Promise.resolve(device.constructor.name)),
       ]
     });
 
