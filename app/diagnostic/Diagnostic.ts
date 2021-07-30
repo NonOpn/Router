@@ -9,8 +9,9 @@ class Diagnostic {
   private diagnostics: any[] = [];
 
   private log(arg1: string, arg2?: any) {
-    if(arguments.length == 1) console.warn("Diagnosstic :: " + arg1);
-    else console.warn("Diagnostic :: " + arg1, arg2);
+    return;
+    //if(arguments.length == 1) console.warn("Diagnosstic :: " + arg1);
+    //else console.warn("Diagnostic :: " + arg1, arg2);
   }
 
   start() {

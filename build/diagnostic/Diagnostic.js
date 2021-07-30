@@ -50,10 +50,9 @@ class Diagnostic {
         });
     }
     log(arg1, arg2) {
-        if (arguments.length == 1)
-            console.warn("Diagnosstic :: " + arg1);
-        else
-            console.warn("Diagnostic :: " + arg1, arg2);
+        return;
+        //if(arguments.length == 1) console.warn("Diagnosstic :: " + arg1);
+        //else console.warn("Diagnostic :: " + arg1, arg2);
     }
     start() {
         if (this._started)
