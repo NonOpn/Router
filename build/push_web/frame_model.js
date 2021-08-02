@@ -129,7 +129,7 @@ class FrameModel extends abstract_js_1.default {
      */
     getLowestSignal(count) {
         return new Promise((resolve, reject) => {
-            pool.queryParameters("SELECT frame FROM Frames LIMIT ?", [count])
+            pool.queryParameters("SELECT frame FROM Frames ORDER BY id DESC LIMIT ?", [count])
                 .then(result => {
                 var index = 0, lowest = 0;
                 if (result && result.length > 0) {
