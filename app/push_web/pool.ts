@@ -93,6 +93,16 @@ export default class Pool {
     }
   }
 
+  private needsRepair(code: string) {
+    return !![
+      "ETIMEDOUT",
+      "EE_FILENOTFOUND",
+      "HA_ERR_NOT_A_TABLE",
+      "ER_FILE_NOT_FOUND",
+      "HA_ERR_CRASHED_ON_REPAIR"
+    ].find(c => c == code);
+  }
+
   manageErrorCrash(table_name: string, error: any, reject: Reject, callback?: () => Promise<any>): void {
     console.log("Manage crash... " + (error ? error.code : "error no code"));
     if(!NetworkInfo.instance.isGPRS()) {
@@ -102,7 +112,7 @@ export default class Pool {
     if(table_name && table_name.toLowerCase() == "device" && error && error.errno == 144) {
       //safe to assume resetting the devices here :thumbsup:
       this.repair("TRUNCATE TABLE Device", error, reject);
-    } else if(error && error.code === "EE_FILENOTFOUND") {
+    } else if(error && this.needsRepair(error.code)) {
       this.forceWideRepair().then(() => {
         this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, (error) => {
           const promise = callback ? callback() : Promise.resolve(true);
@@ -110,29 +120,7 @@ export default class Pool {
           promise.then(() => reject(error)).catch(() => reject(error));
         });
       }).catch(err => reject(err)); //never reject tho
-    } else if(error && error.code === "HA_ERR_NOT_A_TABLE") {
-      console.log("not a table... try repair", {error});
-      this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, reject);
       this.log({repair: table_name, use_frm: true});
-    } else if(error && error.code === "ER_FILE_NOT_FOUND") {
-      console.log("crashed on interaction... try repair", {error});
-      this.forceWideRepair().then(() => {
-        this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, (error) => {
-          const promise = callback ? callback() : Promise.resolve(true);
-  
-          promise.then(() => reject(error)).catch(() => reject(error));
-        });
-      }).catch(err => reject(err)); //never reject tho
-      this.log({repair: table_name});
-    } else if(error && error.code === "HA_ERR_CRASHED_ON_REPAIR") {
-      this.forceWideRepair().then(() => {
-        this.repair("REPAIR TABLE " + table_name + " USE_FRM", error, (error) => {
-          const promise = callback ? callback() : Promise.resolve(true);
-  
-          promise.then(() => reject(error)).catch(() => reject(error));
-        });
-      }).catch(err => reject(err)); //never reject tho
-      this.log({repair: table_name});
     } else if(error && error.code === "ER_CRASHED_ON_USAGE") {
       console.log("crashed... try repair", {error});
       this.repair("REPAIR TABLE " + table_name, error, reject);

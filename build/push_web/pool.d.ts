@@ -13,6 +13,7 @@ export default class Pool {
     forceWideRepair: () => Promise<void>;
     repair(request: string, error: any, reject: Reject): void;
     log(data: any): void;
+    private needsRepair;
     manageErrorCrash(table_name: string, error: any, reject: Reject, callback?: () => Promise<any>): void;
     private can_post_error;
     private tryPostingSQLState;
