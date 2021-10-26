@@ -52,12 +52,14 @@ class _Logger {
     post(hostname, port, path, headers, json) {
         return new Promise((resolve, reject) => {
             const data = JSON.stringify(json || {});
+            console.log("trying " + hostname);
             const options = {
                 hostname,
                 port,
                 path,
                 method: "POST",
                 headers: Object.assign(Object.assign({}, headers), { "Content-Type": "application/json", "Content-Length": data.length }),
+                rejectUnauthorized: false,
                 timeout: 60000
             };
             const req = https.request(options, (res) => {
@@ -68,6 +70,7 @@ class _Logger {
                 res.on('end', () => resolve && resolve(result));
             });
             req.on('error', (error) => {
+                console.error("having error for " + hostname, error);
                 reject && reject(error);
                 reject = () => { };
                 resolve = () => { };
