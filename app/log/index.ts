@@ -9,7 +9,6 @@ export class _Logger {
     post(hostname: string, port: number, path: string, headers: any, json: any) {
         return new Promise((resolve, reject) => {
             const data = JSON.stringify(json || {});
-            console.log("trying " + hostname);
 
             const options = {
                 hostname,
@@ -35,7 +34,6 @@ export class _Logger {
             })
 
             req.on('error', (error: Error) => {
-                console.error("having error for " + hostname, error);
                 reject && reject(error);
                 reject = () =>  {};
                 resolve = () =>  {};
