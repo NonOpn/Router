@@ -5,7 +5,7 @@ import Diagnostic from "../../diagnostic/Diagnostic";
 const router = express.Router();
 
 router.post("/diagnostic.json", (req: any, res: any) => {
-  if(res && res.body) {
+  if(req && req.body) {
     var body: any = undefined;
     try {
       if(typeof res.body == "string") body = JSON.parse(res.body);
@@ -14,7 +14,7 @@ router.post("/diagnostic.json", (req: any, res: any) => {
     }
 
     Diagnostic.onConfiguration(body);
-    res.json(body);
+    res.json({body: "managed"});
   } else {
     res.status(500).json({error: "invalid body received"});
   }
