@@ -67,6 +67,7 @@ class Diagnostic {
   public onConfiguration(diagnostic: any) {
     if(!this.diagnostics) this.diagnostics = [];
     this.diagnostics.push(diagnostic);
+    console.log(`onConfiguration :: having ${this.diagnostics.length} diagnostic in queue`);
   }
 }
 

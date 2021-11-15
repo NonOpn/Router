@@ -7,20 +7,25 @@ const express_1 = __importDefault(require("express"));
 const Diagnostic_1 = __importDefault(require("../../diagnostic/Diagnostic"));
 const router = express_1.default.Router();
 router.post("/diagnostic.json", (req, res) => {
-    if (req && req.body) {
-        var body = undefined;
-        try {
-            if (typeof res.body == "string")
-                body = JSON.parse(res.body);
+    try {
+        if (req && req.body) {
+            var body = undefined;
+            try {
+                if (typeof res.body == "string")
+                    body = JSON.parse(res.body);
+            }
+            catch (e) {
+                body = res.body;
+            }
+            Diagnostic_1.default.onConfiguration(body);
+            res.json({ body: "managed" });
         }
-        catch (e) {
-            body = res.body;
+        else {
+            res.status(500).json({ error: "invalid body received" });
         }
-        Diagnostic_1.default.onConfiguration(body);
-        res.json({ body: "managed" });
     }
-    else {
-        res.status(500).json({ error: "invalid body received" });
+    catch (e) {
+        res.status(500).json({ error: "error while managing the body" });
     }
 });
 exports.default = router;
