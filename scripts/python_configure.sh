@@ -14,8 +14,8 @@ else
   /opt/python/3.6.5/bin/python3.6 setup.py install
 fi
 
-if [ -f "/opt/python/3.6.5/lib/python3.6/site-packages/flask" ]; then
+if [ -f "/opt/python/3.6.5/lib/python3.6/site-packages/requests" ]; then
   echo "flask already exists, skipping"
 else
-  (sudo /opt/python/3.6.5/bin/pip3.6 install flask) || echo "can't install for now"
+  (sudo /opt/python/3.6.5/bin/pip3.6 install requests) || echo "can't install for now"
 fi
