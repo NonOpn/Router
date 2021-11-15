@@ -3,12 +3,11 @@ declare class Diagnostic {
     private diagnostics;
     private log;
     start(): void;
-    private onTick;
     private onManage;
     private send;
     private wait;
     private sendRetry;
-    private fetch;
+    onConfiguration(diagnostic: any): void;
 }
 declare const _default: Diagnostic;
 export default _default;

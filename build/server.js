@@ -8,6 +8,7 @@ const events_1 = require("events");
 const socket_io_1 = __importDefault(require("socket.io"));
 const setup_1 = __importDefault(require("setup"));
 const api_v1_1 = __importDefault(require("./server/api/api_v1"));
+const api_v2_1 = __importDefault(require("./server/api/api_v2"));
 const api_public_1 = __importDefault(require("./server/api/api_public"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const visualisation_js_1 = __importDefault(require("./config/visualisation.js"));
@@ -123,6 +124,7 @@ class Server extends events_1.EventEmitter {
             .use("/api/public", api_public_1.default)
             //.use(basicAuth(config.login, config.password))
             .use("/api/v1", api_v1_1.default)
+            .use("/api/v2", api_v2_1.default)
             .use(express_1.default.static("./server/html"));
         server.listen(port);
     }

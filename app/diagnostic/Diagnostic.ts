@@ -21,14 +21,7 @@ class Diagnostic {
     new Bash().exec("/usr/local/routair/scripts/configure_i2c.sh")
     .then(result => this.log("Bash", result)).catch(err => this.log("Bash, error", err));
 
-    setInterval(() => this.onTick().catch(err => this.log("onTick", err)), 60 * 1000);
     setInterval(() => this.onManage().catch(err => this.log("onManage", err)), 60 * 60 * 1000);
-  }
-
-  private onTick = async () => {
-    const diagnostic = await this.fetch();
-    if(!!diagnostic) this.diagnostics.push(diagnostic);
-    this.log("onTick", this.diagnostics.length);
   }
 
   private onManage = async () => {
@@ -71,27 +64,9 @@ class Diagnostic {
 		});
   }
 
-  private fetch(): Promise<any> {
-    const url = "http://127.0.0.1:5000/report"
-    //in gprs mode, simply sends the values
-    return new Promise((resolve, reject) => {
-      try {
-        request.get({ url }, (e: any, response: any, body: any) => {
-          if(e) {
-            reject(e);
-          } else {
-            try {
-              if(typeof body == "string") body = JSON.parse(body);
-              resolve(body);
-            } catch(e) {
-              reject(e);
-            }
-          }
-        });
-      } catch(err) {
-        reject(err);
-      }
-    });
+  public onConfiguration(diagnostic: any) {
+    if(!this.diagnostics) this.diagnostics = [];
+    this.diagnostics.push(diagnostic);
   }
 }
 

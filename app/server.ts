@@ -3,6 +3,7 @@ import { EventEmitter } from "events";
 import socketio from "socket.io";
 import Setup from "setup";
 import api_v1 from "./server/api/api_v1";
+import api_v2 from "./server/api/api_v2";
 import api_public from "./server/api/api_public";
 import bodyParser from 'body-parser';
 import config from "./config/visualisation.js";
@@ -143,6 +144,7 @@ export default class Server extends EventEmitter  {
     .use("/api/public", api_public)
     //.use(basicAuth(config.login, config.password))
     .use("/api/v1", api_v1)
+    .use("/api/v2", api_v2)
     .use(express.static("./server/html"));
 
     server.listen(port);

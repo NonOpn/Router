@@ -20,12 +20,6 @@ class Diagnostic {
     constructor() {
         this._started = false;
         this.diagnostics = [];
-        this.onTick = () => __awaiter(this, void 0, void 0, function* () {
-            const diagnostic = yield this.fetch();
-            if (!!diagnostic)
-                this.diagnostics.push(diagnostic);
-            this.log("onTick", this.diagnostics.length);
-        });
         this.onManage = () => __awaiter(this, void 0, void 0, function* () {
             const diagnostics = [...this.diagnostics];
             this.diagnostics = [];
@@ -60,7 +54,6 @@ class Diagnostic {
         this._started = true;
         new systemctl_1.Bash().exec("/usr/local/routair/scripts/configure_i2c.sh")
             .then(result => this.log("Bash", result)).catch(err => this.log("Bash, error", err));
-        setInterval(() => this.onTick().catch(err => this.log("onTick", err)), 60 * 1000);
         setInterval(() => this.onManage().catch(err => this.log("onManage", err)), 60 * 60 * 1000);
     }
     sendRetry(diagnostics) {
@@ -77,31 +70,10 @@ class Diagnostic {
             });
         });
     }
-    fetch() {
-        const url = "http://127.0.0.1:5000/report";
-        //in gprs mode, simply sends the values
-        return new Promise((resolve, reject) => {
-            try {
-                request_1.default.get({ url }, (e, response, body) => {
-                    if (e) {
-                        reject(e);
-                    }
-                    else {
-                        try {
-                            if (typeof body == "string")
-                                body = JSON.parse(body);
-                            resolve(body);
-                        }
-                        catch (e) {
-                            reject(e);
-                        }
-                    }
-                });
-            }
-            catch (err) {
-                reject(err);
-            }
-        });
+    onConfiguration(diagnostic) {
+        if (!this.diagnostics)
+            this.diagnostics = [];
+        this.diagnostics.push(diagnostic);
     }
 }
 exports.default = new Diagnostic();
