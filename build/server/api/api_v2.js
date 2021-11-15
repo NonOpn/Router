@@ -19,6 +19,9 @@ router.post("/diagnostic.json", (req, res) => {
         Diagnostic_1.default.onConfiguration(body);
         res.json(body);
     }
+    else {
+        res.status(500).json({ error: "invalid body received" });
+    }
 });
 exports.default = router;
 //# sourceMappingURL=api_v2.js.map
