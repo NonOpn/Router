@@ -1,5 +1,6 @@
 from power_api import SixfabPower
-from flask import Flask, jsonify
+import json
+import requests
 import time
 
 def empty():
@@ -9,10 +10,10 @@ def empty():
 def check_loop(fn):
   print("call starting")
   i = 0
-  while i < 3:
+  while i < 2:
     i += 1
     try:
-      result = fn(100)
+      result = fn(50)
       return result
     except:
       empty()
@@ -66,12 +67,9 @@ def get_fan_health(api):
 def get_fan_speed(api):
   return check_loop(lambda time: api.get_fan_speed(time))
 
-app = Flask(__name__)
-
-@app.route('/report', methods=['GET'])
-def get_tasks():
+def get_diagnostic():
   api = SixfabPower()
-  return jsonify({
+  return {
     "input": {
       "temp": get_input_temp(api),
       "voltage": get_input_voltage(api),
@@ -96,7 +94,13 @@ def get_tasks():
         'health': get_fan_health(api),
         'speed': get_fan_speed(api)
     }
-  })
+  }
 
 if __name__ == '__main__':
-    app.run(debug=True)
+  while True:
+    headers = {'Accept' : 'application/json', 'Content-Type' : 'application/json'}
+
+    requests.post('http://127.0.0.1/api/v2/diagnostic.json', json=get_diagnostic(), headers=headers)
+
+    #check if task is done
+    time.sleep(60)
