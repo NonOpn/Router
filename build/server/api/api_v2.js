@@ -17,6 +17,7 @@ router.post("/diagnostic.json", (req, res) => {
             body = res.body;
         }
         Diagnostic_1.default.onConfiguration(body);
+        res.json(body);
     }
 });
 exports.default = router;

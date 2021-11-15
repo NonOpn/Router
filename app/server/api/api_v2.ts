@@ -14,6 +14,7 @@ router.post("/diagnostic.json", (req: any, res: any) => {
     }
 
     Diagnostic.onConfiguration(body);
+    res.json(body);
   }
 });
 
