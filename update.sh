@@ -216,10 +216,13 @@ cd /usr/local/routair
 # UPDATE PYTHON IF REQUIRED
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-echo "no python configuration, enabling in the future with LTS management"
-#echo "manage python script..."
-#bash ./scripts/python_configure.sh
-#cd /usr/local/routair
+if [ -f "/opt/python/3.6.5/bin/python3.6" ]; then
+  echo "manage python script..."
+  bash ./scripts/python_configure.sh
+  cd /usr/local/routair
+else
+  echo "no python configuration, enabling in the future with LTS management"
+fi
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # UPDATE RSYSLOG TO PREVENT SIZE ISSUE
