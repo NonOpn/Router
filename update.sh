@@ -255,11 +255,16 @@ cp tmp_config.json config/snmp.json
 #else
 #  # restore here
 #fi
-echo "no python configuration, enabling in the future with LTS management"
-#cp systemd/routair_diagnostic.service /etc/systemd/system/routair_diagnostic.service
-#systemctl daemon-reload
-#systemctl enable routair_diagnostic.service
-#systemctl start routair_diagnostic.service
+
+if [ -f "/opt/python/3.6.5/bin/python3.6" ]; then
+  echo "force restart routair_diagnostic"
+  cp systemd/routair_diagnostic.service /etc/systemd/system/routair_diagnostic.service
+  systemctl daemon-reload
+  systemctl enable routair_diagnostic.service
+  systemctl start routair_diagnostic.service
+else
+  echo "can't start diagnostic, python is not available"
+fi
 
 sh /usr/local/routair/scripts/repair.sh
 
