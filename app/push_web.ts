@@ -141,7 +141,6 @@ export default class PushWEB extends EventEmitter {
 
 			const json = createRequestRaw("");
 
-			json.id = frames[frames.length - 1].id || -1;
 			json.remaining = 0; //TODO get the info ?
 			json.gprs = !!NetworkInfo.instance.isGPRS();
 			json.crashed = crashed;
@@ -152,6 +151,8 @@ export default class PushWEB extends EventEmitter {
 			} else {
 				const to_frames:RequestFrames[] = frames.map(f => ({data: createRequestRaw(f.frame).data, id: f.id }));
 				json.data = to_frames.map(frame => frame.data).join(",");
+
+				json.id = frames[frames.length - 1].id || -1;
 
 				var first_id = frames.length > 0 ? frames[0].id : 0;
 				const size = to_frames.length;

@@ -125,7 +125,6 @@ class PushWEB extends events_1.EventEmitter {
                     frames = [...frames, ...last120];
                 }
                 const json = createRequestRaw("");
-                json.id = frames[frames.length - 1].id || -1;
                 json.remaining = 0; //TODO get the info ?
                 json.gprs = !!index_1.default.instance.isGPRS();
                 json.crashed = crashed;
@@ -136,6 +135,7 @@ class PushWEB extends events_1.EventEmitter {
                 else {
                     const to_frames = frames.map(f => ({ data: createRequestRaw(f.frame).data, id: f.id }));
                     json.data = to_frames.map(frame => frame.data).join(",");
+                    json.id = frames[frames.length - 1].id || -1;
                     var first_id = frames.length > 0 ? frames[0].id : 0;
                     const size = to_frames.length;
                     const supportFallback = !!(config_1.default.identity || "").toLocaleLowerCase().startsWith("0xfaa4205");
