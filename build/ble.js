@@ -59,10 +59,11 @@ class BLEAsyncDescriptionCharacteristic extends safeBleno_1.Characteristic {
         this._callback = callback;
     }
     readOrSend(offset) {
-        if (offset > 0 && this._last_offset <= offset) {
+        const buffer = this._obtained;
+        if (offset > 0 && this._last_offset <= offset && buffer) {
             return new Promise((resolve) => {
                 this._last_offset = offset;
-                resolve(this._obtained);
+                resolve(buffer);
             });
         }
         return this._callback()
@@ -123,7 +124,7 @@ class BLEWriteCharacteristic extends safeBleno_1.Characteristic {
             if (tmp)
                 p = this._onValueRead(tmp);
             else
-                p = new Promise((r) => r());
+                p = new Promise((r) => r(false));
             p.then(result => {
             }).catch(err => {
                 console.log(err);

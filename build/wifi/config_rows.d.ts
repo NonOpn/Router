@@ -9,5 +9,5 @@ export default class ConfigRows extends Abstract {
     from(key: string, value: string): Config;
     update(key: string, value: string): Promise<Config | undefined>;
     getKey(key: string): Promise<Config | undefined>;
-    save(key: string, value: string): Promise<Config>;
+    save(key: string, value: string): Promise<Config | undefined>;
 }

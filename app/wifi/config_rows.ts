@@ -61,7 +61,7 @@ export default class ConfigRows extends Abstract {
     });
   }
 
-  save(key: string, value: string): Promise<Config> {
+  save(key: string, value: string): Promise<Config|undefined> {
     return new Promise((resolve, reject) => {
       const tx = this.from(key, value);
 

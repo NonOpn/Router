@@ -16,6 +16,7 @@ exports.Logger = exports._Logger = void 0;
 const https = require('https');
 const config_1 = __importDefault(require("../config/config"));
 const os_1 = __importDefault(require("os"));
+const network_1 = __importDefault(require("../network"));
 const identity = config_1.default.identity || "unknown";
 class _Logger {
     constructor() {
@@ -47,7 +48,6 @@ class _Logger {
             reason && (output.reason = reason);
             this._post("error", output, 5);
         };
-        this.data = (data) => this._post("report", data);
     }
     post(hostname, port, path, headers, json) {
         return new Promise((resolve, reject) => {
@@ -107,6 +107,13 @@ class _Logger {
                 setTimeout(() => this._post(tag, data, retry - 1), 2 * 60 * 1000);
             }
             console.log(e);
+        });
+    }
+    data(data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (network_1.default.instance.isGPRS())
+                return;
+            yield this._post("report", data);
         });
     }
 }

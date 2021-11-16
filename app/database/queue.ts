@@ -4,7 +4,7 @@ interface Provider<TYPE> {
 
 interface PromiseHolder<TYPE> {
     provider: Provider<TYPE>,
-    resolve: (data?: TYPE) => void,
+    resolve: (data: TYPE | PromiseLike<TYPE>) => void,
     reject : (error: Error) => void
 }
 
@@ -34,7 +34,7 @@ export default class Queue<TYPE> {
                 if(!promise) {
                     try {
                         throw "invalid promise obtained from provider call!";
-                    } catch(e) {
+                    } catch(e: any) {
                         reject(e);
                     }
                 }

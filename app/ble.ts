@@ -87,10 +87,11 @@ class BLEAsyncDescriptionCharacteristic extends Characteristic {
   private _last_offset = 0;
 
   private readOrSend(offset: number): Promise<Buffer> {
-    if(offset > 0 && this._last_offset <= offset) {
+    const buffer = this._obtained;
+    if(offset > 0 && this._last_offset <= offset && buffer) {
       return new Promise((resolve) => {
         this._last_offset = offset;
-        resolve(this._obtained);
+        resolve(buffer);
       });
     }
     return this._callback()
@@ -171,7 +172,7 @@ class BLEWriteCharacteristic extends Characteristic {
       this._tmp = undefined;
       var p = undefined;
       if(tmp) p = this._onValueRead(tmp);
-      else p = new Promise((r) => r());
+      else p = new Promise((r) => r(false));
   
       p.then(result => {
 

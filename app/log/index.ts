@@ -24,7 +24,7 @@ export class _Logger {
                 timeout: 60000
             }
 
-            const req = https.request(options, (res) => {
+            const req = https.request(options, (res: any) => {
                 var result = "";
                 res.on('data', (d: Buffer) => {
                     result += d.toString();

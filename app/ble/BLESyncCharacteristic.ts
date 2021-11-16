@@ -151,10 +151,11 @@ export class BLELargeSyncCharacteristic extends Characteristic {
   }
 
   private readOrSend(offset: number): Promise<Buffer> {
-    if(offset > 0 && this._last_offset <= offset) {
+    const buffer = this._obtained;
+    if(offset > 0 && this._last_offset <= offset && buffer) {
       return new Promise((resolve) => {
         this._last_offset = offset;
-        resolve(this._obtained);
+        resolve(buffer);
       });
     }
     return this._callback()
