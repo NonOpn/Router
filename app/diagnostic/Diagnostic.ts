@@ -2,6 +2,7 @@ import config from "../config/config";
 import request from "request";
 import { Bash } from "../systemctl";
 import { Logger } from "../log";
+import NetworkInfo from "../network";
 
 class Diagnostic {
 
@@ -52,8 +53,10 @@ class Diagnostic {
   private sendRetry(diagnostics: any): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       Logger.data({diagnostics});
+
+      var scheme = NetworkInfo.instance.isGPRS() ? "http" : "https";
       request.post({
-        url: "https://api.contact-platform.com/v3/routair/data",
+        url: `${scheme}://api.contact-platform.com/v3/routair/data`,
         json: {
           routair: config.identity,
           diagnostics

@@ -1,6 +1,7 @@
 const https = require('https');
 import config from "../config/config";
 import os from "os";
+import NetworkInfo from "../network";
 
 const identity = config.identity ||  "unknown";
 
@@ -107,7 +108,11 @@ export class _Logger {
         this._post("error", output, 5);
     }
 
-    data = (data: any) => this._post("report", data);
+    public async data(data: any) {
+        if(NetworkInfo.instance.isGPRS()) return;
+
+        await this._post("report", data);
+    }
 }
 
 export const Logger = new _Logger;

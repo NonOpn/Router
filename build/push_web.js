@@ -124,17 +124,18 @@ class PushWEB extends events_1.EventEmitter {
                     }
                     frames = [...frames, ...last120];
                 }
+                const json = createRequestRaw("");
+                json.id = frames[frames.length - 1].id || -1;
+                json.remaining = 0; //TODO get the info ?
+                json.gprs = !!index_1.default.instance.isGPRS();
+                json.crashed = crashed;
                 if (null == frames || frames.length == 0) {
-                    this.log({ infos: "push", none: true }, true);
+                    this.log({ infos: "push", none: true });
+                    yield _post(json);
                 }
                 else {
                     const to_frames = frames.map(f => ({ data: createRequestRaw(f.frame).data, id: f.id }));
-                    const json = createRequestRaw("");
-                    json.id = frames[frames.length - 1].id || -1;
                     json.data = to_frames.map(frame => frame.data).join(",");
-                    json.remaining = 0; //TODO get the info ?
-                    json.gprs = !!index_1.default.instance.isGPRS();
-                    json.crashed = crashed;
                     var first_id = frames.length > 0 ? frames[0].id : 0;
                     const size = to_frames.length;
                     const supportFallback = !!(config_1.default.identity || "").toLocaleLowerCase().startsWith("0xfaa4205");
@@ -142,10 +143,9 @@ class PushWEB extends events_1.EventEmitter {
                     if (supportFallback)
                         yield this.setSent(to_frames);
                     const result = yield _post(json);
-                    this.log({ infos: "push", result, size, first_id }, true);
+                    this.log({ infos: "push", result, size, first_id });
                     //even for the above mentionned device, not an issue : setSent changes a flag
                     yield this.setSent(to_frames);
-                    this._posting = false;
                 }
             }
             catch (e) {
@@ -212,10 +212,10 @@ class PushWEB extends events_1.EventEmitter {
         });
         this._posting = false;
     }
-    log(data, force) {
-        if (!index_1.default.instance.isGPRS() || !!force) {
-            log_1.Logger.data(Object.assign({ context: "push" }, data));
-        }
+    log(data) {
+        if (index_1.default.instance.isGPRS())
+            return;
+        log_1.Logger.data(Object.assign({ context: "push" }, data));
     }
     onFrame(device, data) {
         this.applyData(device, data).then(() => { }).catch(e => { });

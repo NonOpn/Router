@@ -16,6 +16,7 @@ const config_1 = __importDefault(require("../config/config"));
 const request_1 = __importDefault(require("request"));
 const systemctl_1 = require("../systemctl");
 const log_1 = require("../log");
+const network_1 = __importDefault(require("../network"));
 class Diagnostic {
     constructor() {
         this._started = false;
@@ -59,8 +60,9 @@ class Diagnostic {
     sendRetry(diagnostics) {
         return new Promise((resolve, reject) => {
             log_1.Logger.data({ diagnostics });
+            var scheme = network_1.default.instance.isGPRS() ? "http" : "https";
             request_1.default.post({
-                url: "https://api.contact-platform.com/v3/routair/data",
+                url: `${scheme}://api.contact-platform.com/v3/routair/data`,
                 json: {
                     routair: config_1.default.identity,
                     diagnostics

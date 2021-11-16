@@ -64,10 +64,9 @@ export default class PushWEB extends EventEmitter {
 		this._posting = false;
 	}
 
-	log(data: any, force?: boolean) {
-		if(!NetworkInfo.instance.isGPRS() || !!force) {
-			Logger.data({context: "push", ...data});
-		}
+	log(data: any) {
+		if(NetworkInfo.instance.isGPRS()) return;
+		Logger.data({context: "push", ...data});
 	}
 	  
 	trySend = async () => {
@@ -140,18 +139,19 @@ export default class PushWEB extends EventEmitter {
 				frames = [...frames, ...last120];
 			}
 
+			const json = createRequestRaw("");
+
+			json.id = frames[frames.length - 1].id || -1;
+			json.remaining = 0; //TODO get the info ?
+			json.gprs = !!NetworkInfo.instance.isGPRS();
+			json.crashed = crashed;
+
 			if(null == frames || frames.length == 0) {
-				this.log({ infos: "push", none: true }, true);
+				this.log({ infos: "push", none: true });
+				await _post(json);
 			} else {
 				const to_frames:RequestFrames[] = frames.map(f => ({data: createRequestRaw(f.frame).data, id: f.id }));
-				const json = createRequestRaw("");
-
-				json.id = frames[frames.length - 1].id || -1;
-
 				json.data = to_frames.map(frame => frame.data).join(",");
-				json.remaining = 0; //TODO get the info ?
-				json.gprs = !!NetworkInfo.instance.isGPRS();
-				json.crashed = crashed;
 
 				var first_id = frames.length > 0 ? frames[0].id : 0;
 				const size = to_frames.length;
@@ -161,12 +161,10 @@ export default class PushWEB extends EventEmitter {
 				if(supportFallback) await this.setSent(to_frames);
 
 				const result = await _post(json)
-				this.log({ infos: "push", result, size, first_id }, true);
+				this.log({ infos: "push", result, size, first_id });
 
 				//even for the above mentionned device, not an issue : setSent changes a flag
 				await this.setSent(to_frames);
-
-				this._posting = false;
 			}
 		} catch(e) {
 			this.log({ posting: this._posting, error: e });

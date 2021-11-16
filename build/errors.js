@@ -58,10 +58,11 @@ class Errors {
     }
     postJsonErrorPromise(err, reason = undefined) {
         !network_1.default.instance.isGPRS() && index_1.Logger.error(toJSON(err), reason);
+        var scheme = network_1.default.instance.isGPRS() ? "http" : "https";
         return new Promise((resolve, reject) => {
             if (err) {
                 request_1.default.post({
-                    url: "https://contact-platform.com/api/ping",
+                    url: `${scheme}://contact-platform.com/api/ping`,
                     json: {
                         error: toJSON(err),
                         version: "999"
