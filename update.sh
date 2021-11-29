@@ -263,11 +263,15 @@ if [ -f "/opt/python/3.6.5/bin/python3.6" ]; then
   echo "force restart routair_diagnostic"
   cp systemd/routair_diagnostic.service /etc/systemd/system/routair_diagnostic.service
   systemctl daemon-reload
-  systemctl enable routair_diagnostic.service
-  systemctl start routair_diagnostic.service
+  #systemctl enable routair_diagnostic.service
+  #systemctl start routair_diagnostic.service
 else
   echo "can't start diagnostic, python is not available"
 fi
+
+# temporarily disable diag
+systemctl disable routair_diagnostic.service
+systemctl stop routair_diagnostic.service
 
 sh /usr/local/routair/scripts/repair.sh
 
