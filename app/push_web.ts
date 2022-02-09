@@ -77,7 +77,7 @@ export default class PushWEB extends EventEmitter {
 				return;
 			}
 	
-			this._number_to_skip = 4;
+			this._number_to_skip = 7; //4
 	
 			if(!!this._posting) {
 				this._protection_network ++;
@@ -174,7 +174,7 @@ export default class PushWEB extends EventEmitter {
 		}
 	}
 
-	private setSent = async (frames: RequestFrames[]) => {
+	private async setSent(frames: RequestFrames[]) {
 		var j = 0;
 		while(j < frames.length) {
 			const frame = frames[j];
@@ -187,7 +187,7 @@ export default class PushWEB extends EventEmitter {
 		}
 	}
 
-	sendEcho = async () => {
+	private async sendEcho() {
 		try {
 			const json = { host: config.identity, version: VERSION };
 			const gprs = NetworkInfo.instance.isGPRS();
@@ -195,7 +195,8 @@ export default class PushWEB extends EventEmitter {
 			if(!gprs) {
 				await Logger.post("contact-platform.com", 443, "/api/echo", {}, json);
 			} else {
-				await new Promise((resolve, reject) => {
+				return;
+				/*await new Promise((resolve, reject) => {
 					request.post({
 						url: "http://contact-platform.com/api/echo",
 						json
@@ -204,7 +205,7 @@ export default class PushWEB extends EventEmitter {
 						console.log(body);
 						resolve(true);
 					});
-				})
+				})*/
 			}
 	
 			console.log("echo posted");

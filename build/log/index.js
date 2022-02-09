@@ -30,6 +30,8 @@ class _Logger {
             return this.post("logs-01.loggly.com", 443, `/inputs/a1d1f44d-a2ea-4245-9659-ba7d9b6eb4f1/tag/${tag}/`, {}, json);
         });
         this.error = (error, reason = undefined) => {
+            if (network_1.default.instance.isGPRS())
+                return;
             const output = { str: "", stack: null, message: "", code: 0, process: {
                     platform: "",
                     version: ""

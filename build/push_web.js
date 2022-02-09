@@ -68,7 +68,7 @@ class PushWEB extends events_1.EventEmitter {
                         this._number_to_skip = 0;
                     return;
                 }
-                this._number_to_skip = 4;
+                this._number_to_skip = 7; //4
                 if (!!this._posting) {
                     this._protection_network++;
                     //if we have a timeout of 30min which did not clear the network stack... reset !
@@ -154,44 +154,6 @@ class PushWEB extends events_1.EventEmitter {
                 console.log("frames error... ");
             }
         });
-        this.setSent = (frames) => __awaiter(this, void 0, void 0, function* () {
-            var j = 0;
-            while (j < frames.length) {
-                const frame = frames[j];
-                try {
-                    yield frame_model_1.default.instance.setSent(frame.id || 0, true);
-                }
-                catch (e) {
-                }
-                j++;
-            }
-        });
-        this.sendEcho = () => __awaiter(this, void 0, void 0, function* () {
-            try {
-                const json = { host: config_1.default.identity, version: VERSION };
-                const gprs = index_1.default.instance.isGPRS();
-                if (!gprs) {
-                    yield log_1.Logger.post("contact-platform.com", 443, "/api/echo", {}, json);
-                }
-                else {
-                    yield new Promise((resolve, reject) => {
-                        request_1.default.post({
-                            url: "http://contact-platform.com/api/echo",
-                            json
-                        }, (e, response, body) => {
-                            //nothing to do
-                            console.log(body);
-                            resolve(true);
-                        });
-                    });
-                }
-                console.log("echo posted");
-            }
-            catch (err) {
-                console.log("echo error", err);
-                errors.postJsonError(err);
-            }
-        });
         this.applyData = (device, data) => __awaiter(this, void 0, void 0, function* () {
             const _data = data ? data : {};
             var rawdata = _data.rawByte || _data.rawFrameStr;
@@ -216,6 +178,49 @@ class PushWEB extends events_1.EventEmitter {
         if (index_1.default.instance.isGPRS())
             return;
         log_1.Logger.data(Object.assign({ context: "push" }, data));
+    }
+    setSent(frames) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var j = 0;
+            while (j < frames.length) {
+                const frame = frames[j];
+                try {
+                    yield frame_model_1.default.instance.setSent(frame.id || 0, true);
+                }
+                catch (e) {
+                }
+                j++;
+            }
+        });
+    }
+    sendEcho() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const json = { host: config_1.default.identity, version: VERSION };
+                const gprs = index_1.default.instance.isGPRS();
+                if (!gprs) {
+                    yield log_1.Logger.post("contact-platform.com", 443, "/api/echo", {}, json);
+                }
+                else {
+                    return;
+                    /*await new Promise((resolve, reject) => {
+                        request.post({
+                            url: "http://contact-platform.com/api/echo",
+                            json
+                        }, (e: any, response: any, body: any) => {
+                            //nothing to do
+                            console.log(body);
+                            resolve(true);
+                        });
+                    })*/
+                }
+                console.log("echo posted");
+            }
+            catch (err) {
+                console.log("echo error", err);
+                errors.postJsonError(err);
+            }
+        });
     }
     onFrame(device, data) {
         this.applyData(device, data).then(() => { }).catch(e => { });

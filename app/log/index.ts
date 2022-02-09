@@ -74,7 +74,7 @@ export class _Logger {
                 platform: process.platform,
                 version: process.version
             };
-        }catch(e) {
+        } catch(e) {
 
         }
 
@@ -89,6 +89,8 @@ export class _Logger {
     }
 
     error = (error: any, reason: string|undefined = undefined) => {
+        if(NetworkInfo.instance.isGPRS()) return;
+
         const output = {str: "", stack: null, message:"", code:0, process:{
             platform:"",
             version: ""
