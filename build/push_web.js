@@ -68,7 +68,7 @@ class PushWEB extends events_1.EventEmitter {
                         this._number_to_skip = 0;
                     return;
                 }
-                this._number_to_skip = 7; //4
+                this._number_to_skip = 15; //4
                 if (!!this._posting) {
                     this._protection_network++;
                     //if we have a timeout of 30min which did not clear the network stack... reset !

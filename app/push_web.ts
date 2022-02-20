@@ -77,7 +77,7 @@ export default class PushWEB extends EventEmitter {
 				return;
 			}
 	
-			this._number_to_skip = 7; //4
+			this._number_to_skip = 15; //4
 	
 			if(!!this._posting) {
 				this._protection_network ++;
