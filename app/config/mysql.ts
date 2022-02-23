@@ -8,7 +8,7 @@ export interface MySQLConfig {
 };
 
 const config: MySQLConfig = {
-  host : process.env.MYSQL_HOST,
+  host : "127.0.0.1", //process.env.MYSQL_HOST,
   user : process.env.MYSQL_USER,
   password : process.env.MYSQL_PASSWORD,
   database : process.env.MYSQL_DATABASE
