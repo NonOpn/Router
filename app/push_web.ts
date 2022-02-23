@@ -166,6 +166,8 @@ export default class PushWEB extends EventEmitter {
 
 				//even for the above mentionned device, not an issue : setSent changes a flag
 				await this.setSent(to_frames);
+
+				this.memory_transactions = [];
 			}
 		} catch(e) {
 			this.log({ posting: this._posting, error: e });

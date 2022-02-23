@@ -146,6 +146,7 @@ class PushWEB extends events_1.EventEmitter {
                     this.log({ infos: "push", result, size, first_id });
                     //even for the above mentionned device, not an issue : setSent changes a flag
                     yield this.setSent(to_frames);
+                    this.memory_transactions = [];
                 }
             }
             catch (e) {
