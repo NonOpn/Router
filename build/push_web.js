@@ -107,7 +107,7 @@ class PushWEB extends events_1.EventEmitter {
                 catch (e) {
                     crashed = true;
                     console.error("error while loading frames", e);
-                    crashed_message = `${e}`;
+                    crashed_message = `${e} but waiting is ${this.memory_transactions.length}`;
                 }
                 // this is a "last chance scenario", in this mode, we don't care about the frames before the last 120
                 if (this.memory_transactions.length > 0) {
