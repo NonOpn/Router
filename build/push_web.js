@@ -98,6 +98,7 @@ class PushWEB extends events_1.EventEmitter {
             try {
                 //TODO for GPRS, when getting unsent, only get the last non alert + every alerts in the steps
                 var crashed = false;
+                var crashed_message = "";
                 var frames = [];
                 // safely prevent crashes
                 try {
@@ -106,6 +107,7 @@ class PushWEB extends events_1.EventEmitter {
                 catch (e) {
                     crashed = true;
                     console.error("error while loading frames", e);
+                    crashed_message = `${e}`;
                 }
                 // this is a "last chance scenario", in this mode, we don't care about the frames before the last 120
                 if (this.memory_transactions.length > 0) {
@@ -128,6 +130,7 @@ class PushWEB extends events_1.EventEmitter {
                 json.remaining = 0; //TODO get the info ?
                 json.gprs = !!index_1.default.instance.isGPRS();
                 json.crashed = crashed;
+                json.crashed_message = crashed_message;
                 if (null == frames || frames.length == 0) {
                     this.log({ infos: "push", none: true });
                     yield _post(json);
