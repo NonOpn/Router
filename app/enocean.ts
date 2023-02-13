@@ -1,6 +1,9 @@
 import { EventEmitter } from "events";
+//@ts-ignore
 import uuidV4 from "uuid/v4";
+//@ts-ignore
 import SerialPort from "serialport";
+//@ts-ignore
 import Enocean from "node-enocean";
 
 import config from "./config/enocean";
@@ -15,6 +18,11 @@ function isARecognizedDevice(port: any) {
   }
 
   return ["/dev/ttyAMA0", "/dev/ttyS0"].find(s => s === port.path);
+}
+
+interface SerialDevice {
+  path?: string,
+  manufacturer?: string
 }
 
 class EnoceanDevice extends EventEmitter {
@@ -199,7 +207,7 @@ export default class EnoceanLoader extends EventEmitter {
     }
   }
 
-  private listDevices(): Promise<any[]> {
+  private listAllDevice(): Promise<any[]> {
     return new Promise((resolve, reject) => {
       const callback = (err: any, ports?: any) => {
         if(err) {
@@ -209,7 +217,7 @@ export default class EnoceanLoader extends EventEmitter {
         if(!ports) ports = [];
         console.log("list of found devices", ports);
 
-        resolve(ports.filter((port: any) => isARecognizedDevice(port)));
+        resolve(ports);
       };
 
       const fallback = () => {
@@ -227,5 +235,15 @@ export default class EnoceanLoader extends EventEmitter {
         fallback();
       }
     })
+  }
+
+  private async listDevices(): Promise<any[]> {
+    const devices = await this.listAllDevice();
+    return devices.filter(port => isARecognizedDevice(port));
+  }
+
+  public async systemDevices(): Promise<SerialDevice[]> {
+    const devices = await this.listAllDevice();
+    return devices.filter(port => ({manufacturer: port.manifacturer, path: port.serial}));
   }
 }

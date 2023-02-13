@@ -39,7 +39,7 @@ class App {
             var enocean = new enocean_js_1.default();
             var server = new server_js_1.default(enocean);
             var snmp = new snmp_js_1.default();
-            var push_web = new push_web_js_1.default();
+            var push_web = new push_web_js_1.default(enocean);
             var discovery_service = new discovery_1.default();
             var ble = new ble_1.default();
             var ssh = new systemctl_1.SSH();

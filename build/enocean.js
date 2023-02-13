@@ -1,11 +1,23 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
+//@ts-ignore
 const v4_1 = __importDefault(require("uuid/v4"));
+//@ts-ignore
 const serialport_1 = __importDefault(require("serialport"));
+//@ts-ignore
 const node_enocean_1 = __importDefault(require("node-enocean"));
 const enocean_1 = __importDefault(require("./config/enocean"));
 const getByte = (telegram_byte_str, index) => telegram_byte_str[index * 2] + telegram_byte_str[index * 2 + 1];
@@ -174,7 +186,7 @@ class EnoceanLoader extends events_1.EventEmitter {
             }
         }
     }
-    listDevices() {
+    listAllDevice() {
         return new Promise((resolve, reject) => {
             const callback = (err, ports) => {
                 if (err) {
@@ -184,7 +196,7 @@ class EnoceanLoader extends events_1.EventEmitter {
                 if (!ports)
                     ports = [];
                 console.log("list of found devices", ports);
-                resolve(ports.filter((port) => isARecognizedDevice(port)));
+                resolve(ports);
             };
             const fallback = () => {
                 const list = serialport_1.default.list();
@@ -200,6 +212,18 @@ class EnoceanLoader extends events_1.EventEmitter {
             catch (e) {
                 fallback();
             }
+        });
+    }
+    listDevices() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const devices = yield this.listAllDevice();
+            return devices.filter(port => isARecognizedDevice(port));
+        });
+    }
+    systemDevices() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const devices = yield this.listAllDevice();
+            return devices.filter(port => ({ manufacturer: port.manifacturer, path: port.serial }));
         });
     }
 }

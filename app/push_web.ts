@@ -7,6 +7,7 @@ import FrameModelCompress from "./push_web/frame_model_compress";
 import AbstractDevice from "./snmp/abstract";
 import NetworkInfo from "./network/index";
 import { Logger } from "./log";
+import EnoceanLoader from "./enocean";
 
 const errors = Errors.instance;
 
@@ -59,7 +60,7 @@ export default class PushWEB extends EventEmitter {
 	private _protection_network: number = 0;
 	private memory_transactions: Transaction[] = [];
 
-	constructor() {
+	constructor(private enocean: EnoceanLoader) {
 		super();
 		this._posting = false;
 	}
@@ -164,7 +165,7 @@ export default class PushWEB extends EventEmitter {
 				// we need support due to a device issue impacting the 0xfaa4205 rout@ir
 				if(supportFallback) await this.setSent(to_frames);
 
-				const result = await _post(json)
+				const result = await _post(json);
 				this.log({ infos: "push", result, size, first_id });
 
 				//even for the above mentionned device, not an issue : setSent changes a flag
@@ -196,9 +197,12 @@ export default class PushWEB extends EventEmitter {
 		try {
 			const json = { host: config.identity, version: VERSION };
 			const gprs = NetworkInfo.instance.isGPRS();
+			const devices = await this.enocean.systemDevices();
 	
 			if(!gprs) {
-				await Logger.post("contact-platform.com", 443, "/api/echo", {}, json);
+				await Logger.post("contact-platform.com", 443, "/api/echo", {
+					devices
+				}, json);
 			} else {
 				return;
 				/*await new Promise((resolve, reject) => {

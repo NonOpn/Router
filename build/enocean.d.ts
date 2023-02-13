@@ -1,5 +1,9 @@
 /// <reference types="node" />
 import { EventEmitter } from "events";
+interface SerialDevice {
+    path?: string;
+    manufacturer?: string;
+}
 declare class EnoceanDevice extends EventEmitter {
     enocean: any;
     open_device: any;
@@ -20,6 +24,8 @@ export default class EnoceanLoader extends EventEmitter {
     private postNextRead;
     init(): void;
     readDevices(): void;
+    private listAllDevice;
     private listDevices;
+    systemDevices(): Promise<SerialDevice[]>;
 }
 export {};

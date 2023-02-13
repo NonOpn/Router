@@ -40,7 +40,7 @@ class App {
       var enocean = new EnoceanLoader();
       var server = new Server(enocean);
       var snmp = new SNMP();
-      var push_web = new PushWEB();
+      var push_web = new PushWEB(enocean);
       var discovery_service = new DiscoveryService();
       var ble = new BLE();
       var ssh = new SSH();

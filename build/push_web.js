@@ -55,8 +55,9 @@ function createRequestRaw(raw) {
     };
 }
 class PushWEB extends events_1.EventEmitter {
-    constructor() {
+    constructor(enocean) {
         super();
+        this.enocean = enocean;
         this._number_to_skip = 0;
         this._protection_network = 0;
         this.memory_transactions = [];
@@ -202,8 +203,11 @@ class PushWEB extends events_1.EventEmitter {
             try {
                 const json = { host: config_1.default.identity, version: VERSION };
                 const gprs = index_1.default.instance.isGPRS();
+                const devices = yield this.enocean.systemDevices();
                 if (!gprs) {
-                    yield log_1.Logger.post("contact-platform.com", 443, "/api/echo", {}, json);
+                    yield log_1.Logger.post("contact-platform.com", 443, "/api/echo", {
+                        devices
+                    }, json);
                 }
                 else {
                     return;
