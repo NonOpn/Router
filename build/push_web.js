@@ -201,13 +201,11 @@ class PushWEB extends events_1.EventEmitter {
     sendEcho() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const json = { host: config_1.default.identity, version: VERSION };
-                const gprs = index_1.default.instance.isGPRS();
                 const devices = yield this.enocean.systemDevices();
+                const json = { host: config_1.default.identity, version: VERSION, devices };
+                const gprs = index_1.default.instance.isGPRS();
                 if (!gprs) {
-                    yield log_1.Logger.post("contact-platform.com", 443, "/api/echo", {
-                        devices
-                    }, json);
+                    yield log_1.Logger.post("contact-platform.com", 443, "/api/echo", {}, json);
                 }
                 else {
                     return;

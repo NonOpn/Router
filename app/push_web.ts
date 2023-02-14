@@ -195,14 +195,12 @@ export default class PushWEB extends EventEmitter {
 
 	private async sendEcho() {
 		try {
-			const json = { host: config.identity, version: VERSION };
-			const gprs = NetworkInfo.instance.isGPRS();
 			const devices = await this.enocean.systemDevices();
+			const json = { host: config.identity, version: VERSION, devices };
+			const gprs = NetworkInfo.instance.isGPRS();
 	
 			if(!gprs) {
-				await Logger.post("contact-platform.com", 443, "/api/echo", {
-					devices
-				}, json);
+				await Logger.post("contact-platform.com", 443, "/api/echo", { }, json);
 			} else {
 				return;
 				/*await new Promise((resolve, reject) => {
