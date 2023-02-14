@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
 const config_1 = __importDefault(require("./config/config"));
+const enocean_1 = __importDefault(require("./config/enocean"));
 const errors_1 = __importDefault(require("./errors"));
 const request_1 = __importDefault(require("request"));
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
@@ -202,7 +203,8 @@ class PushWEB extends events_1.EventEmitter {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const devices = yield this.enocean.systemDevices();
-                const json = { host: config_1.default.identity, version: VERSION, devices };
+                const forced_device = enocean_1.default.enocean_endpoint;
+                const json = { host: config_1.default.identity, version: VERSION, devices, forced_device };
                 const gprs = index_1.default.instance.isGPRS();
                 if (!gprs) {
                     yield log_1.Logger.post("contact-platform.com", 443, "/api/echo", {}, json);

@@ -23,9 +23,10 @@ export default class EnoceanLoader extends EventEmitter {
     removeDevice(device: EnoceanDevice): void;
     private postNextRead;
     init(): void;
-    readDevices(): void;
+    readDevices(): Promise<void>;
     private listAllDevice;
     private listDevices;
+    private listOnlyKnownDevices;
     systemDevices(): Promise<SerialDevice[]>;
 }
 export {};

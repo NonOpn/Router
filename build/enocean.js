@@ -23,9 +23,15 @@ const enocean_1 = __importDefault(require("./config/enocean"));
 const getByte = (telegram_byte_str, index) => telegram_byte_str[index * 2] + telegram_byte_str[index * 2 + 1];
 const getEEP = (rorg, rorg_func, rorg_type) => (rorg + "-" + rorg_func + "-" + rorg_type).toLowerCase();
 const isFrameToSend = (rorg) => ["a5", "f6", "d5", "d2", "d1"].filter(e => e === rorg).length > 0;
-function isARecognizedDevice(port) {
+function isARecognizedKnownDevice(port) {
     if (port.manufacturer !== undefined) {
         return ["ftdi", "enocean"].find(element => port.manufacturer.toLowerCase().indexOf(element) >= 0);
+    }
+    return false;
+}
+function isARecognizedDevice(port) {
+    if (isARecognizedKnownDevice(port)) {
+        return true;
     }
     return ["/dev/ttyAMA0", "/dev/ttyS0"].find(s => s === port.path);
 }
@@ -167,24 +173,26 @@ class EnoceanLoader extends events_1.EventEmitter {
         }
     }
     readDevices() {
-        if (!this.devices.find(device => device.isOpen())) {
-            if (enocean_1.default.enocean_endpoint != null) {
-                this.openDevice({ comName: enocean_1.default.enocean_endpoint });
-                this.postNextRead();
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (this.devices.find(device => device.isOpen()))
+                    return;
+                var devices = yield this.listOnlyKnownDevices();
+                if (enocean_1.default.enocean_endpoint != null) {
+                    if (!devices.find(d => d.comName == enocean_1.default.enocean_endpoint)) {
+                        devices.push({ comName: enocean_1.default.enocean_endpoint });
+                    }
+                }
+                else {
+                    devices = yield this.listDevices();
+                }
+                console.log("valid devices", devices);
+                devices.forEach(device => this.openDevice(device));
             }
-            else {
-                this.listDevices()
-                    .then(devices => {
-                    console.log("valid devices", devices);
-                    devices.forEach(device => this.openDevice(device));
-                    this.postNextRead();
-                })
-                    .catch(err => {
-                    console.log(err);
-                    this.postNextRead();
-                });
+            catch (err) {
             }
-        }
+            this.postNextRead();
+        });
     }
     listAllDevice() {
         return new Promise((resolve, reject) => {
@@ -218,6 +226,12 @@ class EnoceanLoader extends events_1.EventEmitter {
         return __awaiter(this, void 0, void 0, function* () {
             const devices = yield this.listAllDevice();
             return devices.filter(port => isARecognizedDevice(port));
+        });
+    }
+    listOnlyKnownDevices() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const devices = yield this.listAllDevice();
+            return devices.filter(port => isARecognizedKnownDevice(port));
         });
     }
     systemDevices() {

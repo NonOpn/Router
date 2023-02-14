@@ -12,9 +12,16 @@ const getByte = (telegram_byte_str: any, index: any): any => telegram_byte_str[i
 const getEEP = (rorg: any, rorg_func: any, rorg_type: any): any => (rorg+"-"+rorg_func+"-"+rorg_type).toLowerCase()
 const isFrameToSend = (rorg: any): any => ["a5", "f6", "d5", "d2", "d1"].filter(e => e === rorg).length > 0;
 
-function isARecognizedDevice(port: any) {
+function isARecognizedKnownDevice(port: any) {
   if(port.manufacturer !== undefined) {
     return ["ftdi", "enocean"].find(element => port.manufacturer.toLowerCase().indexOf(element) >= 0);
+  }
+  return false;
+}
+
+function isARecognizedDevice(port: any) {
+  if(isARecognizedKnownDevice(port)) {
+    return true;
   }
 
   return ["/dev/ttyAMA0", "/dev/ttyS0"].find(s => s === port.path);
@@ -186,25 +193,26 @@ export default class EnoceanLoader extends EventEmitter {
     }
   }
 
-  readDevices() {
-    if(!this.devices.find(device => device.isOpen())) {
-      if(config.enocean_endpoint != null) {
-        this.openDevice({ comName: config.enocean_endpoint });
+  async readDevices() {
+    try {
+      if(this.devices.find(device => device.isOpen())) return;
+      var devices = await this.listOnlyKnownDevices();
 
-        this.postNextRead();
+      if (config.enocean_endpoint != null) {
+        if (!devices.find(d => d.comName == config.enocean_endpoint)) {
+          devices.push({ comName: config.enocean_endpoint});
+        }
       } else {
-        this.listDevices()
-        .then(devices => {
-          console.log("valid devices", devices);
-          devices.forEach(device => this.openDevice(device));
-          this.postNextRead();
-        })
-        .catch(err => {
-          console.log(err);
-          this.postNextRead();
-        });
+        devices = await this.listDevices();
       }
+
+      console.log("valid devices", devices);
+
+      devices.forEach(device => this.openDevice(device));
+    } catch(err) {
+
     }
+    this.postNextRead();
   }
 
   private listAllDevice(): Promise<any[]> {
@@ -240,6 +248,11 @@ export default class EnoceanLoader extends EventEmitter {
   private async listDevices(): Promise<any[]> {
     const devices = await this.listAllDevice();
     return devices.filter(port => isARecognizedDevice(port));
+  }
+
+  private async listOnlyKnownDevices(): Promise<any[]> {
+    const devices = await this.listAllDevice();
+    return devices.filter(port => isARecognizedKnownDevice(port));
   }
 
   public async systemDevices(): Promise<SerialDevice[]> {
