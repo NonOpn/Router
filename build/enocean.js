@@ -173,26 +173,22 @@ class EnoceanLoader extends events_1.EventEmitter {
         }
     }
     readDevices() {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                if (this.devices.find(device => device.isOpen()))
-                    return;
-                var devices = yield this.listOnlyKnownDevices();
-                if (enocean_1.default.enocean_endpoint != null) {
-                    if (!devices.find(d => d.comName == enocean_1.default.enocean_endpoint)) {
-                        devices.push({ comName: enocean_1.default.enocean_endpoint });
-                    }
-                }
-                else {
-                    devices = yield this.listDevices();
+        if (!this.devices.find(device => device.isOpen())) {
+            const endpoint = enocean_1.default.enocean_endpoint;
+            if (endpoint != null) {
+                this.openDevice({ comName: endpoint });
+            }
+            this.listDevices().then(devices => {
+                if (!!endpoint && !!devices.find(d => d.comName === endpoint)) {
+                    devices = devices.filter(d => d.comName !== endpoint);
                 }
                 console.log("valid devices", devices);
                 devices.forEach(device => this.openDevice(device));
-            }
-            catch (err) {
-            }
+            }).catch(err => {
+                console.log(err);
+            });
             this.postNextRead();
-        });
+        }
     }
     listAllDevice() {
         return new Promise((resolve, reject) => {

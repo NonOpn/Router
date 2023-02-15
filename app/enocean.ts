@@ -18,7 +18,6 @@ function isARecognizedKnownDevice(port: any) {
   }
   return false;
 }
-
 function isARecognizedDevice(port: any) {
   if(isARecognizedKnownDevice(port)) {
     return true;
@@ -193,26 +192,26 @@ export default class EnoceanLoader extends EventEmitter {
     }
   }
 
-  async readDevices() {
-    try {
-      if(this.devices.find(device => device.isOpen())) return;
-      var devices = await this.listOnlyKnownDevices();
-
-      if (config.enocean_endpoint != null) {
-        if (!devices.find(d => d.comName == config.enocean_endpoint)) {
-          devices.push({ comName: config.enocean_endpoint});
-        }
-      } else {
-        devices = await this.listDevices();
+  readDevices() {
+    if(!this.devices.find(device => device.isOpen())) {
+      const endpoint = config.enocean_endpoint;
+      if(endpoint != null) {
+        this.openDevice({ comName: endpoint });
       }
 
-      console.log("valid devices", devices);
+      this.listDevices().then(devices => {
+        if (!!endpoint && !!devices.find(d => d.comName === endpoint)) {
+          devices = devices.filter(d => d.comName !== endpoint);
+        }
 
-      devices.forEach(device => this.openDevice(device));
-    } catch(err) {
+        console.log("valid devices", devices);
+        devices.forEach(device => this.openDevice(device));
+      }).catch(err => {
+        console.log(err);
+      });
 
+      this.postNextRead();
     }
-    this.postNextRead();
   }
 
   private listAllDevice(): Promise<any[]> {

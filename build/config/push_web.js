@@ -1,6 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-require("dotenv").config();
+var dotenv = undefined;
+try {
+    dotenv = require("dotenv");
+    if (dotenv)
+        dotenv.config();
+}
+catch (e) {
+}
 const from_config = process.env.PUSH_WEB_ACTIVATED;
 ;
 var config = {

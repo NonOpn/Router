@@ -1,6 +1,5 @@
 import { EventEmitter } from "events";
 import config from "./config/config";
-import configEnocean from "./config/enocean";
 import Errors from "./errors";
 import request from "request";
 import FrameModel, { Transaction } from "./push_web/frame_model";
@@ -197,8 +196,7 @@ export default class PushWEB extends EventEmitter {
 	private async sendEcho() {
 		try {
 			const devices = await this.enocean.systemDevices();
-			const forced_device = configEnocean.enocean_endpoint;
-			const json = { host: config.identity, version: VERSION, devices, forced_device };
+			const json = { host: config.identity, version: VERSION, devices };
 			const gprs = NetworkInfo.instance.isGPRS();
 	
 			if(!gprs) {
