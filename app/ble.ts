@@ -459,7 +459,9 @@ export default class BLE {
         this._refreshing_called_once = true;
 
         this._services_uuid = this._services.map(i => i.uuid).filter(u => u.indexOf("bee") >= 0);
-        startAdvertising(id, this._services_uuid);
+        startAdvertising(id, this._services_uuid, (error: any) => {
+          console.log("having error", error);
+        });
   
         if(this._started_advertising_ok) {
           setServices(this._services, (err: any) => console.log('setServices: '  + (err ? 'error ' + err : 'success')));

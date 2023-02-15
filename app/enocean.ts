@@ -149,6 +149,10 @@ class EnoceanDevice extends EventEmitter {
       console.log(e);
     }
   }
+
+  comName() {
+    return this.open_device.comName;
+  }
 }
 
 export default class EnoceanLoader extends EventEmitter {
@@ -160,6 +164,7 @@ export default class EnoceanLoader extends EventEmitter {
   }
 
   private openDevice(port: any) {
+    if (this.devices.find(d => d.comName() == port.comName)) return;
 
     const bindTo = new EnoceanDevice(port);
 

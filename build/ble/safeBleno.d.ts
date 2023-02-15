@@ -16,7 +16,7 @@ export declare class SafeCharacteristics {
     constructor(json: any);
     onReadRequest(offset: number, cb: BLECallback): void;
 }
-export declare const startAdvertising: (id: string, uuids: string[]) => void;
+export declare const startAdvertising: (id: string, uuids: string[], callback: (error: any) => void) => void;
 export declare const stopAdvertising: () => void;
 export declare const setServices: (services: SafePrimaryService[], callback: SetServiceCallback) => void;
 export declare const onBlenoEvent: (name: string, callback: any) => void;

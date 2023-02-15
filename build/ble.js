@@ -311,7 +311,9 @@ class BLE {
                 if (!this._refreshing_called_once || to_add.length > 0) {
                     this._refreshing_called_once = true;
                     this._services_uuid = this._services.map(i => i.uuid).filter(u => u.indexOf("bee") >= 0);
-                    safeBleno_1.startAdvertising(id, this._services_uuid);
+                    safeBleno_1.startAdvertising(id, this._services_uuid, (error) => {
+                        console.log("having error", error);
+                    });
                     if (this._started_advertising_ok) {
                         safeBleno_1.setServices(this._services, (err) => console.log('setServices: ' + (err ? 'error ' + err : 'success')));
                     }

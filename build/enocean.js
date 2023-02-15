@@ -139,6 +139,9 @@ class EnoceanDevice extends events_1.EventEmitter {
             console.log(e);
         }
     }
+    comName() {
+        return this.open_device.comName;
+    }
 }
 class EnoceanLoader extends events_1.EventEmitter {
     constructor() {
@@ -147,6 +150,8 @@ class EnoceanLoader extends events_1.EventEmitter {
         this.started = false;
     }
     openDevice(port) {
+        if (this.devices.find(d => d.comName() == port.comName))
+            return;
         const bindTo = new EnoceanDevice(port);
         bindTo.on("ready", (port) => this.emit("usb-open", port));
         bindTo.on("managed_frame", (output) => this.emit("managed_frame", output));

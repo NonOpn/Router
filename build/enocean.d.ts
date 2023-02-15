@@ -14,6 +14,7 @@ declare class EnoceanDevice extends EventEmitter {
     checkEventClose(caller: any): void;
     onLastValuesRetrieved(sensor_data: any, err: any, data: any): void;
     openDevice(port: any): void;
+    comName(): any;
 }
 export default class EnoceanLoader extends EventEmitter {
     devices: EnoceanDevice[];

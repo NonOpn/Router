@@ -62,9 +62,9 @@ export class SafeCharacteristics {
   }
 }
 
-export const startAdvertising = (id: string, uuids: string[]) => {
+export const startAdvertising = (id: string, uuids: string[], callback: (error: any) => void) => {
     if(bleno) {
-        bleno.startAdvertising(id, uuids);
+        bleno.startAdvertising(id, uuids, callback);
     } else {
         console.log("can't advertise for " + id, uuids);
     }
