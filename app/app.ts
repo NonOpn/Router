@@ -72,7 +72,7 @@ class App {
       });
 
       const bluetooth = new Bluetooth();
-      /*bluetooth.status()
+      bluetooth.status()
       .then(status => {
         if(!NetworkInfo.instance.isGPRS()) {
           Logger.data({service: "bluetooth", status})
@@ -80,7 +80,7 @@ class App {
         return bluetooth.start();
       })
       .then(res => {})
-      .catch(err => !NetworkInfo.instance.isGPRS() && Logger.error(err, "Error with bluetooth status"));*/
+      .catch(err => !NetworkInfo.instance.isGPRS() && Logger.error(err, "Error with bluetooth status"));
 
       // make sure the interface is up
       bluetooth.up().then(() => {

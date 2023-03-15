@@ -126,6 +126,8 @@ else
     ln -s $EXPECTED_V8_NPM_BIN /usr/bin/npm
     ln -s $EXPECTED_V8_NODE_BIN /usr/bin/node
 
+    su - nonopn -c "git config --global url.https://github.com/.insteadOf git://github.com/"
+    su - nonopn -c "git config --global url.https://github.com/.insteadOf ssh://git@github.com/"
     su - nonopn -c "cd /usr/local/routair ; $NPM install"
   else
     echo "md5 mismatched"
@@ -203,6 +205,7 @@ echo EXPECTED_PATH_MD5 $EXPECTED_PATH_MD5
 
 cp /usr/local/routair/scripts/41-usb_modeswitch.rules /etc/udev/rules.d/
 cp /usr/local/routair/scripts/config.txt /boot/
+cp /usr/local/routair/scripts/cmdline.txt /boot/
 mkdir -p /etc/usb_modeswitch.d/
 cp /usr/local/routair/scripts/12d1_1f01 /etc/usb_modeswitch.d/12d1\:1f01
 
@@ -277,6 +280,9 @@ sh /usr/local/routair/scripts/repair.sh
 
 if [ -f "/home/nonopn/rebuild" ]; then
   rm -rf /usr/local/routair/node_modules
+  echo "before using npm install, fix issue with github"
+  su - nonopn -c "git config --global url.https://github.com/.insteadOf git://github.com/"
+  su - nonopn -c "git config --global url.https://github.com/.insteadOf ssh://git@github.com/"
   echo "executing:: $NPM install --save $NODE_ENOCEAN"
   su - nonopn -c "cd /usr/local/routair ; $NPM install --save $NODE_ENOCEAN"
   echo "executing:: $NPM install"

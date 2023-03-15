@@ -67,15 +67,15 @@ class App {
                 console.log("error on ssh", err);
             });
             const bluetooth = new index_1.Bluetooth();
-            /*bluetooth.status()
-            .then(status => {
-              if(!NetworkInfo.instance.isGPRS()) {
-                Logger.data({service: "bluetooth", status})
-              }
-              return bluetooth.start();
+            bluetooth.status()
+                .then(status => {
+                if (!network_1.default.instance.isGPRS()) {
+                    index_js_1.Logger.data({ service: "bluetooth", status });
+                }
+                return bluetooth.start();
             })
-            .then(res => {})
-            .catch(err => !NetworkInfo.instance.isGPRS() && Logger.error(err, "Error with bluetooth status"));*/
+                .then(res => { })
+                .catch(err => !network_1.default.instance.isGPRS() && index_js_1.Logger.error(err, "Error with bluetooth status"));
             // make sure the interface is up
             bluetooth.up().then(() => {
                 safeBleno_1.logBLE({ status: "up" });
