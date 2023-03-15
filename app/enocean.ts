@@ -23,7 +23,7 @@ function isARecognizedDevice(port: any) {
     return true;
   }
 
-  return ["/dev/ttyAMA0", "/dev/ttyS0"].find(s => s === port.path);
+  return ["/dev/ttyAMA0"].find(s => s === port.path);
 }
 
 interface SerialDevice {

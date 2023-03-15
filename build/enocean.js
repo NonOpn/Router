@@ -33,7 +33,7 @@ function isARecognizedDevice(port) {
     if (isARecognizedKnownDevice(port)) {
         return true;
     }
-    return ["/dev/ttyAMA0", "/dev/ttyS0"].find(s => s === port.path);
+    return ["/dev/ttyAMA0"].find(s => s === port.path);
 }
 class EnoceanDevice extends events_1.EventEmitter {
     constructor(port) {
