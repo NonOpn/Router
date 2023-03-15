@@ -180,6 +180,7 @@ class EnoceanLoader extends events_1.EventEmitter {
     readDevices() {
         if (!this.devices.find(device => device.isOpen())) {
             const endpoint = enocean_1.default.enocean_endpoint;
+            console.log("having endpoint in config ? ", endpoint);
             if (endpoint != null) {
                 this.openDevice({ comName: endpoint });
             }
@@ -226,6 +227,7 @@ class EnoceanLoader extends events_1.EventEmitter {
     listDevices() {
         return __awaiter(this, void 0, void 0, function* () {
             const devices = yield this.listAllDevice();
+            console.log("having devices", devices);
             return devices.filter(port => isARecognizedDevice(port));
         });
     }

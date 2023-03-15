@@ -18,6 +18,7 @@ function isARecognizedKnownDevice(port: any) {
   }
   return false;
 }
+
 function isARecognizedDevice(port: any) {
   if(isARecognizedKnownDevice(port)) {
     return true;
@@ -200,6 +201,7 @@ export default class EnoceanLoader extends EventEmitter {
   readDevices() {
     if(!this.devices.find(device => device.isOpen())) {
       const endpoint = config.enocean_endpoint;
+      console.log("having endpoint in config ? ", endpoint);
       if(endpoint != null) {
         this.openDevice({ comName: endpoint });
       }
@@ -251,6 +253,7 @@ export default class EnoceanLoader extends EventEmitter {
 
   private async listDevices(): Promise<any[]> {
     const devices = await this.listAllDevice();
+    console.log("having devices", devices);
     return devices.filter(port => isARecognizedDevice(port));
   }
 
