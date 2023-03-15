@@ -185,6 +185,7 @@ class EnoceanLoader extends events_1.EventEmitter {
                 this.openDevice({ comName: endpoint });
             }
             this.listDevices().then(devices => {
+                console.log("new devices", devices);
                 if (!!endpoint && !!devices.find(d => d.comName === endpoint)) {
                     devices = devices.filter(d => d.comName !== endpoint);
                 }

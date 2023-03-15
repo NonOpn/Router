@@ -207,6 +207,7 @@ export default class EnoceanLoader extends EventEmitter {
       }
 
       this.listDevices().then(devices => {
+        console.log("new devices", devices);
         if (!!endpoint && !!devices.find(d => d.comName === endpoint)) {
           devices = devices.filter(d => d.comName !== endpoint);
         }
