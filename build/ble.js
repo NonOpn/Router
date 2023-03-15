@@ -322,9 +322,11 @@ class BLE {
             catch (err) {
                 if (!network_1.default.instance.isGPRS())
                     log_1.Logger.error(err, "refreshDevices");
-                console.error(err);
+                console.error("error in management", err);
                 this._services_uuid = this._services.map(i => i.uuid).filter(u => u.indexOf("bee") >= 0);
-                safeBleno_1.startAdvertising(id, this._services_uuid);
+                safeBleno_1.startAdvertising(id, this._services_uuid, (error) => {
+                    console.log("having error from catch", error);
+                });
             }
             ;
         });
@@ -421,7 +423,7 @@ class BLE {
             console.log("new mtu value", global_mtu);
             safeBleno_1.logBLE({ status: "mtuChange", mtuValue });
         });
-        setTimeout(() => this.onStateChanged("poweredOn"), 30 * 1000);
+        //setTimeout(() => this.onStateChanged("poweredOn"), 30 * 1000);
         safeBleno_1.onBlenoEvent('stateChange', this.onStateChanged);
         safeBleno_1.onBlenoEvent('advertisingStart', (err) => {
             console.log('on -> advertisingStart: ' + (err ? 'error ' + err : 'success'));

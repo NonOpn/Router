@@ -469,9 +469,11 @@ export default class BLE {
       }
     } catch(err) {
       if(!NetworkInfo.instance.isGPRS()) Logger.error(err, "refreshDevices");
-      console.error(err);
+      console.error("error in management", err);
       this._services_uuid = this._services.map(i => i.uuid).filter(u => u.indexOf("bee") >= 0);
-      startAdvertising(id, this._services_uuid);
+      startAdvertising(id, this._services_uuid, (error: any) => {
+        console.log("having error from catch", error);
+      });
     };
   }
 
@@ -529,7 +531,7 @@ export default class BLE {
       logBLE({status: "mtuChange", mtuValue});
     });
 
-    setTimeout(() => this.onStateChanged("poweredOn"), 30 * 1000);
+    //setTimeout(() => this.onStateChanged("poweredOn"), 30 * 1000);
 
     onBlenoEvent('stateChange', this.onStateChanged);
 
