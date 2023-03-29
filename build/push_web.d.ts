@@ -13,6 +13,7 @@ export default class PushWEB extends EventEmitter {
     trySend: () => Promise<void>;
     trySendOk: () => Promise<void>;
     private setSent;
+    private lastRequestGPRSCount;
     private sendEcho;
     onFrame(device: AbstractDevice | undefined, data: any): void;
     connect(): void;

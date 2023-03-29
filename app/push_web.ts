@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import config from "./config/config";
 import Errors from "./errors";
+//@ts-ignore
 import request from "request";
 import FrameModel, { Transaction } from "./push_web/frame_model";
 import FrameModelCompress from "./push_web/frame_model_compress";
@@ -193,26 +194,33 @@ export default class PushWEB extends EventEmitter {
 		}
 	}
 
+	private lastRequestGPRSCount = 0;
+
 	private async sendEcho() {
 		try {
 			const devices = await this.enocean.systemDevices();
-			const json = { host: config.identity, version: VERSION, devices };
 			const gprs = NetworkInfo.instance.isGPRS();
+			const interfaces = NetworkInfo.instance.list()?.map(i => i?.name || "");
+			const json = { host: config.identity, version: VERSION, devices, gprs, interfaces };
 	
 			if(!gprs) {
 				await Logger.post("contact-platform.com", 443, "/api/echo", { }, json);
 			} else {
-				return;
-				/*await new Promise((resolve, reject) => {
-					request.post({
-						url: "http://contact-platform.com/api/echo",
-						json
-					}, (e: any, response: any, body: any) => {
-						//nothing to do
-						console.log(body);
-						resolve(true);
+				if (this.lastRequestGPRSCount <= 0) {
+					this.lastRequestGPRSCount = 4;
+					await new Promise((resolve, reject) => {
+						request.post({
+							url: "http://contact-platform.com/api/echo",
+							json
+						}, (e: any, response: any, body: any) => {
+							//nothing to do
+							console.log(body);
+							resolve(true);
+						});
 					});
-				})*/
+				} else {
+					this.lastRequestGPRSCount -= 1;
+				}
 			}
 	
 			console.log("echo posted");

@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
 const config_1 = __importDefault(require("./config/config"));
 const errors_1 = __importDefault(require("./errors"));
+//@ts-ignore
 const request_1 = __importDefault(require("request"));
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
 const frame_model_compress_1 = __importDefault(require("./push_web/frame_model_compress"));
@@ -159,6 +160,7 @@ class PushWEB extends events_1.EventEmitter {
                 console.log("frames error... ");
             }
         });
+        this.lastRequestGPRSCount = 0;
         this.applyData = (device, data) => __awaiter(this, void 0, void 0, function* () {
             const _data = data ? data : {};
             var rawdata = _data.rawByte || _data.rawFrameStr;
@@ -199,26 +201,33 @@ class PushWEB extends events_1.EventEmitter {
         });
     }
     sendEcho() {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const devices = yield this.enocean.systemDevices();
-                const json = { host: config_1.default.identity, version: VERSION, devices };
                 const gprs = index_1.default.instance.isGPRS();
+                const interfaces = (_a = index_1.default.instance.list()) === null || _a === void 0 ? void 0 : _a.map(i => (i === null || i === void 0 ? void 0 : i.name) || "");
+                const json = { host: config_1.default.identity, version: VERSION, devices, gprs, interfaces };
                 if (!gprs) {
                     yield log_1.Logger.post("contact-platform.com", 443, "/api/echo", {}, json);
                 }
                 else {
-                    return;
-                    /*await new Promise((resolve, reject) => {
-                        request.post({
-                            url: "http://contact-platform.com/api/echo",
-                            json
-                        }, (e: any, response: any, body: any) => {
-                            //nothing to do
-                            console.log(body);
-                            resolve(true);
+                    if (this.lastRequestGPRSCount <= 0) {
+                        this.lastRequestGPRSCount = 4;
+                        yield new Promise((resolve, reject) => {
+                            request_1.default.post({
+                                url: "http://contact-platform.com/api/echo",
+                                json
+                            }, (e, response, body) => {
+                                //nothing to do
+                                console.log(body);
+                                resolve(true);
+                            });
                         });
-                    })*/
+                    }
+                    else {
+                        this.lastRequestGPRSCount -= 1;
+                    }
                 }
                 console.log("echo posted");
             }
