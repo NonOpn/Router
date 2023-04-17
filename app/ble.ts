@@ -190,7 +190,14 @@ class BLEWriteCharacteristic extends Characteristic {
       this._tmp = data.toString();
       if(!this._tmp) this._tmp = "";
     } else {
-      this._tmp += data.toString();
+      // TODO improve fix but for now it'll be enough
+      const new_tmp = data.toString();
+
+      // issue happened that the values could be set multiple times with the same
+      // in production : some called 4 times 
+      if (this._tmp !== new_tmp) {
+        this._tmp += new_tmp;
+      }
     }
     callback(RESULT_SUCCESS);
     this._counter = 10;
