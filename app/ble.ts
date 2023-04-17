@@ -185,6 +185,7 @@ class BLEWriteCharacteristic extends Characteristic {
   }
 
   onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback) {
+    console.log("having onWriteRequest", { data, offset, withoutResponse });
     if(!this._tmp) {
       this._tmp = data.toString();
       if(!this._tmp) this._tmp = "";

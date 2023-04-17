@@ -134,6 +134,7 @@ class BLEWriteCharacteristic extends safeBleno_1.Characteristic {
             this._counter = 0;
     }
     onWriteRequest(data, offset, withoutResponse, callback) {
+        console.log("having onWriteRequest", { data, offset, withoutResponse });
         if (!this._tmp) {
             this._tmp = data.toString();
             if (!this._tmp)
