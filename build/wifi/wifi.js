@@ -5,8 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const child_process_1 = require("child_process");
+//@ts-ignore
 const hostapd_1 = __importDefault(require("wireless-tools/hostapd"));
+//@ts-ignore
 const udhcpd_1 = __importDefault(require("wireless-tools/udhcpd"));
+//@ts-ignore
 const wpa_supplicant_1 = __importDefault(require("wireless-tools/wpa_supplicant"));
 const config_rows_1 = __importDefault(require("./config_rows"));
 const wifi_js_1 = __importDefault(require("../config/wifi.js"));

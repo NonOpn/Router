@@ -3,13 +3,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+//@ts-ignore
 const express_1 = __importDefault(require("express"));
 const events_1 = require("events");
+//@ts-ignore
 const socket_io_1 = __importDefault(require("socket.io"));
+//@ts-ignore
 const setup_1 = __importDefault(require("setup"));
 const api_v1_1 = __importDefault(require("./server/api/api_v1"));
 const api_v2_1 = __importDefault(require("./server/api/api_v2"));
 const api_public_1 = __importDefault(require("./server/api/api_public"));
+//@ts-ignore
 const body_parser_1 = __importDefault(require("body-parser"));
 const visualisation_js_1 = __importDefault(require("./config/visualisation.js"));
 const wifi_1 = __importDefault(require("./wifi/wifi"));

@@ -1,3 +1,4 @@
+//@ts-ignore
 import request from 'request';
 import config from "./config/config";
 import { Logger } from './log/index';

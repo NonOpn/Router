@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "suppressImplicitAnyIndexErrors": true,
     "target": "es6",
     "module": "commonjs",
     "esModuleInterop": true,

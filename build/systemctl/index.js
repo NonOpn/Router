@@ -118,11 +118,10 @@ const _exists = (file) => {
     });
 };
 exports.exists = _exists;
-const npm = () => {
+exports.npm = () => {
     const path = `/usr/local/node-${process.version}/bin/npm`;
     return _exists(path).then(ok => ok ? path : "/usr/bin/npm");
 };
-exports.npm = npm;
 class Rebuild {
     exec(package_name, npm = "/usr/bin/npm") {
         console.log("using path", { package_name, npm });

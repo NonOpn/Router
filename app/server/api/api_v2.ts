@@ -1,3 +1,4 @@
+//@ts-ignore
 import express from "express";
 
 import Diagnostic from "../../diagnostic/Diagnostic";

@@ -1,4 +1,5 @@
 import config from "../config/config";
+//@ts-ignore
 import request from "request";
 import { Bash } from "../systemctl";
 import { Logger } from "../log";

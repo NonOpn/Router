@@ -1,9 +1,15 @@
+//@ts-ignore
 import network from "network";
+//@ts-ignore
 import config from "network-config";
 
 export interface Interface {
   name: string|undefined;
   ip_address?: string|undefined;
+  mac_address?: string|undefined;
+  type?: string|undefined;
+  netmask?: string|undefined;
+  gateway_ip?: string|undefined;
 }
 
 export interface InterfaceCallback {
@@ -42,7 +48,7 @@ export default class NetworkInfo {
     return undefined;
   }
 
-  readInterface(names: string[], key: string): InterfaceCallback {
+  readInterface(names: string[], key: keyof Interface): InterfaceCallback {
     return () => new Promise(resolve => {
       var infos = names.map(i => this.interf(i)).filter(i => undefined != i);
       var info = infos.length > 0 ? infos[0] : undefined;

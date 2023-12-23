@@ -97,10 +97,13 @@ class FrameManagerAlert extends events_1.EventEmitter {
             internal_serials.forEach(pre_holder => {
                 const { id, internal_serial, frame, contactair } = pre_holder;
                 if (internal_serial != "ffffff") {
+                    //@ts-ignore
                     if (!mapping_internal_serials[internal_serial]) {
+                        //@ts-ignore
                         mapping_internal_serials[internal_serial] = { contactair, internal_serial, data: [] };
                         serials.push(internal_serial);
                     }
+                    //@ts-ignore
                     mapping_internal_serials[internal_serial].data.push({ id, frame });
                     //TODO when being in the past, don't check for modification from earlier... add this into the first loop? the one using latest elements
                     //or store into the device update ?
@@ -109,10 +112,13 @@ class FrameManagerAlert extends events_1.EventEmitter {
                         serial_to_contactair.set(internal_serial, contactair);
                 }
                 else {
+                    //@ts-ignore
                     if (!mapping_contactairs[contactair]) {
+                        //@ts-ignore
                         mapping_contactairs[contactair] = { contactair, internal_serial: "", data: [] };
                         contactairs.push(contactair);
                     }
+                    //@ts-ignore
                     mapping_contactairs[contactair].data.push({ id, frame });
                 }
             });
@@ -127,16 +133,20 @@ class FrameManagerAlert extends events_1.EventEmitter {
                             return false;
                         }
                         ;
+                        //@ts-ignore
                         const mapping_contactair = mapping_contactairs[contactair];
                         if (mapping_contactair) {
                             const id_frames = mapping_contactair.data;
+                            //@ts-ignore
                             if (!mapping_internal_serials[internal_serial]) {
+                                //@ts-ignore
                                 mapping_internal_serials[internal_serial] = { contactair, internal_serial, data: [] };
                                 serials.push(internal_serial);
                                 //updating the mapping internal_serial -> contactair to check for modification
                                 if (!serial_to_contactair.has(internal_serial))
                                     serial_to_contactair.set(internal_serial, contactair);
                             }
+                            //@ts-ignore
                             id_frames.forEach(id_frame => mapping_internal_serials[internal_serial].data.push(id_frame));
                         }
                         return true;
@@ -151,6 +161,7 @@ class FrameManagerAlert extends events_1.EventEmitter {
                 const promises = [];
                 devices.forEach(tuple => {
                     const { device, serial } = tuple;
+                    //@ts-ignore
                     const holder = mapping_internal_serials[serial];
                     device && holder.data.forEach((data, index) => {
                         const { id, frame } = data;

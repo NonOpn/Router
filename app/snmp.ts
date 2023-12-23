@@ -1,5 +1,6 @@
 import { EventEmitter } from "events";
 
+//@ts-ignore
 import snmp from 'snmpjs';
 import DataPoint from "./database/data_point";
 import Paratonair from "./snmp/paratonair";
@@ -27,6 +28,7 @@ const VERSION = "0.1";
 
 function instantiate(params: any) {
 	if(params && params.lpsfr) {
+		//@ts-ignore
 		const klass = array[params.lpsfr.type];
 		if(klass) {
 			return new (klass)(params);

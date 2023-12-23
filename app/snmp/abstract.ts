@@ -1,6 +1,7 @@
 import FrameModel, { Transaction } from './../push_web/frame_model';
 import { DataPointModel } from '../database/data_point';
 import DataPoint from "../database/data_point";
+//@ts-ignore
 import snmp from "snmpjs";
 import FrameModelCompress from '../push_web/frame_model_compress';
 

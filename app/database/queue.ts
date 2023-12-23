@@ -34,8 +34,8 @@ export default class Queue<TYPE> {
                 if(!promise) {
                     try {
                         throw "invalid promise obtained from provider call!";
-                    } catch(e: any) {
-                        reject(e);
+                    } catch (e) {
+                        reject(e as Error);
                     }
                 }
 

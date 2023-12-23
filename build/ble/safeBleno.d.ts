@@ -1,4 +1,5 @@
 /// <reference types="node" />
+import { BLEResultCallback } from "./BLESyncCharacteristic";
 declare function log(data: any): void;
 export declare const logBLE: typeof log;
 export interface SetServiceCallback {
@@ -15,6 +16,7 @@ export declare class SafePrimaryService {
 export declare class SafeCharacteristics {
     constructor(json: any);
     onReadRequest(offset: number, cb: BLECallback): void;
+    onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback): void;
 }
 export declare const startAdvertising: (id: string, uuids: string[], callback: (error: any) => void) => void;
 export declare const stopAdvertising: () => void;

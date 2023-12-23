@@ -1,3 +1,4 @@
+//@ts-ignore
 import mysql from "mysql";
 import config from "../config/mysql.js";
 import { Resolve, Reject } from "../promise.jsx";

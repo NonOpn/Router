@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
+//@ts-ignore
 const snmpjs_1 = __importDefault(require("snmpjs"));
 const data_point_1 = __importDefault(require("./database/data_point"));
 const paratonair_1 = __importDefault(require("./snmp/paratonair"));
@@ -28,6 +29,7 @@ const array = {
 const VERSION = "0.1";
 function instantiate(params) {
     if (params && params.lpsfr) {
+        //@ts-ignore
         const klass = array[params.lpsfr.type];
         if (klass) {
             return new (klass)(params);

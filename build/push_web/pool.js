@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+//@ts-ignore
 const mysql_1 = __importDefault(require("mysql"));
 const mysql_js_1 = __importDefault(require("../config/mysql.js"));
 const index_js_1 = require("../log/index.js");

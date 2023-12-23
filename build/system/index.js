@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Diskspace = exports.SystemInfo = void 0;
 const Command_1 = require("./Command");
 const os_1 = __importDefault(require("os"));
+//@ts-ignore
 const fd_diskspace_1 = __importDefault(require("fd-diskspace"));
 const systemctl_1 = require("../systemctl");
 class SystemInfo {

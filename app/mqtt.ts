@@ -1,6 +1,8 @@
 import { EventEmitter } from "events";
 
+//@ts-ignore
 import mqtt, { MqttClient } from "mqtt";
+//@ts-ignore
 import config from "../config/mqtt.json";
 
 export default class MQTT extends EventEmitter {
@@ -19,7 +21,7 @@ export default class MQTT extends EventEmitter {
           console.log(socket);
         });
 
-        this.client.on("error", (e) => {
+        this.client.on("error", (e: Error) => {
           console.log(e);
         });
 

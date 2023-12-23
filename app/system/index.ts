@@ -1,5 +1,6 @@
 import { Command } from './Command';
 import os from "os";
+//@ts-ignore
 import fd from "fd-diskspace";
 import { DU, exists } from "../systemctl";
 

@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+//@ts-ignore
 const express_1 = __importDefault(require("express"));
 const frame_model_1 = __importDefault(require("../../push_web/frame_model"));
 const wifi_1 = __importDefault(require("../../wifi/wifi"));

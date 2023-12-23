@@ -4,7 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
+//@ts-ignore
 const mqtt_1 = __importDefault(require("mqtt"));
+//@ts-ignore
 const mqtt_json_1 = __importDefault(require("../config/mqtt.json"));
 class MQTT extends events_1.EventEmitter {
     connect() {

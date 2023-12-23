@@ -310,7 +310,8 @@ class BLEPrimaryDeviceService extends PrimaryService {
 
   createSeenDeviceCallback() {
     return this.device.getInternalSerial()
-    .then(internal_serial => !!seenDevices.devices[internal_serial] ? "true" : "false");
+      //@ts-ignore
+      .then(internal_serial => !!seenDevices.devices[internal_serial] ? "true" : "false");
   }
 }
 
@@ -587,7 +588,9 @@ export default class BLE {
     if(device) {
       device.getInternalSerial()
       .then((internal_serial: string|undefined) => {
+        //@ts-ignore
         if(internal_serial && !seenDevices.devices[internal_serial]) {
+          //@ts-ignore
           seenDevices.devices[internal_serial] = true;
           seenDevices.count ++;
         }

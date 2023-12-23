@@ -38,6 +38,7 @@ class _Logger {
                 }, reason: "" };
             try {
                 if (error) {
+                    //@ts-ignore
                     Object.keys(error).map(k => output[k] = error[k]);
                     output.stack = error.stack;
                     output.str = error.toString();

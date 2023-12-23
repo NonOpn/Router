@@ -30,6 +30,7 @@ const devices = device_model_1.default.instance;
 const BLEConstants_1 = require("./ble/BLEConstants");
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
 const log_1 = require("./log");
+const BLETimeCharacteristic_1 = require("./ble/BLETimeCharacteristic");
 var id = "Routair";
 if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) { //0xAABBCCDD
     id += config_1.default.identity.substr(0, 5 * 2);
@@ -134,7 +135,6 @@ class BLEWriteCharacteristic extends safeBleno_1.Characteristic {
             this._counter = 0;
     }
     onWriteRequest(data, offset, withoutResponse, callback) {
-        console.log("having onWriteRequest", { data, offset, withoutResponse });
         if (!this._tmp) {
             this._tmp = data.toString();
             if (!this._tmp)
@@ -146,6 +146,7 @@ class BLEWriteCharacteristic extends safeBleno_1.Characteristic {
             // issue happened that the values could be set multiple times with the same
             // in production : some called 4 times 
             if (this._tmp !== new_tmp) {
+                console.log("having onWriteRequest, differences, we can assume it needs to be appended");
                 this._tmp += new_tmp;
             }
         }
@@ -250,6 +251,7 @@ class BLEPrimaryDeviceService extends safeBleno_1.PrimaryService {
     }
     createSeenDeviceCallback() {
         return this.device.getInternalSerial()
+            //@ts-ignore
             .then(internal_serial => !!seenDevices.devices[internal_serial] ? "true" : "false");
     }
 }
@@ -377,6 +379,7 @@ class BLE {
         this._characteristics = [
             new BLEDescriptionCharacteristic("0001", config_1.default.identity),
             new BLEDescriptionCharacteristic("0002", config_1.default.version),
+            new BLETimeCharacteristic_1.BLETimeCharacteristic("0003"),
             new BLEWriteCharacteristic("0101", "Wifi Config", (value) => this._onWifi(value)),
             new BLEWriteCharacteristic("0102", "Network Config", (value) => this._onNetwork(value)),
             new BLEAsyncDescriptionCharacteristic("0103", () => this._onDeviceSeenCall()),
@@ -467,7 +470,9 @@ class BLE {
         if (device) {
             device.getInternalSerial()
                 .then((internal_serial) => {
+                //@ts-ignore
                 if (internal_serial && !seenDevices.devices[internal_serial]) {
+                    //@ts-ignore
                     seenDevices.devices[internal_serial] = true;
                     seenDevices.count++;
                 }

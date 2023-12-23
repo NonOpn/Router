@@ -156,7 +156,7 @@ export default class FrameModelCompress extends Abstract {
     });
   }
 
-  _contactair_cache = [];
+  _contactair_cache: any = [];
   _syncing = false;
   _temp_syncing: any[] = [];
 

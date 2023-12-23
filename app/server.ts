@@ -1,10 +1,14 @@
+//@ts-ignore
 import express from "express";
 import { EventEmitter } from "events";
+//@ts-ignore
 import socketio from "socket.io";
+//@ts-ignore
 import Setup from "setup";
 import api_v1 from "./server/api/api_v1";
 import api_v2 from "./server/api/api_v2";
 import api_public from "./server/api/api_public";
+//@ts-ignore
 import bodyParser from 'body-parser';
 import config from "./config/visualisation.js";
 

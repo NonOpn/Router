@@ -1,7 +1,10 @@
 import fs from 'fs';
 import { exec, ExecException } from 'child_process';
+//@ts-ignore
 import hostapd from 'wireless-tools/hostapd';
+//@ts-ignore
 import udhcpd from 'wireless-tools/udhcpd';
+//@ts-ignore
 import wpa_supplicant from 'wireless-tools/wpa_supplicant';
 import ConfigRows, { Config } from './config_rows';
 import config from "../config/wifi.js";
