@@ -34,12 +34,13 @@ export default abstract class AbstractDevice {
     _getPromiseCharacteristic(name: string): Promise<any>;
     _setPromiseCharacteristic(name: string, value: string): Promise<boolean>;
     getSyncInternalSerial(): string | undefined;
-    getConnectedStateString(item: DataPointModel | undefined): string;
-    getImpactedString(item: DataPointModel | undefined): string;
+    getConnectedStateString(compressed: string | undefined): string;
+    getImpactedString(compressed: string | undefined): string;
     getAdditionnalInfo1String(item: DataPointModel | undefined): string;
     getAdditionnalInfo2String(item: DataPointModel | undefined): string;
     getLPSFR(): any;
     getLatest(): Promise<DataPointModel | undefined>;
+    getLatestButAsTransaction(): Promise<Transaction | undefined>;
     getLatestFrames(): Promise<Transaction[]>;
     getLatestAlertFrames(): Promise<Transaction[]>;
     getFormattedLatestAlertFrames(): Promise<any[]>;

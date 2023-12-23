@@ -97,14 +97,13 @@ export default abstract class AbstractDevice {
     return this.params && this.params.lpsfr ? this.params.lpsfr.internal : undefined;
   }
 
-  getConnectedStateString(item: DataPointModel|undefined): string {
+  getConnectedStateString(compressed: string|undefined): string {
     return "not_implemented";
   }
 
-  getImpactedString(item: DataPointModel|undefined): string {
+  getImpactedString(compressed: string|undefined): string {
     return "not_implemented";
   }
-
   
   getAdditionnalInfo1String(item: DataPointModel|undefined): string {
     return "not_implemented";
@@ -121,6 +120,13 @@ export default abstract class AbstractDevice {
   getLatest(): Promise<DataPointModel|undefined> {
     const filter: Filter = this.getStandardFilter();
     return this.data_point_provider.findMatching(filter.key, filter.value);
+  }
+
+  async getLatestButAsTransaction(): Promise<Transaction|undefined> {
+    const transactions = await FrameModel.instance.lasts(this.getId(), 1)
+
+    if (!transactions || transactions.length == 0) return undefined;
+    return transactions[0];
   }
 
   getLatestFrames(): Promise<Transaction[]> {
@@ -177,13 +183,21 @@ export default abstract class AbstractDevice {
   }
 
   getConnectedState(): Promise<string> {
-    return this.getLatest()
-    .then(item => this.getConnectedStateString(item));
+    return this.getLatestButAsTransaction()
+    .then(transaction => {
+      const compressed = transaction ? FrameModelCompress.instance.getFrameWithoutHeader(transaction.frame)
+        : undefined;
+      return this.getConnectedStateString(compressed);
+    });
   }
 
   getImpactedState(): Promise<string> {
-    return this.getLatest()
-    .then(item => this.getImpactedString(item));
+    return this.getLatestButAsTransaction()
+    .then(transaction => {
+      const compressed = transaction ? FrameModelCompress.instance.getFrameWithoutHeader(transaction.frame)
+        : undefined;
+      return this.getImpactedString(compressed);
+    });
   }
 
   getStandardFilter(): Filter { throw "must be defined"; }

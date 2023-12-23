@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const os_1 = __importDefault(require("os"));
 const abstract_1 = __importDefault(require("./abstract"));
+const frame_model_compress_1 = __importDefault(require("../push_web/frame_model_compress"));
 class Comptair extends abstract_1.default {
     constructor(params) {
         super();
@@ -38,12 +39,12 @@ class Comptair extends abstract_1.default {
         }
         return false;
     }
-    getConnectedStateString(item) {
-        const connected = item ? Comptair.isConnected(item.data) : false;
+    getConnectedStateString(compressed) {
+        const connected = compressed ? Comptair.isConnected(compressed) : false;
         return connected ? "connected" : "disconnected";
     }
-    getImpactedString(item) {
-        const connected = item ? Comptair.isStriken(item.data) : false;
+    getImpactedString(compressed) {
+        const connected = compressed ? Comptair.isStriken(compressed) : false;
         return connected ? "striken" : "normal";
     }
     format_frame(transaction, compressed) {
@@ -85,9 +86,11 @@ class Comptair extends abstract_1.default {
             {
                 oid: this.params.oid + ".4",
                 handler: (prq) => {
-                    this.getLatest()
-                        .then(item => {
-                        const behaviour = this.getConnectedStateString(item);
+                    this.getLatestButAsTransaction()
+                        .then(transaction => {
+                        const compressed = transaction ? frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame)
+                            : undefined;
+                        const behaviour = this.getConnectedStateString(compressed);
                         this.sendString(prq, behaviour);
                     })
                         .catch(err => {
@@ -99,9 +102,11 @@ class Comptair extends abstract_1.default {
             {
                 oid: this.params.oid + ".5",
                 handler: (prq) => {
-                    this.getLatest()
-                        .then(item => {
-                        const string = this.getImpactedString(item);
+                    this.getLatestButAsTransaction()
+                        .then(transaction => {
+                        const compressed = transaction ? frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame)
+                            : undefined;
+                        const string = this.getImpactedString(compressed);
                         this.sendString(prq, string);
                     })
                         .catch(err => {

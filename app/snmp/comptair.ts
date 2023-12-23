@@ -1,7 +1,7 @@
 import os from 'os';
-import { DataPointModel } from './../database/data_point';
 import AbstractDevice, { Filter, OID } from "./abstract";
 import { Transaction } from '../push_web/frame_model';
+import FrameModelCompress from '../push_web/frame_model_compress';
 
 export default class Comptair extends AbstractDevice {
   constructor(params: any) {
@@ -36,13 +36,13 @@ export default class Comptair extends AbstractDevice {
     return false;
   }
 
-  getConnectedStateString(item: DataPointModel|undefined): string {
-    const connected = item ? Comptair.isConnected(item.data) : false;
+  getConnectedStateString(compressed: string|undefined): string {
+    const connected = compressed ? Comptair.isConnected(compressed) : false;
     return connected ? "connected" : "disconnected";
   }
 
-  getImpactedString(item: DataPointModel|undefined): string {
-    const connected = item ? Comptair.isStriken(item.data) : false;
+  getImpactedString(compressed: string|undefined): string {
+    const connected = compressed? Comptair.isStriken(compressed) : false;
     return connected ? "striken" : "normal";
   }
 
@@ -86,9 +86,11 @@ export default class Comptair extends AbstractDevice {
       {
         oid: this.params.oid+".4",
         handler: (prq) => {
-          this.getLatest()
-          .then(item => {
-            const behaviour = this.getConnectedStateString(item);
+          this.getLatestButAsTransaction()
+          .then(transaction => {
+            const compressed = transaction ? FrameModelCompress.instance.getFrameWithoutHeader(transaction.frame)
+              : undefined;
+            const behaviour = this.getConnectedStateString(compressed);
             this.sendString(prq, behaviour);
           })
           .catch(err => {
@@ -100,9 +102,11 @@ export default class Comptair extends AbstractDevice {
       {
         oid: this.params.oid+".5",
         handler: (prq) => {
-          this.getLatest()
-          .then(item => {
-            const string = this.getImpactedString(item);
+          this.getLatestButAsTransaction()
+          .then(transaction => {
+            const compressed = transaction ? FrameModelCompress.instance.getFrameWithoutHeader(transaction.frame)
+              : undefined;
+            const string = this.getImpactedString(compressed);
             this.sendString(prq, string);
           })
           .catch(err => {

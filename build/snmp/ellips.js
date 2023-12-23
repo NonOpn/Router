@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const abstract_1 = __importDefault(require("./abstract"));
+const frame_model_compress_1 = __importDefault(require("../push_web/frame_model_compress"));
 class Ellips extends abstract_1.default {
     constructor(params) {
         super();
@@ -15,10 +16,10 @@ class Ellips extends abstract_1.default {
             value: this.params.lpsfr.serial
         };
     }
-    getConnectedStateString(item) {
-        if (!item || !item.data)
+    getConnectedStateString(compressed) {
+        if (!compressed)
             return " ";
-        const buffer = new Buffer(item.data, "hex");
+        const buffer = new Buffer(compressed, "hex");
         if (buffer.length >= 4) {
             const disconnect = (buffer[3] & 2) === 2;
             if (disconnect)
@@ -26,10 +27,10 @@ class Ellips extends abstract_1.default {
         }
         return "connected";
     }
-    getImpactedString(item) {
-        if (!item || !item.data)
+    getImpactedString(compressed) {
+        if (!compressed)
             return " ";
-        const buffer = new Buffer(item.data, "hex");
+        const buffer = new Buffer(compressed, "hex");
         if (buffer.length >= 4) {
             const disconnect = (buffer[3] & 1) === 0;
             if (disconnect)
@@ -73,9 +74,11 @@ class Ellips extends abstract_1.default {
             {
                 oid: this.params.oid + ".4",
                 handler: (prq) => {
-                    this.getLatest()
-                        .then(item => {
-                        const behaviour = this.getConnectedStateString(item);
+                    this.getLatestButAsTransaction()
+                        .then(transaction => {
+                        const compressed = transaction ? frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame)
+                            : undefined;
+                        const behaviour = this.getConnectedStateString(compressed);
                         this.sendString(prq, behaviour);
                     })
                         .catch(err => {
@@ -87,9 +90,11 @@ class Ellips extends abstract_1.default {
             {
                 oid: this.params.oid + ".5",
                 handler: (prq) => {
-                    this.getLatest()
-                        .then(item => {
-                        const string = this.getImpactedString(item);
+                    this.getLatestButAsTransaction()
+                        .then(transaction => {
+                        const compressed = transaction ? frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame)
+                            : undefined;
+                        const string = this.getImpactedString(compressed);
                         this.sendString(prq, string);
                     })
                         .catch(err => {

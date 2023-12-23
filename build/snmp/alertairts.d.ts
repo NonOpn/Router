@@ -20,8 +20,8 @@ export default class AlertairTS extends AbstractDevice {
     static distance(frame: string): number;
     static detectionType(frame: string): Detection;
     static isAlert(frame: string): boolean;
-    getConnectedStateString(item: DataPointModel | undefined): string;
-    getImpactedString(item: DataPointModel | undefined): string;
+    getConnectedStateString(compressed: string | undefined): string;
+    getImpactedString(compressed: string | undefined): string;
     getAdditionnalInfo1String(item: DataPointModel | undefined): string;
     getAdditionnalInfo2String(item: DataPointModel | undefined): string;
     getDistance(item: DataPointModel | undefined): string;

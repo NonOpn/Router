@@ -1,9 +1,7 @@
 import os from 'os';
-import { DataPointModel } from './../database/data_point';
 import AbstractDevice, { Filter, OID } from "./abstract";
-import Comptair from './comptair';
-import FrameModelCompress from '../push_web/frame_model_compress';
 import { Transaction } from '../push_web/frame_model';
+import FrameModelCompress from '../push_web/frame_model_compress';
 
 export default class Paratonair extends AbstractDevice {
   constructor(params: any) {
@@ -38,20 +36,13 @@ export default class Paratonair extends AbstractDevice {
     return false;
   }
 
-  getConnectedStateString(item: DataPointModel|undefined): string {
-    if (!item) {
-      return "disconnected";
-    }
-
-    const compressed = FrameModelCompress.instance.getFrameWithoutHeader(item.data);
-
-    const connected = item ? Paratonair.isConnected(compressed) : false;
-    //const connected = item ? Paratonair.isConnected(item.data) : false;
+  getConnectedStateString(compressed: string|undefined): string {
+    const connected = compressed ? Paratonair.isConnected(compressed) : false;
     return connected ? "connected" : "disconnected";
   }
 
-  getImpactedString(item: DataPointModel|undefined): string {
-    const connected = item ? Paratonair.isStriken(item.data) : false;
+  getImpactedString(compressed: string|undefined): string {
+    const connected = compressed ? Paratonair.isStriken(compressed) : false;
     return connected ? "striken" : "normal";
   }
 
@@ -95,9 +86,11 @@ export default class Paratonair extends AbstractDevice {
       {
         oid: this.params.oid+".4",
         handler: (prq) => {
-          this.getLatest()
-          .then(item => {
-            const behaviour = this.getConnectedStateString(item);
+          this.getLatestButAsTransaction()
+          .then(transaction => {
+            const compressed = transaction ? FrameModelCompress.instance.getFrameWithoutHeader(transaction.frame)
+              : undefined;
+            const behaviour = this.getConnectedStateString(compressed);
             this.sendString(prq, behaviour);
           })
           .catch(err => {
@@ -109,9 +102,11 @@ export default class Paratonair extends AbstractDevice {
       {
         oid: this.params.oid+".5",
         handler: (prq) => {
-          this.getLatest()
-          .then(item => {
-            const string = this.getImpactedString(item);
+          this.getLatestButAsTransaction()
+          .then(transaction => {
+            const compressed = transaction ? FrameModelCompress.instance.getFrameWithoutHeader(transaction.frame)
+              : undefined;
+            const string = this.getImpactedString(compressed);
             this.sendString(prq, string);
           })
           .catch(err => {

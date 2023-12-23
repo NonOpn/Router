@@ -1,6 +1,6 @@
-import { DataPointModel } from './../database/data_point';
 import AbstractDevice, { Filter, OID } from "./abstract";
 import { Transaction } from '../push_web/frame_model';
+import FrameModelCompress from '../push_web/frame_model_compress';
 
 export default class Ellips extends AbstractDevice {
   constructor(params: any) {
@@ -15,9 +15,9 @@ export default class Ellips extends AbstractDevice {
     };
   }
 
-  getConnectedStateString(item: DataPointModel|undefined): string {
-    if(!item || !item.data) return " ";
-    const buffer = new Buffer(item.data, "hex");
+  getConnectedStateString(compressed: string|undefined): string {
+    if(!compressed) return " ";
+    const buffer = new Buffer(compressed, "hex");
     if(buffer.length >= 4) {
       const disconnect = (buffer[3] & 2) === 2;
       if(disconnect) return "disconnected";
@@ -25,9 +25,9 @@ export default class Ellips extends AbstractDevice {
     return "connected";
   }
 
-  getImpactedString(item: DataPointModel|undefined): string {
-    if(!item || !item.data) return " ";
-    const buffer = new Buffer(item.data, "hex");
+  getImpactedString(compressed: string|undefined): string {
+    if(!compressed) return " ";
+    const buffer = new Buffer(compressed, "hex");
     if(buffer.length >= 4) {
       const disconnect = (buffer[3] & 1) === 0;
       if(disconnect) return "striken";
@@ -72,9 +72,11 @@ export default class Ellips extends AbstractDevice {
       {
         oid: this.params.oid+".4",
         handler: (prq) => {
-          this.getLatest()
-          .then(item => {
-            const behaviour = this.getConnectedStateString(item);
+          this.getLatestButAsTransaction()
+          .then(transaction => {
+            const compressed = transaction ? FrameModelCompress.instance.getFrameWithoutHeader(transaction.frame)
+              : undefined;
+            const behaviour = this.getConnectedStateString(compressed);
             this.sendString(prq, behaviour);
           })
           .catch(err => {
@@ -86,9 +88,11 @@ export default class Ellips extends AbstractDevice {
       {
         oid: this.params.oid+".5",
         handler: (prq) => {
-          this.getLatest()
-          .then(item => {
-            const string = this.getImpactedString(item);
+          this.getLatestButAsTransaction()
+          .then(transaction => {
+            const compressed = transaction ? FrameModelCompress.instance.getFrameWithoutHeader(transaction.frame)
+              : undefined;
+            const string = this.getImpactedString(compressed);
             this.sendString(prq, string);
           })
           .catch(err => {

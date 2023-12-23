@@ -39,17 +39,12 @@ class Paratonair extends abstract_1.default {
         }
         return false;
     }
-    getConnectedStateString(item) {
-        if (!item) {
-            return "disconnected";
-        }
-        const compressed = frame_model_compress_1.default.instance.getFrameWithoutHeader(item.data);
-        const connected = item ? Paratonair.isConnected(compressed) : false;
-        //const connected = item ? Paratonair.isConnected(item.data) : false;
+    getConnectedStateString(compressed) {
+        const connected = compressed ? Paratonair.isConnected(compressed) : false;
         return connected ? "connected" : "disconnected";
     }
-    getImpactedString(item) {
-        const connected = item ? Paratonair.isStriken(item.data) : false;
+    getImpactedString(compressed) {
+        const connected = compressed ? Paratonair.isStriken(compressed) : false;
         return connected ? "striken" : "normal";
     }
     format_frame(transaction, compressed) {
@@ -91,9 +86,11 @@ class Paratonair extends abstract_1.default {
             {
                 oid: this.params.oid + ".4",
                 handler: (prq) => {
-                    this.getLatest()
-                        .then(item => {
-                        const behaviour = this.getConnectedStateString(item);
+                    this.getLatestButAsTransaction()
+                        .then(transaction => {
+                        const compressed = transaction ? frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame)
+                            : undefined;
+                        const behaviour = this.getConnectedStateString(compressed);
                         this.sendString(prq, behaviour);
                     })
                         .catch(err => {
@@ -105,9 +102,11 @@ class Paratonair extends abstract_1.default {
             {
                 oid: this.params.oid + ".5",
                 handler: (prq) => {
-                    this.getLatest()
-                        .then(item => {
-                        const string = this.getImpactedString(item);
+                    this.getLatestButAsTransaction()
+                        .then(transaction => {
+                        const compressed = transaction ? frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame)
+                            : undefined;
+                        const string = this.getImpactedString(compressed);
                         this.sendString(prq, string);
                     })
                         .catch(err => {

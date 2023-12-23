@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Detection = void 0;
 const os_1 = __importDefault(require("os"));
 const abstract_1 = __importDefault(require("./abstract"));
+const frame_model_compress_1 = __importDefault(require("../push_web/frame_model_compress"));
 var Detection;
 (function (Detection) {
     Detection[Detection["NORMAL"] = 0] = "NORMAL";
@@ -83,16 +84,16 @@ class AlertairTS extends abstract_1.default {
         }
         return false;
     }
-    getConnectedStateString(item) {
-        const connected = item ? AlertairTS.isConnected(item.data) : false;
+    getConnectedStateString(compressed) {
+        const connected = compressed ? AlertairTS.isConnected(compressed) : false;
         return connected ? "connected" : "disconnected";
     }
-    getImpactedString(item) {
-        if (!item || !item.data)
+    getImpactedString(compressed) {
+        if (!compressed)
             return "safe";
-        if (item.data.indexOf("ffffff") == 0)
+        if (compressed.indexOf("ffffff") == 0)
             return "alert";
-        const alert = AlertairTS.isAlert(item.data);
+        const alert = AlertairTS.isAlert(compressed);
         return alert ? "alert" : "safe";
     }
     getAdditionnalInfo1String(item) {
@@ -184,9 +185,11 @@ class AlertairTS extends abstract_1.default {
             {
                 oid: this.params.oid + ".4",
                 handler: (prq) => {
-                    this.getLatest()
-                        .then(item => {
-                        const behaviour = this.getConnectedStateString(item);
+                    this.getLatestButAsTransaction()
+                        .then(transaction => {
+                        const compressed = transaction ? frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame)
+                            : undefined;
+                        const behaviour = this.getConnectedStateString(compressed);
                         this.sendString(prq, behaviour);
                     })
                         .catch(err => {
@@ -198,9 +201,11 @@ class AlertairTS extends abstract_1.default {
             {
                 oid: this.params.oid + ".5",
                 handler: (prq) => {
-                    this.getLatest()
-                        .then(item => {
-                        const string = this.getImpactedString(item);
+                    this.getLatestButAsTransaction()
+                        .then(transaction => {
+                        const compressed = transaction ? frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame)
+                            : undefined;
+                        const string = this.getImpactedString(compressed);
                         this.sendString(prq, string);
                     })
                         .catch(err => {

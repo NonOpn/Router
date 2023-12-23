@@ -84,10 +84,10 @@ class AbstractDevice {
     getSyncInternalSerial() {
         return this.params && this.params.lpsfr ? this.params.lpsfr.internal : undefined;
     }
-    getConnectedStateString(item) {
+    getConnectedStateString(compressed) {
         return "not_implemented";
     }
-    getImpactedString(item) {
+    getImpactedString(compressed) {
         return "not_implemented";
     }
     getAdditionnalInfo1String(item) {
@@ -102,6 +102,14 @@ class AbstractDevice {
     getLatest() {
         const filter = this.getStandardFilter();
         return this.data_point_provider.findMatching(filter.key, filter.value);
+    }
+    getLatestButAsTransaction() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const transactions = yield frame_model_1.default.instance.lasts(this.getId(), 1);
+            if (!transactions || transactions.length == 0)
+                return undefined;
+            return transactions[0];
+        });
     }
     getLatestFrames() {
         return frame_model_1.default.instance.lasts(this.getId(), 5);
@@ -147,12 +155,20 @@ class AbstractDevice {
             .then(item => this.getAdditionnalInfo2String(item));
     }
     getConnectedState() {
-        return this.getLatest()
-            .then(item => this.getConnectedStateString(item));
+        return this.getLatestButAsTransaction()
+            .then(transaction => {
+            const compressed = transaction ? frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame)
+                : undefined;
+            return this.getConnectedStateString(compressed);
+        });
     }
     getImpactedState() {
-        return this.getLatest()
-            .then(item => this.getImpactedString(item));
+        return this.getLatestButAsTransaction()
+            .then(transaction => {
+            const compressed = transaction ? frame_model_compress_1.default.instance.getFrameWithoutHeader(transaction.frame)
+                : undefined;
+            return this.getImpactedString(compressed);
+        });
     }
     getStandardFilter() { throw "must be defined"; }
     asMib() { throw "must be defined"; }
