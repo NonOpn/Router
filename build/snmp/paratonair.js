@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const os_1 = __importDefault(require("os"));
 const abstract_1 = __importDefault(require("./abstract"));
+const frame_model_compress_1 = __importDefault(require("../push_web/frame_model_compress"));
 class Paratonair extends abstract_1.default {
     constructor(params) {
         super();
@@ -39,7 +40,12 @@ class Paratonair extends abstract_1.default {
         return false;
     }
     getConnectedStateString(item) {
-        const connected = item ? Paratonair.isConnected(item.data) : false;
+        if (!item) {
+            return "disconnected";
+        }
+        const compressed = frame_model_compress_1.default.instance.getFrameWithoutHeader(item.data);
+        const connected = item ? Paratonair.isConnected(compressed) : false;
+        //const connected = item ? Paratonair.isConnected(item.data) : false;
         return connected ? "connected" : "disconnected";
     }
     getImpactedString(item) {

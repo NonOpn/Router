@@ -39,7 +39,14 @@ export default class Paratonair extends AbstractDevice {
   }
 
   getConnectedStateString(item: DataPointModel|undefined): string {
-    const connected = item ? Paratonair.isConnected(item.data) : false;
+    if (!item) {
+      return "disconnected";
+    }
+
+    const compressed = FrameModelCompress.instance.getFrameWithoutHeader(item.data);
+
+    const connected = item ? Paratonair.isConnected(compressed) : false;
+    //const connected = item ? Paratonair.isConnected(item.data) : false;
     return connected ? "connected" : "disconnected";
   }
 
