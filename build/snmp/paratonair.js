@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const os_1 = __importDefault(require("os"));
 const abstract_1 = __importDefault(require("./abstract"));
-const comptair_1 = __importDefault(require("./comptair"));
 class Paratonair extends abstract_1.default {
     constructor(params) {
         super();
@@ -40,11 +39,11 @@ class Paratonair extends abstract_1.default {
         return false;
     }
     getConnectedStateString(item) {
-        const connected = item ? comptair_1.default.isConnected(item.data) : false;
+        const connected = item ? Paratonair.isConnected(item.data) : false;
         return connected ? "connected" : "disconnected";
     }
     getImpactedString(item) {
-        const connected = item ? comptair_1.default.isStriken(item.data) : false;
+        const connected = item ? Paratonair.isStriken(item.data) : false;
         return connected ? "striken" : "normal";
     }
     format_frame(transaction, compressed) {
