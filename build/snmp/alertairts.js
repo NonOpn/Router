@@ -85,7 +85,7 @@ class AlertairTS extends abstract_1.default {
     }
     getConnectedStateString(item) {
         const connected = item ? AlertairTS.isConnected(item.data) : false;
-        return connected ? "connected" : "disconnect";
+        return connected ? "connected" : "disconnected";
     }
     getImpactedString(item) {
         if (!item || !item.data)

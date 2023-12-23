@@ -39,7 +39,7 @@ export default class AlertairDC extends AbstractDevice {
 
   getConnectedStateString(item: DataPointModel|undefined): string {
     const connected = item ? AlertairDC.isConnected(item.data) : false;
-    return connected ? "connected" : "disconnect";
+    return connected ? "connected" : "disconnected";
   }
 
   getImpactedString(item: DataPointModel|undefined): string {

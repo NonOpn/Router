@@ -41,7 +41,7 @@ class Paratonair extends abstract_1.default {
     }
     getConnectedStateString(item) {
         const connected = item ? comptair_1.default.isConnected(item.data) : false;
-        return connected ? "connected" : "disconnect";
+        return connected ? "connected" : "disconnected";
     }
     getImpactedString(item) {
         const connected = item ? comptair_1.default.isStriken(item.data) : false;

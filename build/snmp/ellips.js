@@ -22,7 +22,7 @@ class Ellips extends abstract_1.default {
         if (buffer.length >= 4) {
             const disconnect = (buffer[3] & 2) === 2;
             if (disconnect)
-                return "disconnect";
+                return "disconnected";
         }
         return "connected";
     }

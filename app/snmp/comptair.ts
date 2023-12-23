@@ -38,7 +38,7 @@ export default class Comptair extends AbstractDevice {
 
   getConnectedStateString(item: DataPointModel|undefined): string {
     const connected = item ? Comptair.isConnected(item.data) : false;
-    return connected ? "connected" : "disconnect";
+    return connected ? "connected" : "disconnected";
   }
 
   getImpactedString(item: DataPointModel|undefined): string {

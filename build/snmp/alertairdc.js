@@ -40,7 +40,7 @@ class AlertairDC extends abstract_1.default {
     }
     getConnectedStateString(item) {
         const connected = item ? AlertairDC.isConnected(item.data) : false;
-        return connected ? "connected" : "disconnect";
+        return connected ? "connected" : "disconnected";
     }
     getImpactedString(item) {
         const circuit_disconnected = item ? AlertairDC.isCircuitDisconnect(item.data) : false;

@@ -20,7 +20,7 @@ export default class Ellips extends AbstractDevice {
     const buffer = new Buffer(item.data, "hex");
     if(buffer.length >= 4) {
       const disconnect = (buffer[3] & 2) === 2;
-      if(disconnect) return "disconnect";
+      if(disconnect) return "disconnected";
     }
     return "connected";
   }

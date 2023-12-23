@@ -40,7 +40,7 @@ class Comptair extends abstract_1.default {
     }
     getConnectedStateString(item) {
         const connected = item ? Comptair.isConnected(item.data) : false;
-        return connected ? "connected" : "disconnect";
+        return connected ? "connected" : "disconnected";
     }
     getImpactedString(item) {
         const connected = item ? Comptair.isStriken(item.data) : false;
