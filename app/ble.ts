@@ -447,7 +447,7 @@ export default class BLE {
       var devices = await device_management.list();
       const to_add: any[] = [];
       if(devices) {
-        devices = devices.filter(device => device.getInternalSerial() && "ffffff" != device.getSyncInternalSerial());
+        devices = devices.filter(device => !!device.getSyncInternalSerial() && "ffffff" != device.getSyncInternalSerial());
 
         devices.forEach(device => {
           var found = false;

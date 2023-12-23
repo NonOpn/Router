@@ -301,7 +301,7 @@ class BLE {
                 var devices = yield device_management.list();
                 const to_add = [];
                 if (devices) {
-                    devices = devices.filter(device => device.getInternalSerial() && "ffffff" != device.getSyncInternalSerial());
+                    devices = devices.filter(device => !!device.getSyncInternalSerial() && "ffffff" != device.getSyncInternalSerial());
                     devices.forEach(device => {
                         var found = false;
                         this._services.forEach(service => {
