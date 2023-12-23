@@ -1,5 +1,7 @@
 import { Logger } from "../log";
 import NetworkInfo from "../network";
+import { RESULT_UNLIKELY_ERROR } from "./BLEConstants";
+import { BLEResultCallback } from "./BLESyncCharacteristic";
 
 function log(data: any) {
     if(!NetworkInfo.instance.isGPRS()) {
@@ -20,7 +22,7 @@ try {
 
   if(e && e.toString) {
       const message = e.toString();
-      needRepair = message && message.indexOf("NODE_MODULE_VERSION 48. This version of Node.js requires NODE_MODULE_VERSION 51");
+      needRepair = !!message && message.indexOf("NODE_MODULE_VERSION 48. This version of Node.js requires NODE_MODULE_VERSION 51") >= 0;
   }
 }
 
@@ -59,6 +61,10 @@ export class SafeCharacteristics {
   
   onReadRequest(offset: number, cb: BLECallback) {
     console.log("onReadRequest");
+  }
+
+  onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback) {
+    callback(RESULT_UNLIKELY_ERROR);
   }
 }
 

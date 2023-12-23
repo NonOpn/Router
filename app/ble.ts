@@ -25,6 +25,7 @@ import {
 } from "./ble/BLEConstants";
 import FrameModel, { Transaction } from './push_web/frame_model';
 import { Logger } from './log';
+import { BLETimeCharacteristic } from './ble/BLETimeCharacteristic';
 
 
 var id = "Routair";
@@ -185,7 +186,6 @@ class BLEWriteCharacteristic extends Characteristic {
   }
 
   onWriteRequest(data: Buffer, offset: number, withoutResponse: boolean, callback: BLEResultCallback) {
-    console.log("having onWriteRequest", { data, offset, withoutResponse });
     if(!this._tmp) {
       this._tmp = data.toString();
       if(!this._tmp) this._tmp = "";
@@ -196,6 +196,7 @@ class BLEWriteCharacteristic extends Characteristic {
       // issue happened that the values could be set multiple times with the same
       // in production : some called 4 times 
       if (this._tmp !== new_tmp) {
+        console.log("having onWriteRequest, differences, we can assume it needs to be appended");
         this._tmp += new_tmp;
       }
     }
@@ -398,6 +399,7 @@ export default class BLE {
     this._characteristics = [
       new BLEDescriptionCharacteristic("0001", config.identity),
       new BLEDescriptionCharacteristic("0002", config.version),
+      new BLETimeCharacteristic("0003"), // return the system time { timestampms: number }
       new BLEWriteCharacteristic("0101", "Wifi Config", (value: string) => this._onWifi(value)),
       new BLEWriteCharacteristic("0102", "Network Config", (value: string) => this._onNetwork(value)),
       new BLEAsyncDescriptionCharacteristic("0103", () => this._onDeviceSeenCall()),
