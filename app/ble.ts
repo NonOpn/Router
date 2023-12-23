@@ -25,8 +25,6 @@ import {
 } from "./ble/BLEConstants";
 import FrameModel, { Transaction } from './push_web/frame_model';
 import { Logger } from './log';
-import { BLETimeCharacteristic } from './ble/BLETimeCharacteristic';
-
 
 var id = "Routair";
 if(config.identity && config.identity.length >= 5 * 2) { //0xAABBCCDD
@@ -236,6 +234,8 @@ class BLEPrimarySystemService extends PrimaryService {
         new BLEAsyncDescriptionCharacteristic("0204", () => Promise.resolve(false/*can repair database*/)),
         new BLEAsyncDescriptionCharacteristic("0301", () => FrameModel.instance.getCount()),
         new BLEAsyncDescriptionCharacteristic("0302", () => FrameModel.instance.getLowestSignal(30)),
+        new BLEAsyncDescriptionCharacteristic("0401", () => Promise.resolve(`${Date.now()}`)), //milliseconds from 1970 in utc
+        // 0401 will hold capability of setting time ?
       ]
     });
   }
@@ -400,7 +400,6 @@ export default class BLE {
     this._characteristics = [
       new BLEDescriptionCharacteristic("0001", config.identity),
       new BLEDescriptionCharacteristic("0002", config.version),
-      new BLETimeCharacteristic("0003"), // return the system time { timestampms: number }
       new BLEWriteCharacteristic("0101", "Wifi Config", (value: string) => this._onWifi(value)),
       new BLEWriteCharacteristic("0102", "Network Config", (value: string) => this._onNetwork(value)),
       new BLEAsyncDescriptionCharacteristic("0103", () => this._onDeviceSeenCall()),

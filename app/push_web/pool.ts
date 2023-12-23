@@ -180,7 +180,7 @@ export default class Pool {
         else resolve(results);
       });
     } catch(e) {
-      reject(e);
+      reject(e as Error);
     }
   }
 }

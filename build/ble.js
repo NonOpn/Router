@@ -30,7 +30,6 @@ const devices = device_model_1.default.instance;
 const BLEConstants_1 = require("./ble/BLEConstants");
 const frame_model_1 = __importDefault(require("./push_web/frame_model"));
 const log_1 = require("./log");
-const BLETimeCharacteristic_1 = require("./ble/BLETimeCharacteristic");
 var id = "Routair";
 if (config_1.default.identity && config_1.default.identity.length >= 5 * 2) { //0xAABBCCDD
     id += config_1.default.identity.substr(0, 5 * 2);
@@ -184,6 +183,7 @@ class BLEPrimarySystemService extends safeBleno_1.PrimaryService {
                 new BLEAsyncDescriptionCharacteristic("0204", () => Promise.resolve(false /*can repair database*/)),
                 new BLEAsyncDescriptionCharacteristic("0301", () => frame_model_1.default.instance.getCount()),
                 new BLEAsyncDescriptionCharacteristic("0302", () => frame_model_1.default.instance.getLowestSignal(30)),
+                new BLEAsyncDescriptionCharacteristic("0401", () => Promise.resolve(`${Date.now()}`)),
             ]
         });
     }
@@ -379,7 +379,6 @@ class BLE {
         this._characteristics = [
             new BLEDescriptionCharacteristic("0001", config_1.default.identity),
             new BLEDescriptionCharacteristic("0002", config_1.default.version),
-            new BLETimeCharacteristic_1.BLETimeCharacteristic("0003"),
             new BLEWriteCharacteristic("0101", "Wifi Config", (value) => this._onWifi(value)),
             new BLEWriteCharacteristic("0102", "Network Config", (value) => this._onNetwork(value)),
             new BLEAsyncDescriptionCharacteristic("0103", () => this._onDeviceSeenCall()),
