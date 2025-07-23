@@ -15,26 +15,6 @@ pool.query("CREATE TABLE IF NOT EXISTS DataPoint ("
     + "`created_at` INTEGER NOT NULL"
     + ")ENGINE=MyISAM;")
     .then(() => console.log("table creation finished"));
-function createInsertRows(object) {
-    //var columns = ["serial","internal", "contactair", "enocean_relay", "data", "created_at"]
-    //columns = columns.map((col) => "`"+col+"`");
-    const columns = Object.keys(object).map((col) => "`" + col + "`");
-    const mapped = Object.keys(object).map(() => "?").join(",");
-    return [
-        `INSERT INTO DataPoint (${columns.join(",")}) VALUES (${mapped})`,
-        Object.keys(object).map((col) => object[col])
-    ];
-}
-function toInsertArray(point) {
-    return [
-        point.serial || "",
-        point.internal || "",
-        point.contactair || "",
-        point.enocean_relay || "",
-        point.data || "",
-        point.created_at || new Date().getMilliseconds()
-    ];
-}
 class DataPoint {
     constructor() {
     }
@@ -50,8 +30,14 @@ class DataPoint {
                 data,
                 created_at
             };
-            const [columns, values] = createInsertRows(point);
-            pool.queryParameters(columns, values)
+            pool.queryParameters("INSERT INTO DataPoint SET ?", [{
+                    serial,
+                    internal,
+                    contactair,
+                    enocean_relay,
+                    data,
+                    created_at: created_at.getTime()
+                }])
                 .then(() => resolve(point))
                 .catch(error => pool.manageErrorCrash("DataPoint", error, reject));
         });
