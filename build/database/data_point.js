@@ -19,8 +19,9 @@ function createInsertRows(object) {
     //var columns = ["serial","internal", "contactair", "enocean_relay", "data", "created_at"]
     //columns = columns.map((col) => "`"+col+"`");
     const columns = Object.keys(object).map((col) => "`" + col + "`");
+    const mapped = Object.keys(object).map(() => "?").join(",");
     return [
-        "INSERT INTO DataPoint (" + columns.join(",") + ") VALUES ? ",
+        `INSERT INTO DataPoint (${columns.join(",")}) VALUES (${mapped})`,
         Object.keys(object).map((col) => object[col])
     ];
 }
