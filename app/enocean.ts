@@ -2,7 +2,7 @@ import { EventEmitter } from "events";
 //@ts-ignore
 import uuidV4 from "uuid/v4";
 //@ts-ignore
-import SerialPort from "serialport";
+import { SerialPort } from "serialport";
 //@ts-ignore
 import Enocean from "node-enocean";
 
@@ -222,34 +222,12 @@ export default class EnoceanLoader extends EventEmitter {
     }
   }
 
-  private listAllDevice(): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      const callback = (err: any, ports?: any) => {
-        if(err) {
-          reject(err);
-          return;
-        }
-        if(!ports) ports = [];
-        console.log("list of found devices", ports);
+  private async listAllDevice(): Promise<any[]> {
+    const ports = (await SerialPort.list()) || [];
 
-        resolve(ports);
-      };
+    console.log("list of found devices", ports);
 
-      const fallback = () => {
-        const list: Promise<any> = SerialPort.list();
-        list.then(ports => callback(null, ports))
-        .catch(err => reject(err));
-      }
-
-      try {
-        const result = SerialPort.list(callback);
-        if(result && result.then) {
-          result.then(fallback).catch(fallback);
-        }
-      } catch(e) {
-        fallback();
-      }
-    })
+    return ports;
   }
 
   private async listDevices(): Promise<any[]> {
