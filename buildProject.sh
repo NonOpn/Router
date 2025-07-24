@@ -7,7 +7,7 @@ rm -rf build/*
 cd app
 
 #run typescript compiler
-tsc
+npx tsc
 
 #back to main
 cd ..
