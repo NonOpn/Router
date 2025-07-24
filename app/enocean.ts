@@ -6,6 +6,8 @@ import Enocean from "node-enocean-ts";
 
 import config from "./config/enocean";
 
+import { PortInfo } from "@serialport/bindings-interface";
+
 const getByte = (telegram_byte_str: any, index: any): any => telegram_byte_str[index * 2 ] + telegram_byte_str[index * 2 + 1];
 const getEEP = (rorg: any, rorg_func: any, rorg_type: any): any => (rorg+"-"+rorg_func+"-"+rorg_type).toLowerCase()
 const isFrameToSend = (rorg: any): any => ["a5", "f6", "d5", "d2", "d1"].filter(e => e === rorg).length > 0;
@@ -34,7 +36,7 @@ class EnoceanDevice extends EventEmitter {
   enocean = new Enocean();
   
   open_device: any = undefined;
-  port: any|undefined;
+  port: PortInfo|undefined;
 
   constructor(port: any) {
     super();
@@ -73,7 +75,7 @@ class EnoceanDevice extends EventEmitter {
       }
     });
 
-    this.openDevice(this.port);
+    this.port && this.openDevice(this.port);
   }
 
   isOpen = () => !!this.open_device;
@@ -137,11 +139,11 @@ class EnoceanDevice extends EventEmitter {
   }
 
 
-  openDevice(port: any) {
+  openDevice(port: PortInfo) {
     try{
       this.open_device = port;
 
-      this.enocean.listen(port.comName);
+      this.enocean.listen(port.path);
     } catch(e) {
       console.log(e);
     }
@@ -160,8 +162,8 @@ export default class EnoceanLoader extends EventEmitter {
     super();
   }
 
-  private openDevice(port: any) {
-    if (this.devices.find(d => d.comName() == port.comName)) return;
+  private openDevice(port: PortInfo) {
+    if (this.devices.find(d => d.comName() == port.path)) return;
 
     const bindTo = new EnoceanDevice(port);
 
@@ -199,13 +201,21 @@ export default class EnoceanLoader extends EventEmitter {
       const endpoint = config.enocean_endpoint;
       console.log("having endpoint in config ? ", endpoint);
       if(endpoint != null) {
-        this.openDevice({ comName: endpoint });
+        this.openDevice({
+          path: endpoint,
+          manufacturer: undefined,
+          serialNumber: undefined,
+          pnpId: undefined,
+          locationId: undefined,
+          productId: undefined,
+          vendorId: undefined,
+       });
       }
 
       this.listDevices().then(devices => {
         console.log("new devices", devices);
-        if (!!endpoint && !!devices.find(d => d.comName === endpoint)) {
-          devices = devices.filter(d => d.comName !== endpoint);
+        if (!!endpoint && !!devices.find(d => d.path === endpoint)) {
+          devices = devices.filter(d => d.path !== endpoint);
         }
 
         console.log("valid devices", devices);
@@ -218,7 +228,7 @@ export default class EnoceanLoader extends EventEmitter {
     }
   }
 
-  private async listAllDevice(): Promise<any[]> {
+  private async listAllDevice(): Promise<PortInfo[]> {
     const ports = (await SerialPort.list()) || [];
 
     console.log("list of found devices", ports);
@@ -226,19 +236,19 @@ export default class EnoceanLoader extends EventEmitter {
     return ports;
   }
 
-  private async listDevices(): Promise<any[]> {
+  private async listDevices(): Promise<PortInfo[]> {
     const devices = await this.listAllDevice();
     console.log("having devices", devices);
     return devices.filter(port => isARecognizedDevice(port));
   }
 
-  private async listOnlyKnownDevices(): Promise<any[]> {
+  private async listOnlyKnownDevices(): Promise<PortInfo[]> {
     const devices = await this.listAllDevice();
     return devices.filter(port => isARecognizedKnownDevice(port));
   }
 
   public async systemDevices(): Promise<SerialDevice[]> {
     const devices = await this.listAllDevice();
-    return devices.filter(port => ({manufacturer: port.manifacturer, path: port.serial}));
+    return devices.filter(port => ({manufacturer: port.manufacturer, path: port.path}));
   }
 }
