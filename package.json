@@ -27,7 +27,7 @@
     "mysql": "^2.14.1",
     "network": "^0.4.1",
     "network-config": "^2.0.0",
-    "node-enocean-ts": "2.0.3",
+    "node-enocean-ts": "2.0.4",
     "request": "^2.83.0",
     "setup": "0.0.3",
     "snmpjs": "git+https://github.com/codlab/node-snmpjs.git",
