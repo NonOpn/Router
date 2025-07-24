@@ -1,10 +1,8 @@
 import { EventEmitter } from "events";
 //@ts-ignore
 import uuidV4 from "uuid/v4";
-//@ts-ignore
 import { SerialPort } from "serialport";
-//@ts-ignore
-import Enocean from "node-enocean";
+import Enocean from "node-enocean-ts";
 
 import config from "./config/enocean";
 
@@ -33,7 +31,7 @@ interface SerialDevice {
 }
 
 class EnoceanDevice extends EventEmitter {
-  enocean = Enocean();
+  enocean = new Enocean();
   
   open_device: any = undefined;
   port: any|undefined;
@@ -50,19 +48,20 @@ class EnoceanDevice extends EventEmitter {
     });
     this.enocean.on("data", (data: any) => {
       try{
-        this.enocean.info(data.senderId, (sensor: any) => this.onLastValuesRetrieved(sensor, (sensor == undefined ? {} : undefined), data));
+        this.onLastValuesRetrieved(data);
+        // this.enocean.info(data.senderId, (sensor: any) => this.onLastValuesRetrieved(sensor, (sensor == undefined ? {} : undefined), data));
       }catch(e){
         console.log(e)
       }
     });
     this.enocean.on("learned", (data: any) => {
-      this.enocean.getSensors((sensors: any) => this.emit("new_learned_list", sensors) );
+      //this.enocean.getSensors((sensors: any) => this.emit("new_learned_list", sensors) );
     });
     this.enocean.on("unknown-teach-in", (data: any) => { });
     this.enocean.on("error", (err: any) => this.checkEventClose(this) );
     this.enocean.on("disconnect", (e: any, ee: any) => this.checkEventClose(this) );
   
-    this.enocean.connect("mongodb://localhost/snmp_memory");
+    //this.enocean.connect("mongodb://localhost/snmp_memory");
 
     this.enocean.register(this);
     this.enocean.emitters.push(this);
@@ -86,56 +85,53 @@ class EnoceanDevice extends EventEmitter {
     }
   }
 
-  onLastValuesRetrieved(sensor_data: any, err: any, data: any) {
+  onLastValuesRetrieved(data: any) {
     try{
       var eep: any = undefined;
 
-      if(sensor_data != undefined && sensor_data.eep != undefined) {
-        eep = sensor_data.eep;
+      if(data.rawByte.length < (6+7)) { //at least 6 bytes for headers and 7 to have all data
+        return;
+      }
+      var rorg = undefined;
+      if(eep == undefined) {
+        rorg =  getByte(data.rawByte, 6);
+        var rorg_func = getByte(data.rawByte, 6 + 6);
+        var rorg_type = getByte(data.rawByte, 6 + 7);
+        eep = getEEP(rorg, rorg_func, rorg_type);
+      } else {
+        rorg = eep.split("-")[0];
       }
 
-      if((eep != undefined) || data.rawByte.length >= (6+7)) { //at least 6 bytes for headers and 7 to have all data
-        var rorg = undefined;
-        if(eep == undefined) {
-          rorg =  getByte(data.rawByte, 6);
-          var rorg_func = getByte(data.rawByte, 6 + 6);
-          var rorg_type = getByte(data.rawByte, 6 + 7);
-          eep = getEEP(rorg, rorg_func, rorg_type);
-        }else{
-          rorg = eep.split("-")[0];
+      if(isFrameToSend(rorg)) {
+        //var rawFrame = new Buffer(data.rawByte, "hex");
+        //var rawData = new Buffer(data.raw, "hex");
+        var resolved = this.enocean.eepResolvers.find((func: any) => {
+          try{
+            var ret = func(eep, data.raw);
+            if(ret != undefined) return ret;
+          }catch(e) {
+            console.log(e);
+          }
+          return undefined;
+        });
+
+        var output: any = {
+          "date": new Date(),
+          "guid": uuidV4(),
+          "sender": data.senderId,
+          "eep": eep
         }
 
-        if(isFrameToSend(rorg)) {
-          //var rawFrame = new Buffer(data.rawByte, "hex");
-          //var rawData = new Buffer(data.raw, "hex");
-          var resolved = this.enocean.eepResolvers.find((func: any) => {
-            try{
-              var ret = func(eep, data.raw);
-              if(ret != undefined) return ret;
-            }catch(e) {
-              console.log(e);
-            }
-            return undefined;
-          });
-
-          var output: any = {
-            "date": new Date(),
-            "guid": uuidV4(),
-            "sender": data.senderId,
-            "eep": eep
-          }
-
-          if(resolved != undefined) {
-            output.data = resolved;
-          }
-
-          output.rawDataStr = data.raw;
-          output.rawFrameStr = data.rawByte;
-
-          this.emit("managed_frame", output);
+        if(resolved != undefined) {
+          output.data = resolved;
         }
+
+        output.rawDataStr = data.raw;
+        output.rawFrameStr = data.rawByte;
+
+        this.emit("managed_frame", output);
       }
-    }catch(e) {
+    } catch(e) {
       console.log(e);
     }
   }
