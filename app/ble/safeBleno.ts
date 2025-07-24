@@ -12,7 +12,7 @@ function log(data: any) {
 var bleno: any = null;
 var needRepair: boolean = false;
 try {
-  bleno = require("bleno");
+  bleno = require("@abandonware/bleno");
 } catch (e) {
   console.log(e);
   bleno = null;
