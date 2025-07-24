@@ -2038,13 +2038,13 @@ node-addon-api@^6.1.0:
   resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-6.1.0.tgz#ac8470034e58e67d0c6f1204a18ae6995d9c0d76"
   integrity sha512-+eawOlIgy680F0kBzPUNFhMZGtJ1YmqM6l4+Crf4IkImjYrO/mqPwRMh352g23uIaQKFItcQ64I7KMaJxHgAVA==
 
-node-enocean-ts@2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/node-enocean-ts/-/node-enocean-ts-2.0.3.tgz#5fdecd361f09b7d4c95855305d69e5d7635a5942"
-  integrity sha512-Zfx3+Mh5L/xL0Jw2YeGWTPSUklPAwYY0ZMQznyLa8MKCTrN2rz5de+dxPL/4O4LeqUzVDHl1pQdUmJqCNs6vBQ==
+node-enocean-ts@2.0.6:
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/node-enocean-ts/-/node-enocean-ts-2.0.6.tgz#47754ce3af8dbf4b5821dea4b59050bc389c3c26"
+  integrity sha512-sxfqcxpW8wlC72qIC5/aVo1epSuVQonGklNUps6LEBkZeNDPIwXxrMDXE4/j7+NWqpAIjVNpW282VSS2jkjNvQ==
   dependencies:
     serialport "13.0.0"
-    serialport-enocean-parser "^0.1.0"
+    serialport-enocean-parser "git://github.com/codlab/node-serialport-enocean-parser.git#bf4121bad52c4fb239fd49af1f1d47393cd38b17"
     uuid "^3.0.1"
 
 node-fetch@^2.6.7:
@@ -2472,10 +2472,9 @@ send@0.19.0:
     range-parser "~1.2.1"
     statuses "2.0.1"
 
-serialport-enocean-parser@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/serialport-enocean-parser/-/serialport-enocean-parser-0.1.0.tgz#c12dbae7112434b0e0c7d9e1de68527e2ec8b299"
-  integrity sha512-PHRzc6xBHfKNFIo8ILgvc+f6RlG8aTsWJ4LrxWeFPlKIFVxaNU9+svI4cX4Zoy9xfjOvLlGA2vyig/5qLXaPow==
+"serialport-enocean-parser@git://github.com/codlab/node-serialport-enocean-parser.git#bf4121bad52c4fb239fd49af1f1d47393cd38b17":
+  version "0.2.0"
+  resolved "git://github.com/codlab/node-serialport-enocean-parser.git#bf4121bad52c4fb239fd49af1f1d47393cd38b17"
 
 serialport@13.0.0:
   version "13.0.0"
