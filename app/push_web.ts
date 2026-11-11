@@ -9,6 +9,7 @@ import AbstractDevice from "./snmp/abstract";
 import NetworkInfo from "./network/index";
 import { Logger } from "./log";
 import EnoceanLoader from "./enocean";
+import DatabaseStateProvider from "./push_web/database_state";
 
 const errors = Errors.instance;
 
@@ -150,6 +151,12 @@ export default class PushWEB extends EventEmitter {
 			json.crashed = crashed;
 			json.crashed_message = crashed_message;
 
+			try {
+				json.database = await DatabaseStateProvider.instance.current();
+			} catch(e) {
+
+			}
+
 			if(null == frames || frames.length == 0) {
 				this.log({ infos: "push", none: true });
 				await _post(json);
@@ -202,7 +209,13 @@ export default class PushWEB extends EventEmitter {
 			const gprs = NetworkInfo.instance.isGPRS();
 			const interfaces = NetworkInfo.instance.list()?.map(i => i?.name || "");
 			const interfaces_state = NetworkInfo.instance.states();
-			const json = { host: config.identity, version: VERSION, devices, gprs, interfaces, interfaces_state };
+			var database = undefined;
+			try {
+				database = await DatabaseStateProvider.instance.current();
+			} catch(e) {
+
+			}
+			const json = { host: config.identity, version: VERSION, devices, gprs, interfaces, interfaces_state, database };
 	
 			if(!gprs) {
 				await Logger.post("contact-platform.com", 443, "/api/echo", { }, json);

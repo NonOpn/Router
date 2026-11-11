@@ -21,6 +21,7 @@ const frame_model_1 = __importDefault(require("./push_web/frame_model"));
 const frame_model_compress_1 = __importDefault(require("./push_web/frame_model_compress"));
 const index_1 = __importDefault(require("./network/index"));
 const log_1 = require("./log");
+const database_state_1 = __importDefault(require("./push_web/database_state"));
 const errors = errors_1.default.instance;
 const VERSION = config_1.default.version;
 function _post(json) {
@@ -133,6 +134,11 @@ class PushWEB extends events_1.EventEmitter {
                 json.gprs = !!index_1.default.instance.isGPRS();
                 json.crashed = crashed;
                 json.crashed_message = crashed_message;
+                try {
+                    json.database = yield database_state_1.default.instance.current();
+                }
+                catch (e) {
+                }
                 if (null == frames || frames.length == 0) {
                     this.log({ infos: "push", none: true });
                     yield _post(json);
@@ -208,7 +214,13 @@ class PushWEB extends events_1.EventEmitter {
                 const gprs = index_1.default.instance.isGPRS();
                 const interfaces = (_a = index_1.default.instance.list()) === null || _a === void 0 ? void 0 : _a.map(i => (i === null || i === void 0 ? void 0 : i.name) || "");
                 const interfaces_state = index_1.default.instance.states();
-                const json = { host: config_1.default.identity, version: VERSION, devices, gprs, interfaces, interfaces_state };
+                var database = undefined;
+                try {
+                    database = yield database_state_1.default.instance.current();
+                }
+                catch (e) {
+                }
+                const json = { host: config_1.default.identity, version: VERSION, devices, gprs, interfaces, interfaces_state, database };
                 if (!gprs) {
                     yield log_1.Logger.post("contact-platform.com", 443, "/api/echo", {}, json);
                 }
