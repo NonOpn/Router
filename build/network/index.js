@@ -14,13 +14,30 @@ const CELLULAR_INTERFACES = ["eth1", "usb0", "wwan0", "ppp0"];
 class NetworkInfo {
     constructor() {
         this._list = [];
+        // the first echo and ping need the interfaces : to report them and to know if the SIM is used
+        this._ready = new Promise(resolve => {
+            this._refreshNetwork(() => resolve());
+            setTimeout(() => resolve(), 10000);
+        });
         setInterval(() => this._refreshNetwork(), 5000);
     }
-    _refreshNetwork() {
-        network_1.default.get_interfaces_list((err, list) => {
-            err && console.log(err);
-            this._list = list || [];
-        });
+    _refreshNetwork(callback) {
+        try {
+            network_1.default.get_interfaces_list((err, list) => {
+                err && console.log(err);
+                this._list = list || [];
+                callback && callback();
+            });
+        }
+        catch (e) {
+            callback && callback();
+        }
+    }
+    /**
+     * Resolved once the interfaces are known, 10s at most
+     */
+    ready() {
+        return this._ready;
     }
     list() {
         return (this._list || []).filter(i => !!i);

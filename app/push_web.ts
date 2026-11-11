@@ -251,12 +251,15 @@ export default class PushWEB extends EventEmitter {
 	connect() {
 		console.log("PushWEB is now init");
 
-		this.sendEcho();
+		// wait for the interfaces : the first echo reports them and gprs is known for both
+		NetworkInfo.instance.ready().catch(() => {}).then(() => {
+			this.sendEcho();
+			this.trySend();
+		});
+
 		setInterval(() => {
 			this.sendEcho();
 		}, 15 * 60 * 1000); //set echo every 15minutes
-
-		this.trySend();
 
 		setInterval(() => {
 			console.log("try send... " + this._posting);

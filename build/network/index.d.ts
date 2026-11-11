@@ -20,8 +20,13 @@ export interface InterfaceCallback {
 export default class NetworkInfo {
     static instance: NetworkInfo;
     _list: Interface[];
+    private _ready;
     constructor();
-    _refreshNetwork(): void;
+    _refreshNetwork(callback?: () => void): void;
+    /**
+     * Resolved once the interfaces are known, 10s at most
+     */
+    ready(): Promise<void>;
     list(): Interface[];
     isCellular(name: string | undefined): boolean;
     isGPRS(): boolean;

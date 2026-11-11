@@ -33,17 +33,35 @@ export interface InterfaceCallback {
 export default class NetworkInfo {
   static instance: NetworkInfo = new NetworkInfo();
   _list: Interface[];
+  private _ready: Promise<void>;
 
   constructor() {
     this._list = [];
+    // the first echo and ping need the interfaces : to report them and to know if the SIM is used
+    this._ready = new Promise<void>(resolve => {
+      this._refreshNetwork(() => resolve());
+      setTimeout(() => resolve(), 10000);
+    });
     setInterval(() => this._refreshNetwork(), 5000);
   }
 
-  _refreshNetwork(): void {
-    network.get_interfaces_list((err: Error, list: Interface[]|undefined) => {
-      err && console.log(err);
-      this._list = list || [];
-    });
+  _refreshNetwork(callback?: () => void): void {
+    try {
+      network.get_interfaces_list((err: Error, list: Interface[]|undefined) => {
+        err && console.log(err);
+        this._list = list || [];
+        callback && callback();
+      });
+    } catch(e) {
+      callback && callback();
+    }
+  }
+
+  /**
+   * Resolved once the interfaces are known, 10s at most
+   */
+  ready(): Promise<void> {
+    return this._ready;
   }
 
   list(): Interface[] {

@@ -1,6 +1,11 @@
-import { Space } from "../system";
+export interface DiskState {
+    size: number;
+    free: number;
+    used: number;
+    percent: number;
+}
 export interface DatabaseState {
-    disk?: Space;
+    disk?: DiskState;
     frames?: number;
     unsent?: number;
     size?: number;
@@ -13,5 +18,7 @@ export default class DatabaseStateProvider {
     private refreshing;
     current(): Promise<DatabaseState>;
     private refresh;
+    private rootDisk;
     private number;
 }
+export declare function parseRootDisk(output: string): DiskState | undefined;
