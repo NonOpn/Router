@@ -1,3 +1,11 @@
+export interface InterfaceState {
+    name: string;
+    cellular: boolean;
+    operstate: string;
+    ip_address?: string;
+    gateway_ip?: string;
+    type?: string;
+}
 export interface Interface {
     name: string | undefined;
     ip_address?: string | undefined;
@@ -15,7 +23,9 @@ export default class NetworkInfo {
     constructor();
     _refreshNetwork(): void;
     list(): Interface[];
-    isGPRS(): Interface | undefined;
+    isCellular(name: string | undefined): boolean;
+    isGPRS(): boolean;
+    states(): InterfaceState[];
     interf(interf: string): Interface | undefined;
     readInterface(names: string[], key: keyof Interface): InterfaceCallback;
     configure(name: string, description: any, callback: any): void;

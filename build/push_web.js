@@ -201,13 +201,14 @@ class PushWEB extends events_1.EventEmitter {
         });
     }
     sendEcho() {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             try {
                 const devices = yield this.enocean.systemDevices();
                 const gprs = index_1.default.instance.isGPRS();
                 const interfaces = (_a = index_1.default.instance.list()) === null || _a === void 0 ? void 0 : _a.map(i => (i === null || i === void 0 ? void 0 : i.name) || "");
-                const json = { host: config_1.default.identity, version: VERSION, devices, gprs, interfaces };
+                const interfaces_state = index_1.default.instance.states();
+                const json = { host: config_1.default.identity, version: VERSION, devices, gprs, interfaces, interfaces_state };
                 if (!gprs) {
                     yield log_1.Logger.post("contact-platform.com", 443, "/api/echo", {}, json);
                 }

@@ -201,7 +201,8 @@ export default class PushWEB extends EventEmitter {
 			const devices = await this.enocean.systemDevices();
 			const gprs = NetworkInfo.instance.isGPRS();
 			const interfaces = NetworkInfo.instance.list()?.map(i => i?.name || "");
-			const json = { host: config.identity, version: VERSION, devices, gprs, interfaces };
+			const interfaces_state = NetworkInfo.instance.states();
+			const json = { host: config.identity, version: VERSION, devices, gprs, interfaces, interfaces_state };
 	
 			if(!gprs) {
 				await Logger.post("contact-platform.com", 443, "/api/echo", { }, json);

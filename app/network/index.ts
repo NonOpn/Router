@@ -2,6 +2,20 @@
 import network from "network";
 //@ts-ignore
 import config from "network-config";
+import fs from "fs";
+
+// the Huawei modem (12d1:1f01 switched by usb_modeswitch) is exposed as eth1 on older kernels
+// and usb0 on newer ones ; wwan0 / ppp0 for qmi or ppp based modems
+const CELLULAR_INTERFACES = ["eth1", "usb0", "wwan0", "ppp0"];
+
+export interface InterfaceState {
+  name: string;
+  cellular: boolean;
+  operstate: string;
+  ip_address?: string;
+  gateway_ip?: string;
+  type?: string;
+}
 
 export interface Interface {
   name: string|undefined;
@@ -36,8 +50,33 @@ export default class NetworkInfo {
     return (this._list || []).filter(i => !!i);
   }
 
-  isGPRS() {
-    return this.list().find(i => i.name === "eth1");
+  isCellular(name: string|undefined): boolean {
+    return !!name && CELLULAR_INTERFACES.indexOf(name) >= 0;
+  }
+
+  isGPRS(): boolean {
+    return !!this.list().find(i => this.isCellular(i.name));
+  }
+
+  // wlan0 can be up for the "local wifi" mode, the operstate & gateway tells which one is really used
+  states(): InterfaceState[] {
+    return this.list().map(i => {
+      const name = i.name || "";
+      var operstate = "unknown";
+      try {
+        operstate = fs.readFileSync(`/sys/class/net/${name}/operstate`).toString().trim();
+      } catch(e) {
+
+      }
+      return {
+        name,
+        cellular: this.isCellular(name),
+        operstate,
+        ip_address: i.ip_address || undefined,
+        gateway_ip: i.gateway_ip || undefined,
+        type: i.type || undefined
+      };
+    });
   }
 
   interf(interf: string): Interface|undefined {
