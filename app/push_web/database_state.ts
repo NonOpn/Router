@@ -28,12 +28,15 @@ export default class DatabaseStateProvider {
   private refreshing: Promise<void>|undefined;
 
   public async current(): Promise<DatabaseState> {
-    if(Date.now() - this.lastRefresh >= REFRESH_INTERVAL) {
-      if(!this.refreshing) {
-        this.refreshing = this.refresh().catch(() => {}).then(() => { this.refreshing = undefined; });
-      }
-      // never hold the ping for too long, the next ones will get the values
-      await Promise.race([this.refreshing, new Promise(resolve => setTimeout(resolve, REFRESH_TIMEOUT))]);
+    if(!this.refreshing && Date.now() - this.lastRefresh >= REFRESH_INTERVAL) {
+      this.refreshing = this.refresh().catch(() => {}).then(() => { this.refreshing = undefined; });
+    }
+
+    // the echo and the ping ask at the same time at startup : both wait for the same refresh,
+    // never holding them for too long, the next ones will get the values
+    const refreshing = this.refreshing;
+    if(refreshing) {
+      await Promise.race([refreshing, new Promise(resolve => setTimeout(resolve, REFRESH_TIMEOUT))]);
     }
     return this.state;
   }
